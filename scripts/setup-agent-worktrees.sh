@@ -3,7 +3,14 @@ set -euo pipefail
 
 ROOT="$(git rev-parse --show-toplevel)"
 PARENT="$(dirname "$ROOT")"
-REPO_NAME="$(basename "$ROOT")"
+ORIGIN_URL="$(git remote get-url origin)"
+REPO_NAME="$(basename "${ORIGIN_URL%.git}")"
+
+if [ -z "$REPO_NAME" ]; then
+  echo "Unable to determine repository name from origin remote URL: $ORIGIN_URL" >&2
+  exit 1
+fi
+
 CODEX_DIR="${PARENT}/${REPO_NAME}-codex"
 CLAUDE_DIR="${PARENT}/${REPO_NAME}-claude"
 
