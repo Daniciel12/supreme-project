@@ -5,8 +5,18 @@ if (-not $root) {
     throw "This script must be run from inside the Supreme Git repository."
 }
 
+$originUrl = (git remote get-url origin).Trim()
+if (-not $originUrl) {
+    throw "Unable to determine origin remote URL."
+}
+
+$originLeaf = ($originUrl -replace '\\', '/' -split '/')[-1]
+$repoName = [System.IO.Path]::GetFileNameWithoutExtension($originLeaf)
+if (-not $repoName) {
+    throw "Unable to determine repository name from origin remote URL: $originUrl"
+}
+
 $parent = Split-Path -Parent $root
-$repoName = Split-Path -Leaf $root
 $codexDir = Join-Path $parent "$repoName-codex"
 $claudeDir = Join-Path $parent "$repoName-claude"
 
