@@ -29,11 +29,9 @@ jobs:
           EVENT_ACTION: ${{ github.event.action }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
           PR_URL: ${{ github.event.pull_request.html_url }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
           MERGED: ${{ github.event.pull_request.merged }}
-          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
           CONCLUSION: ${{ github.event.workflow_run.conclusion }}
           WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
@@ -43,20 +41,131 @@ jobs:
             exit 0
           fi
 
+          extract_section() {
+            local heading="$1"
+            printf '%s\n' "${PR_BODY:-}" |
+              awk -v heading="$heading" '
+                $0 ~ "^##[[:space:]]+" heading "[[:space:]]*$" { found=1; next }
+                found && $0 ~ "^##[[:space:]]+" { exit }
+                found { print }
+              ' |
+              sed '/^[[:space:]]*<!--.*-->[[:space:]]*$/d; /^[[:space:]]*$/d'
+          }
+
           if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
-            if [ "$EVENT_ACTION" = "closed" ] && [ "$MERGED" = "true" ]; then
-              STATUS="MERGED"
-            else
-              STATUS="${EVENT_ACTION^^}"
+            SUMMARY="$(extract_section "Resumo para o time")"
+            IMPACT="$(extract_section "Impacto")"
+
+            if [ -z "$SUMMARY" ]; then
+              SUMMARY="$PR_TITLE"
             fi
 
-            MESSAGE="Supreme GitHub | PR #${PR_NUMBER} ${STATUS}\n${PR_TITLE}\n${HEAD_REF} -> ${BASE_REF}\n${PR_URL}"
+            if [ -z "$IMPACT" ]; then
+              IMPACT="Impacto ainda não informado no resumo do PR."
+            fi
+
+            SUMMARY="${SUMMARY:0:900}"
+            IMPACT="${IMPACT:0:700}"
+
+            if [ "$EVENT_ACTION" = "closed" ] && [ "$MERGED" = "true" ]; then
+              EMBED_TITLE="✅ Atualização concluída"
+              COLOR=5763719
+              NEXT_STEP="A mudança já foi incorporada ao projeto."
+            elif [ "$EVENT_ACTION" = "closed" ]; then
+              EMBED_TITLE="⏸️ Atualização encerrada"
+              COLOR=9807270
+              NEXT_STEP="Nenhuma mudança foi incorporada ao projeto por este PR."
+            elif [ "$EVENT_ACTION" = "ready_for_review" ]; then
+              EMBED_TITLE="👀 Atualização pronta para revisão"
+              COLOR=16776960
+              NEXT_STEP="A equipe técnica está revisando a mudança antes da conclusão."
+            elif [ "$EVENT_ACTION" = "reopened" ]; then
+              EMBED_TITLE="🔄 Atualização retomada"
+              COLOR=3447003
+              NEXT_STEP="O trabalho foi retomado e seguirá pelas validações técnicas."
+            else
+              EMBED_TITLE="🆕 Nova atualização em desenvolvimento"
+              COLOR=3447003
+              NEXT_STEP="A equipe técnica iniciou o trabalho e fará as validações antes de concluir."
+            fi
+
+            FOOTER="Supreme • PR #${PR_NUMBER} • ${PR_TITLE}"
+
+            PAYLOAD=$(jq -n \
+              --arg title "$EMBED_TITLE" \
+              --arg url "$PR_URL" \
+              --arg summary "$SUMMARY" \
+              --arg impact "$IMPACT" \
+              --arg next "$NEXT_STEP" \
+              --arg footer "$FOOTER" \
+              --argjson color "$COLOR" \
+              '{
+                allowed_mentions: {parse: []},
+                embeds: [{
+                  title: $title,
+                  url: $url,
+                  color: $color,
+                  fields: [
+                    {name: "O que mudou", value: $summary, inline: false},
+                    {name: "Impacto", value: $impact, inline: false},
+                    {name: "Próximo passo", value: $next, inline: false}
+                  ],
+                  footer: {text: $footer}
+                }]
+              }')
           else
-            MESSAGE="Supreme CI | ${WORKFLOW_NAME}: ${CONCLUSION^^}\nBranch: ${WORKFLOW_BRANCH}\n${RUN_URL}"
+            if [ "$CONCLUSION" = "success" ]; then
+              EMBED_TITLE="✅ Verificações automáticas aprovadas"
+              COLOR=5763719
+              SUMMARY="As verificações de qualidade passaram: banco de dados, lint, tipos, testes e build."
+              IMPACT="Nenhum bloqueio automático foi encontrado."
+              NEXT_STEP="A atualização pode seguir para a próxima etapa do processo da equipe."
+            elif [ "$CONCLUSION" = "failure" ]; then
+              EMBED_TITLE="❌ Verificações automáticas com falha"
+              COLOR=15548997
+              SUMMARY="Uma ou mais verificações técnicas falharam."
+              IMPACT="A atualização fica bloqueada até a correção do problema."
+              NEXT_STEP="A equipe técnica irá analisar a falha antes de seguir."
+            elif [ "$CONCLUSION" = "cancelled" ]; then
+              EMBED_TITLE="⚪ Verificação automática cancelada"
+              COLOR=9807270
+              SUMMARY="A execução das verificações foi cancelada antes de terminar."
+              IMPACT="Ainda não há uma validação final desta atualização."
+              NEXT_STEP="A equipe técnica pode executar as verificações novamente quando necessário."
+            else
+              EMBED_TITLE="ℹ️ Verificação automática concluída"
+              COLOR=3447003
+              SUMMARY="A execução automática terminou com status: ${CONCLUSION:-desconhecido}."
+              IMPACT="Consulte os detalhes técnicos para confirmar se existe algum bloqueio."
+              NEXT_STEP="A equipe técnica avaliará o resultado."
+            fi
+
+            FOOTER="Supreme • CI • ${WORKFLOW_BRANCH:-branch não informada}"
+
+            PAYLOAD=$(jq -n \
+              --arg title "$EMBED_TITLE" \
+              --arg url "$RUN_URL" \
+              --arg summary "$SUMMARY" \
+              --arg impact "$IMPACT" \
+              --arg next "$NEXT_STEP" \
+              --arg footer "$FOOTER" \
+              --argjson color "$COLOR" \
+              '{
+                allowed_mentions: {parse: []},
+                embeds: [{
+                  title: $title,
+                  url: $url,
+                  color: $color,
+                  fields: [
+                    {name: "Resultado", value: $summary, inline: false},
+                    {name: "Impacto", value: $impact, inline: false},
+                    {name: "Próximo passo", value: $next, inline: false}
+                  ],
+                  footer: {text: $footer}
+                }]
+              }')
           fi
 
-          MESSAGE="${MESSAGE:0:1900}"
-          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content: $content, allowed_mentions: {parse: []}}')
           curl --fail-with-body \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
