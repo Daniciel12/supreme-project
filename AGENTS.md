@@ -25,6 +25,8 @@ These rules apply to every coding agent working in this repository, including Co
 - Do not force-push shared branches unless the user explicitly requests it.
 - Prefer a pull request reviewed by an agent other than the implementing agent before merge.
 - Do not merge or deploy to production without explicit user authorization.
+- Every pull request must include `## Resumo para o time` and `## Impacto` sections in concise, non-technical Portuguese. These sections feed the team-facing Discord notifications.
+- Keep implementation details in the technical PR sections rather than putting jargon into the team summary.
 
 ### Security
 
