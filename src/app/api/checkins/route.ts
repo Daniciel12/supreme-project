@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkInPayloadSchema } from "@/lib/api-validation";
 
 // POST /api/checkins
 // Body: { habitId: string, date?: string (ISO), note?: string }
@@ -13,15 +14,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { habitId, date, note } = body;
+    const payload = checkInPayloadSchema.safeParse(await request.json());
 
-    if (!habitId) {
+    if (!payload.success) {
       return NextResponse.json(
-        { error: "Campo 'habitId' é obrigatório." },
+        { error: "Payload inválido." },
         { status: 400 }
       );
     }
+
+    const { habitId, date, note } = payload.data;
 
     const habit = await prisma.habit.findFirst({
       where: {
@@ -54,6 +56,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(checkIn, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     // P2002 = violação de constraint única (Prisma)
     const prismaError = error as { code?: string };
     if (prismaError?.code === "P2002") {
