@@ -59,13 +59,13 @@ const prisma = {
 };
 
 mock.module(new URL("../src/lib/prisma.ts", import.meta.url), {
-  exports: { prisma },
+  namedExports: { prisma },
 });
 mock.module(new URL("../src/lib/auth.ts", import.meta.url), {
-  exports: { authOptions: {} },
+  namedExports: { authOptions: {} },
 });
-mock.module("next-auth/next", { exports: { getServerSession } });
-mock.module("bcrypt", { exports: { default: { hash: bcryptHash } } });
+mock.module("next-auth/next", { namedExports: { getServerSession } });
+mock.module("bcrypt", { defaultExport: { hash: bcryptHash } });
 
 const { NextRequest } = await import("next/server");
 const { POST: register } = await import(
