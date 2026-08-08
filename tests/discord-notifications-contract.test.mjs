@@ -29,4 +29,14 @@ test("pull request template provides concise sections consumed by Discord", () =
   assert.match(template, /^## Impacto$/m);
   assert.match(template, /sem jargão técnico/i);
   assert.match(template, /1 ou 2 frases curtas/i);
+  assert.doesNotMatch(template, /Descreva aqui a mudança em linguagem simples/);
+  assert.doesNotMatch(template, /Descreva aqui o impacto esperado/);
+});
+
+test("Discord documentation matches the concise PR guidance", () => {
+  const documentation = read("docs/DISCORD_INTEGRATION.md");
+
+  assert.match(documentation, /1 ou 2 frases curtas/i);
+  assert.doesNotMatch(documentation, /1 a 3 frases/i);
+  assert.match(documentation, /without visible placeholder text/i);
 });
