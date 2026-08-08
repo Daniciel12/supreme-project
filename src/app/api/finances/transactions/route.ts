@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-const VALID_TYPES = ["INCOME", "EXPENSE"];
+import { createTransactionPayloadSchema } from "@/lib/api-validation";
 
 // GET /api/finances/transactions
 export async function GET() {
@@ -39,37 +38,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { accountId, title, type, amount, date, isPaid } = body;
+    const payload = createTransactionPayloadSchema.safeParse(
+      await request.json()
+    );
 
-    if (!accountId || !title || !type || amount == null) {
+    if (!payload.success) {
       return NextResponse.json(
-        {
-          error:
-            "Campos 'accountId', 'title', 'type' e 'amount' são obrigatórios.",
-        },
+        { error: "Payload inválido." },
         { status: 400 }
       );
     }
 
-    const normalizedType = String(type).toUpperCase();
-
-    if (!VALID_TYPES.includes(normalizedType)) {
-      return NextResponse.json(
-        { error: `'type' deve ser um de: ${VALID_TYPES.join(", ")}.` },
-        { status: 400 }
-      );
-    }
-
-    const amountNum = Number(amount);
-
-    if (Number.isNaN(amountNum)) {
-      return NextResponse.json(
-        { error: "'amount' deve ser um número válido." },
-        { status: 400 }
-      );
-    }
-
+    const { accountId, title, type, amount, date, isPaid } = payload.data;
     // Garante que a conta pertence ao usuário autenticado antes de vincular
     // a transação a ela.
     const account = await prisma.financialAccount.findFirst({
@@ -87,8 +67,8 @@ export async function POST(request: NextRequest) {
       data: {
         accountId,
         title,
-        type: normalizedType,
-        amount: amountNum,
+        type,
+        amount,
         date: date ? new Date(date) : new Date(),
         isPaid: isPaid ?? false,
         userId: session.user.id,
@@ -97,6 +77,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(transaction, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/finances/transactions]", error);
     return NextResponse.json(
       { error: "Erro ao criar transação." },

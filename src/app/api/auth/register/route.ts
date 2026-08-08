@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { registerPayloadSchema } from "@/lib/api-validation";
 
 const SALT_ROUNDS = 10;
 
@@ -8,23 +9,16 @@ const SALT_ROUNDS = 10;
 // Body: { email: string, password: string, name?: string }
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { email, password, name } = body;
+    const payload = registerPayloadSchema.safeParse(await request.json());
 
-    if (!email || !password) {
+    if (!payload.success) {
       return NextResponse.json(
-        { error: "Campos 'email' e 'password' são obrigatórios." },
+        { error: "Payload inválido." },
         { status: 400 }
       );
     }
 
-    if (String(password).length < 6) {
-      return NextResponse.json(
-        { error: "A senha deve ter pelo menos 6 caracteres." },
-        { status: 400 }
-      );
-    }
-
+    const { email, password, name } = payload.data;
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
@@ -49,6 +43,10 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/auth/register]", error);
     return NextResponse.json(
       { error: "Erro ao cadastrar usuário." },

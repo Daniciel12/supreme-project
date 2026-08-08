@@ -18,6 +18,38 @@ test("check-in creation verifies parent habit ownership before create", () => {
   assert.match(authorizationBlock, /status:\s*404/);
 });
 
+test("validation runs before ownership and does not replace it", () => {
+  const routes = [
+    {
+      path: "src/app/api/checkins/route.ts",
+      validation: "checkInPayloadSchema.safeParse",
+      ownership: "prisma.habit.findFirst",
+    },
+    {
+      path: "src/app/api/tasks/route.ts",
+      validation: "createTaskPayloadSchema.safeParse",
+      ownership: "prisma.goal.findFirst",
+    },
+    {
+      path: "src/app/api/finances/transactions/route.ts",
+      validation: "createTransactionPayloadSchema.safeParse",
+      ownership: "prisma.financialAccount.findFirst",
+    },
+  ];
+
+  for (const route of routes) {
+    const source = read(route.path);
+    const validationIndex = source.indexOf(route.validation);
+    const ownershipIndex = source.indexOf(route.ownership);
+    const createIndex = source.indexOf(".create(", ownershipIndex);
+
+    assert.notEqual(validationIndex, -1, "expected validation in " + route.path);
+    assert.ok(ownershipIndex > validationIndex, "ownership must follow validation in " + route.path);
+    assert.ok(createIndex > ownershipIndex, "create must follow ownership in " + route.path);
+    assert.match(source, /getServerSession\(authOptions\)/);
+    assert.match(source.slice(ownershipIndex, createIndex), /userId:\s*session\.user\.id/);
+  }
+});
 test("Next.js 16 proxy entrypoint is explicit and old middleware entrypoint is absent", () => {
   assert.equal(existsSync(new URL("../src/middleware.ts", import.meta.url)), false);
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createTaskPayloadSchema } from "@/lib/api-validation";
 
 // POST /api/tasks
 // Body: { title: string, goalId: string }
@@ -13,15 +14,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { title, goalId } = body;
+    const payload = createTaskPayloadSchema.safeParse(await request.json());
 
-    if (!title || !goalId) {
+    if (!payload.success) {
       return NextResponse.json(
-        { error: "Campos 'title' e 'goalId' são obrigatórios." },
+        { error: "Payload inválido." },
         { status: 400 }
       );
     }
+
+    const { title, goalId } = payload.data;
 
     // Garante que a meta pertence ao usuário autenticado antes de vincular
     // a tarefa a ela.
@@ -42,6 +44,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/tasks]", error);
     return NextResponse.json(
       { error: "Erro ao criar tarefa." },
