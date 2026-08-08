@@ -21,23 +21,51 @@ Claude project configuration lives in `.claude/settings.json`. It allows normal 
 
 These settings are guardrails, not a substitute for reviewing commands that request elevated permissions.
 
-## Initial local setup
+## Initial local setup on Windows / PowerShell
+
+The Supreme repository is currently being used from native Windows/PowerShell, so this is the preferred setup path.
+
+From the main clone:
+
+```powershell
+Set-Location C:\path\to\supreme-project
+git switch main
+git pull --ff-only origin main
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-agent-worktrees.ps1
+```
+
+No `chmod` step is required on Windows.
+
+The script creates sibling worktrees:
+
+```text
+supreme-project\        main working tree
+supreme-project-codex\  Codex workspace
+supreme-project-claude\ Claude workspace
+```
+
+Start the agents in separate PowerShell terminals:
+
+```powershell
+Set-Location ..\supreme-project-codex
+codex
+```
+
+```powershell
+Set-Location ..\supreme-project-claude
+claude
+```
+
+## Initial local setup on Linux / WSL / macOS
 
 From the main clone:
 
 ```bash
 cd /path/to/supreme-project
+git switch main
 git pull --ff-only origin main
 chmod +x scripts/setup-agent-worktrees.sh
 ./scripts/setup-agent-worktrees.sh
-```
-
-The script creates sibling worktrees:
-
-```text
-supreme-project/        main working tree
-supreme-project-codex/  Codex workspace
-supreme-project-claude/ Claude workspace
 ```
 
 Start the agents in separate terminals:
@@ -56,21 +84,23 @@ claude
 
 The permanent `codex/workspace` and `claude/workspace` branches are only bootstrap workspaces. For actual work, start each task from an up-to-date `origin/main`.
 
-Codex example:
+Codex example on PowerShell:
 
-```bash
-cd ../supreme-project-codex
+```powershell
+Set-Location ..\supreme-project-codex
 git fetch origin
 git switch -C codex/security-checkins origin/main
 ```
 
-Claude example:
+Claude example on PowerShell:
 
-```bash
-cd ../supreme-project-claude
+```powershell
+Set-Location ..\supreme-project-claude
 git fetch origin
 git switch -C claude/google-oauth origin/main
 ```
+
+The equivalent Git commands are the same on Linux/WSL/macOS.
 
 Do not assign the same task to both agents as implementers at the same time.
 
