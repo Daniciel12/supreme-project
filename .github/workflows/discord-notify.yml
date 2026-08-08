@@ -1,0 +1,63 @@
+name: Discord Notifications
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - ready_for_review
+      - closed
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+
+    steps:
+      - name: Send Discord update
+        shell: bash
+        env:
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
+          MERGED: ${{ github.event.pull_request.merged }}
+          WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          WORKFLOW_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+        run: |
+          if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
+            echo "DISCORD_WEBHOOK_URL is not configured; skipping notification."
+            exit 0
+          fi
+
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            if [ "$EVENT_ACTION" = "closed" ] && [ "$MERGED" = "true" ]; then
+              STATUS="MERGED"
+            else
+              STATUS="${EVENT_ACTION^^}"
+            fi
+
+            MESSAGE="Supreme GitHub | PR #${PR_NUMBER} ${STATUS}\n${PR_TITLE}\n${HEAD_REF} -> ${BASE_REF}\n${PR_URL}"
+          else
+            MESSAGE="Supreme CI | ${WORKFLOW_NAME}: ${CONCLUSION^^}\nBranch: ${WORKFLOW_BRANCH}\n${RUN_URL}"
+          fi
+
+          MESSAGE="${MESSAGE:0:1900}"
+          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content: $content, allowed_mentions: {parse: []}}')
+          curl --fail-with-body \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK_URL"
