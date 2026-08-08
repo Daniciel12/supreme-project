@@ -47,6 +47,19 @@ test("registration rejects invalid email", () => {
   );
 });
 
+test("registration bounds passwords to bcrypt's 72-byte limit", () => {
+  const registrationWithPassword = (password) =>
+    registerPayloadSchema.safeParse({
+      email: "daniel@example.com",
+      password,
+    }).success;
+
+  assert.equal(registrationWithPassword("valid-password"), true);
+  assert.equal(registrationWithPassword("a".repeat(72)), true);
+  assert.equal(registrationWithPassword("a".repeat(73)), false);
+  assert.equal(registrationWithPassword("á".repeat(37)), false);
+});
+
 test("valid payloads are accepted and normalized", () => {
   assert.equal(
     checkInPayloadSchema.safeParse({
