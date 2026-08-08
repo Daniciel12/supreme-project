@@ -55,7 +55,8 @@ jobs:
             MESSAGE="Supreme CI | ${WORKFLOW_NAME}: ${CONCLUSION^^}\nBranch: ${WORKFLOW_BRANCH}\n${RUN_URL}"
           fi
 
-          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content: $content}')
+          MESSAGE="${MESSAGE:0:1900}"
+          PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content: $content, allowed_mentions: {parse: []}}')
           curl --fail-with-body \
             -H "Content-Type: application/json" \
             -d "$PAYLOAD" \
