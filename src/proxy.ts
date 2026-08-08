@@ -1,6 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 
-const authProxy = withAuth();
+const authProxy = withAuth({});
 
 export function proxy(...args: Parameters<typeof authProxy>) {
   return authProxy(...args);
