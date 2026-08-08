@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { taskIdSchema } from "@/lib/api-validation";
 
 interface RouteContext {
   params: Promise<{ id: string }>;
@@ -16,7 +17,13 @@ export async function PATCH(_request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const { id } = await params;
+    const parsedId = taskIdSchema.safeParse((await params).id);
+
+    if (!parsedId.success) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
+    const id = parsedId.data;
 
     // Confere, via a meta relacionada, que a tarefa pertence ao usuário
     // autenticado antes de alterá-la.
