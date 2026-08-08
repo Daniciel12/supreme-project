@@ -10,7 +10,7 @@ Start with one private development channel:
 #supreme-dev
 ```
 
-Split into dedicated PR/CI/deploy channels only if message volume later justifies it.
+Use `Supreme Dev` as the webhook name so automated project updates remain easy to identify. Split into dedicated PR/CI/deploy channels only if message volume later justifies it.
 
 ## Create the Discord webhook
 
@@ -19,7 +19,7 @@ In Discord:
 1. Open the Supreme server.
 2. Open the target channel settings.
 3. Go to Integrations -> Webhooks.
-4. Create a webhook for `#supreme-dev`.
+4. Create a webhook named `Supreme Dev` for `#supreme-dev`.
 5. Copy the webhook URL.
 
 Treat the webhook URL as a secret. Do not paste it into issues, pull requests, prompts, source files, or committed `.env` files.
@@ -59,6 +59,7 @@ Messages include links back to GitHub so Discord remains an observability surfac
 - Discord cannot merge PRs, deploy production, or execute agent commands.
 - GitHub remains the source of truth.
 - The webhook secret exists only in GitHub Actions secrets (and Discord itself).
+- Event metadata is passed to shell steps through environment variables rather than interpolated directly into shell source.
 - Do not switch to `pull_request_target` merely to expose secrets to forked PRs; that event has a larger security surface.
 
 ## Future phases
