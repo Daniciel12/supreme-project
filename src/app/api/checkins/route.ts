@@ -23,6 +23,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const habit = await prisma.habit.findFirst({
+      where: {
+        id: habitId,
+        userId: session.user.id,
+      },
+      select: { id: true },
+    });
+
+    if (!habit) {
+      return NextResponse.json(
+        { error: "Hábito não encontrado." },
+        { status: 404 }
+      );
+    }
+
     // Normaliza para meia-noite UTC, já que CheckIn.date é @db.Date
     // e a constraint de unicidade é por (habitId, date).
     const checkInDate = date ? new Date(date) : new Date();
