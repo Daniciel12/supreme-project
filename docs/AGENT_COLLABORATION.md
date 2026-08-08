@@ -21,30 +21,44 @@ Claude project configuration lives in `.claude/settings.json`. It allows normal 
 
 These settings are guardrails, not a substitute for reviewing commands that request elevated permissions.
 
-## Initial local setup on Windows / PowerShell
+## Initial local setup
 
-The Supreme repository is currently being used from native Windows/PowerShell, so this is the preferred setup path.
+The setup scripts derive the worktree base name from the `origin` repository name, not from the local clone folder. For example, a local clone named `New Diana` whose remote is `Daniciel12/supreme-project` still creates `supreme-project-codex` and `supreme-project-claude`.
+
+### Windows / PowerShell
 
 From the main clone:
 
 ```powershell
-Set-Location C:\path\to\supreme-project
 git switch main
 git pull --ff-only origin main
 powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\setup-agent-worktrees.ps1
+git worktree list
 ```
 
-No `chmod` step is required on Windows.
+### Linux / WSL / macOS
 
-The script creates sibling worktrees:
+From the main clone:
+
+```bash
+git switch main
+git pull --ff-only origin main
+chmod +x scripts/setup-agent-worktrees.sh
+./scripts/setup-agent-worktrees.sh
+git worktree list
+```
+
+The scripts create sibling worktrees:
 
 ```text
-supreme-project\        main working tree
-supreme-project-codex\  Codex workspace
-supreme-project-claude\ Claude workspace
+<current-main-clone>/   main working tree
+supreme-project-codex/  Codex workspace
+supreme-project-claude/ Claude workspace
 ```
 
-Start the agents in separate PowerShell terminals:
+Start the agents in separate terminals.
+
+PowerShell:
 
 ```powershell
 Set-Location ..\supreme-project-codex
@@ -56,19 +70,7 @@ Set-Location ..\supreme-project-claude
 claude
 ```
 
-## Initial local setup on Linux / WSL / macOS
-
-From the main clone:
-
-```bash
-cd /path/to/supreme-project
-git switch main
-git pull --ff-only origin main
-chmod +x scripts/setup-agent-worktrees.sh
-./scripts/setup-agent-worktrees.sh
-```
-
-Start the agents in separate terminals:
+Bash:
 
 ```bash
 cd ../supreme-project-codex
@@ -84,23 +86,21 @@ claude
 
 The permanent `codex/workspace` and `claude/workspace` branches are only bootstrap workspaces. For actual work, start each task from an up-to-date `origin/main`.
 
-Codex example on PowerShell:
+Codex example:
 
-```powershell
-Set-Location ..\supreme-project-codex
+```bash
+cd ../supreme-project-codex
 git fetch origin
 git switch -C codex/security-checkins origin/main
 ```
 
-Claude example on PowerShell:
+Claude example:
 
-```powershell
-Set-Location ..\supreme-project-claude
+```bash
+cd ../supreme-project-claude
 git fetch origin
 git switch -C claude/google-oauth origin/main
 ```
-
-The equivalent Git commands are the same on Linux/WSL/macOS.
 
 Do not assign the same task to both agents as implementers at the same time.
 
