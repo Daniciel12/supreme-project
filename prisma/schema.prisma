@@ -1,0 +1,275 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// User
+// ---------------------------------------------------------------------------
+model User {
+  id        String   @id @default(cuid())
+  name      String?
+  email     String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  habits          Habit[]
+  checkIns        CheckIn[]
+  physicalRecords PhysicalRecord[]
+  workouts        Workout[]
+
+  // Módulo financeiro
+  financialAccounts FinancialAccount[]
+  transactions      Transaction[]
+
+  // Módulo Ordem no Caos
+  goals Goal[]
+  books Book[]
+
+  // Quadro de Visão
+  visionImages VisionImage[]
+
+  // Requeridos pelo PrismaAdapter do NextAuth
+  accounts Account[]
+  sessions Session[]
+
+  @@map("users")
+}
+
+// ---------------------------------------------------------------------------
+// Modelos estruturais do NextAuth (PrismaAdapter)
+// ---------------------------------------------------------------------------
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Habit (hábitos / rituais cadastrados pelo usuário)
+// ---------------------------------------------------------------------------
+model Habit {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  checkIns CheckIn[]
+
+  @@index([userId])
+  @@map("habits")
+}
+
+// ---------------------------------------------------------------------------
+// CheckIn (registro diário de conclusão de um hábito)
+// Regra: um único check-in por hábito por dia
+// ---------------------------------------------------------------------------
+model CheckIn {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  completed Boolean  @default(true)
+  note      String?
+  createdAt DateTime @default(now())
+
+  habitId String
+  habit   Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date], name: "habit_date_unique")
+  @@index([userId, date])
+  @@map("check_ins")
+}
+
+// ---------------------------------------------------------------------------
+// PhysicalRecord (histórico de peso / medidas / "shape")
+// ---------------------------------------------------------------------------
+model PhysicalRecord {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  weight      Float?
+  height      Float?
+  bodyFat     Float?
+  imc         Float?
+  shapeStatus String?
+  photoUrl    String?
+  notes       String?
+
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@map("physical_records")
+}
+
+// ---------------------------------------------------------------------------
+// Workout (treinos - "Forja do Templo")
+// ---------------------------------------------------------------------------
+model Workout {
+  id        String   @id @default(cuid())
+  name      String
+  dayOfWeek String
+  completed Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, dayOfWeek])
+  @@map("workouts")
+}
+
+// ---------------------------------------------------------------------------
+// Módulo financeiro
+// ---------------------------------------------------------------------------
+model FinancialAccount {
+  id      String @id @default(uuid())
+  name    String
+  type    String
+  balance Float
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  transactions Transaction[]
+
+  @@index([userId])
+  @@map("financial_accounts")
+}
+
+// type: "INCOME" ou "EXPENSE"
+model Transaction {
+  id     String   @id @default(uuid())
+  title  String
+  type   String
+  amount Float
+  date   DateTime
+  isPaid Boolean  @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  accountId String
+  account   FinancialAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+  @@index([accountId])
+  @@map("transactions")
+}
+
+// ---------------------------------------------------------------------------
+// Módulo Ordem no Caos
+// ---------------------------------------------------------------------------
+model Goal {
+  id          String    @id @default(uuid())
+  title       String
+  category    String
+  isCompleted Boolean   @default(false)
+  deadline    DateTime?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tasks Task[]
+
+  @@index([userId, category])
+  @@map("goals")
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  isCompleted Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  goalId String
+  goal   Goal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  @@index([goalId])
+  @@map("tasks")
+}
+
+// ---------------------------------------------------------------------------
+// Quadro de Visão
+// ---------------------------------------------------------------------------
+model VisionImage {
+  id        String   @id @default(uuid())
+  imageUrl  String
+  createdAt DateTime @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("vision_images")
+}
+
+model Book {
+  id         String @id @default(uuid())
+  title      String
+  author     String
+  totalPages Int
+  readPages  Int    @default(0)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("books")
+}
