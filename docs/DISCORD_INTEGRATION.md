@@ -21,14 +21,14 @@ Every pull request should contain these sections:
 ```markdown
 ## Resumo para o time
 
-Explique em 1 a 3 frases, sem jargão técnico, o que muda e por que isso importa.
+Explique em 1 ou 2 frases curtas, sem jargão técnico, o que muda e por que isso importa.
 
 ## Impacto
 
-Explique o efeito esperado para usuários, operação, segurança ou equipe.
+Explique em 1 ou 2 frases curtas o efeito esperado para usuários, operação, segurança ou equipe.
 ```
 
-The repository template at `.github/pull_request_template.md` provides these fields automatically for manually created PRs.
+The repository template at `.github/pull_request_template.md` provides these headings and guidance as HTML comments, without visible placeholder text that could accidentally be published to Discord.
 
 The Discord workflow extracts `Resumo para o time` and `Impacto` from the PR body. If the summary is absent, it falls back to the PR title. Missing impact is shown explicitly instead of inventing information.
 
@@ -44,9 +44,9 @@ Pull request events are translated to human-readable Portuguese messages:
 
 CI results are simplified to:
 
-- success -> **Verificações automáticas aprovadas**;
-- failure -> **Verificações automáticas com falha**;
-- cancelled -> **Verificação automática cancelada**.
+- success -> **Verificações aprovadas**;
+- failure -> **Verificações com problema**;
+- cancelled -> **Verificações canceladas**.
 
 The CI message explains the operational consequence instead of exposing individual command names as the primary content.
 
