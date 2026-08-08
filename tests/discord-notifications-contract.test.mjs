@@ -13,15 +13,20 @@ test("Discord notifications prioritize team-friendly Portuguese summaries", () =
   assert.match(workflow, /Nova atualização em desenvolvimento/);
   assert.match(workflow, /Atualização pronta para revisão/);
   assert.match(workflow, /Atualização concluída/);
-  assert.match(workflow, /Verificações automáticas aprovadas/);
+  assert.match(workflow, /Verificações aprovadas/);
+  assert.match(workflow, /Supreme • Atualização #\$\{PR_NUMBER\}/);
+  assert.match(workflow, /Supreme • Verificação automática/);
+  assert.doesNotMatch(workflow, /FOOTER="Supreme • PR/);
+  assert.doesNotMatch(workflow, /FOOTER="Supreme • CI/);
   assert.match(workflow, /embeds:/);
   assert.match(workflow, /allowed_mentions/);
 });
 
-test("pull request template provides the sections consumed by Discord", () => {
+test("pull request template provides concise sections consumed by Discord", () => {
   const template = read(".github/pull_request_template.md");
 
   assert.match(template, /^## Resumo para o time$/m);
   assert.match(template, /^## Impacto$/m);
   assert.match(template, /sem jargão técnico/i);
+  assert.match(template, /1 ou 2 frases curtas/i);
 });
