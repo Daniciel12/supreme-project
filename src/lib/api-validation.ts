@@ -1,11 +1,14 @@
 import { z } from "zod";
 
-const dateSchema = z.iso.date();
+const isoDateSchema = z.union([
+  z.iso.date(),
+  z.iso.datetime({ offset: true }),
+]);
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 
 export const checkInPayloadSchema = z.strictObject({
   habitId: z.cuid(),
-  date: dateSchema.optional(),
+  date: isoDateSchema.optional(),
   note: z.string().trim().max(1000).optional(),
 });
 
@@ -24,7 +27,7 @@ export const createTransactionPayloadSchema = z.strictObject({
     .transform((value) => value.toUpperCase())
     .pipe(z.enum(["INCOME", "EXPENSE"])),
   amount: z.number().finite(),
-  date: dateSchema.optional(),
+  date: isoDateSchema.optional(),
   isPaid: z.boolean().optional(),
 });
 

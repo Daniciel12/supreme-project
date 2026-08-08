@@ -81,3 +81,51 @@ test("valid payloads are accepted and normalized", () => {
   assert.equal(registration.email, "DANIEL@EXAMPLE.COM");
   assert.equal(registration.name, "");
 });
+
+test("check-in and transaction accept ISO dates and timezone-aware datetimes", () => {
+  const dates = [
+    "2026-08-08",
+    "2026-08-08T15:30:00.000Z",
+    "2026-08-08T15:30:00+03:00",
+  ];
+
+  for (const date of dates) {
+    assert.equal(
+      checkInPayloadSchema.safeParse({
+        habitId: "cm12345678901234567890123",
+        date,
+      }).success,
+      true
+    );
+    assert.equal(
+      createTransactionPayloadSchema.safeParse({
+        accountId: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Compra",
+        type: "expense",
+        amount: 10.5,
+        date,
+      }).success,
+      true
+    );
+  }
+
+  for (const date of ["2026-02-30", "not-a-date"]) {
+    assert.equal(
+      checkInPayloadSchema.safeParse({
+        habitId: "cm12345678901234567890123",
+        date,
+      }).success,
+      false
+    );
+    assert.equal(
+      createTransactionPayloadSchema.safeParse({
+        accountId: "550e8400-e29b-41d4-a716-446655440000",
+        title: "Compra",
+        type: "expense",
+        amount: 10.5,
+        date,
+      }).success,
+      false
+    );
+  }
+});
