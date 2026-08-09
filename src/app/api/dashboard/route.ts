@@ -15,7 +15,8 @@ function moneyToCents(value: DecimalLike | null | undefined) {
   const negative = raw.startsWith("-");
   const unsigned = negative ? raw.slice(1) : raw;
   const [whole = "0", fraction = ""] = unsigned.split(".");
-  const cents = BigInt(whole || "0") * 100n + BigInt((fraction + "00").slice(0, 2));
+  const cents =
+    BigInt(whole || "0") * 100n + BigInt((fraction + "00").slice(0, 2));
 
   return negative ? -cents : cents;
 }
@@ -27,13 +28,11 @@ function centsToNumber(value: bigint) {
 function dateContext(date: string) {
   const [year, month, day] = date.split("-").map(Number);
   const dayStart = new Date(Date.UTC(year, month - 1, day));
-  const nextDay = new Date(Date.UTC(year, month - 1, day + 1));
   const monthStart = new Date(Date.UTC(year, month - 1, 1));
   const monthEnd = new Date(Date.UTC(year, month, 1));
 
   return {
     dayStart,
-    nextDay,
     monthStart,
     monthEnd,
     dayOfWeek: DAY_KEYS[dayStart.getUTCDay()],
@@ -58,8 +57,7 @@ export async function GET(request: NextRequest) {
 
     const userId = session.user.id;
     const date = parsedDate.data;
-    const { dayStart, nextDay, monthStart, monthEnd, dayOfWeek } =
-      dateContext(date);
+    const { dayStart, monthStart, monthEnd, dayOfWeek } = dateContext(date);
 
     const [
       habits,
