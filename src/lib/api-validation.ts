@@ -88,6 +88,12 @@ export const createTransactionPayloadSchema = z.strictObject({
   isPaid: z.boolean().optional(),
 });
 
+export const transactionIdSchema = z.uuid();
+
+export const updateTransactionStatusPayloadSchema = z.strictObject({
+  isPaid: z.boolean(),
+});
+
 export const registerPayloadSchema = z.strictObject({
   email: z.string().email().max(254),
   password: passwordSchema,
