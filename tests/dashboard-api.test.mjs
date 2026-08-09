@@ -152,7 +152,12 @@ test("dashboard aggregates only the authenticated user's data", async () => {
     },
   ];
   workoutFindMany.implementation = async () => [
-    { id: "workout-1", name: "Corrida", completed: false, notes: null },
+    {
+      id: "workout-1",
+      name: "Corrida",
+      notes: null,
+      completions: [{ id: "completion-1" }],
+    },
   ];
   physicalRecordFindFirst.implementation = async () => ({
     id: "record-1",
@@ -184,6 +189,7 @@ test("dashboard aggregates only the authenticated user's data", async () => {
   assert.equal(body.today.habits[1].checkedToday, false);
   assert.equal(body.today.pendingTasks[0].goal.id, "goal-1");
   assert.equal(body.today.workouts[0].name, "Corrida");
+  assert.equal(body.today.workouts[0].completed, true);
   assert.equal(body.finances.balance, 1250.05);
   assert.equal(body.finances.monthlyIncome, 200);
   assert.equal(body.finances.monthlyExpense, 40);
@@ -197,6 +203,9 @@ test("dashboard aggregates only the authenticated user's data", async () => {
   assert.equal(goalFindMany.calls[0][0].where.userId, USER_ID);
   assert.equal(workoutFindMany.calls[0][0].where.userId, USER_ID);
   assert.equal(workoutFindMany.calls[0][0].where.dayOfWeek, "DOM");
+  assert.deepEqual(workoutFindMany.calls[0][0].select.completions.where, {
+    date: new Date("2026-08-09T00:00:00.000Z"),
+  });
   assert.equal(physicalRecordFindFirst.calls[0][0].where.userId, USER_ID);
   assert.equal(financialAccountAggregate.calls[0][0].where.userId, USER_ID);
   for (const [args] of transactionAggregate.calls) {

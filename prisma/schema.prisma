@@ -25,10 +25,11 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  habits          Habit[]
-  checkIns        CheckIn[]
-  physicalRecords PhysicalRecord[]
-  workouts        Workout[]
+  habits             Habit[]
+  checkIns           CheckIn[]
+  physicalRecords    PhysicalRecord[]
+  workouts           Workout[]
+  workoutCompletions WorkoutCompletion[]
 
   // Módulo financeiro
   financialAccounts FinancialAccount[]
@@ -173,8 +174,28 @@ model Workout {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  completions WorkoutCompletion[]
+
   @@index([userId, dayOfWeek])
   @@map("workouts")
+}
+
+// Execução diária de um template de treino.
+// Workout.completed é legado; a fonte de verdade diária é esta relação.
+model WorkoutCompletion {
+  id        String   @id @default(cuid())
+  date      DateTime @db.Date
+  createdAt DateTime @default(now())
+
+  workoutId String
+  workout   Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([workoutId, date], name: "workout_date_unique")
+  @@index([userId, date])
+  @@map("workout_completions")
 }
 
 // ---------------------------------------------------------------------------
