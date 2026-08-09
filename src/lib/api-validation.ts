@@ -55,10 +55,23 @@ function normalizeFinancialAccountType(value: string) {
 
 export const dashboardDateSchema = z.iso.date();
 
+export const createHabitPayloadSchema = z.strictObject({
+  name: requiredText(120),
+  description: z.string().trim().max(500).optional(),
+  icon: z.string().trim().max(64).optional(),
+  color: z.string().trim().max(64).optional(),
+});
+
 export const checkInPayloadSchema = z.strictObject({
   habitId: z.cuid(),
   date: isoDateSchema.optional(),
   note: z.string().trim().max(1000).optional(),
+});
+
+export const createGoalPayloadSchema = z.strictObject({
+  title: requiredText(200),
+  category: requiredText(80),
+  deadline: z.iso.date().optional(),
 });
 
 export const createTaskPayloadSchema = z.strictObject({
@@ -67,6 +80,10 @@ export const createTaskPayloadSchema = z.strictObject({
 });
 
 export const taskIdSchema = z.uuid();
+
+export const updateTaskStatusPayloadSchema = z.strictObject({
+  isCompleted: z.boolean(),
+});
 
 export const createFinancialAccountPayloadSchema = z.strictObject({
   name: requiredText(100),
