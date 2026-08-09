@@ -560,6 +560,32 @@ svg {
   color: var(--color-text-muted);
 }
 
+.oauth-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  border-top: 1px solid var(--color-border);
+}
+
+.oauth-button {
+  width: 100%;
+}
+
 .link-button {
   background: none;
   border: none;

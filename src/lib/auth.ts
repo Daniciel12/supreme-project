@@ -1,31 +1,22 @@
-import { NextAuthOptions } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
 
-// NOTE: o Route Handler do App Router (src/app/api/auth/[...nextauth]/route.ts)
-// só pode exportar métodos HTTP, então a configuração do NextAuth vive aqui
-// e é importada tanto pelo handler quanto por getServerSession() nas outras rotas.
+interface AuthEnvironment {
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
+}
 
-export const authOptions: NextAuthOptions = {
-  // O @auth/prisma-adapter tipa seu parâmetro contra o PrismaClient clássico
-  // de "@prisma/client". Como o projeto usa o novo gerador do Prisma 7 com
-  // output customizado (src/generated/prisma), o client é estruturalmente
-  // compatível (mesmos delegates: user, account, session, verificationToken),
-  // mas a origem do tipo difere — por isso o cast abaixo.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  adapter: PrismaAdapter(prisma as any),
-
-  session: {
-    strategy: "jwt",
-  },
-
-  pages: {
-    signIn: "/login",
-  },
-
-  providers: [
+export function createAuthOptions(
+  environment: AuthEnvironment = {
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  }
+): NextAuthOptions {
+  const providers: NextAuthOptions["providers"] = [
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -41,7 +32,7 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         });
 
-        if (!user) {
+        if (!user?.password) {
           return null;
         }
 
@@ -61,24 +52,48 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
-  ],
+  ];
 
-  callbacks: {
-    async jwt({ token, user }) {
-      // No login, 'user' vem do authorize(); NextAuth já usa user.id como
-      // token.sub por padrão, mas fixamos explicitamente aqui.
-      if (user) {
-        token.sub = user.id;
-      }
-      return token;
+  if (environment.GOOGLE_CLIENT_ID && environment.GOOGLE_CLIENT_SECRET) {
+    providers.push(
+      GoogleProvider({
+        clientId: environment.GOOGLE_CLIENT_ID,
+        clientSecret: environment.GOOGLE_CLIENT_SECRET,
+      })
+    );
+  }
+
+  return {
+    // Prisma 7 uses a custom generated client whose runtime delegates are
+    // compatible with the adapter, despite the distinct generated type.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    adapter: PrismaAdapter(prisma as any),
+
+    session: {
+      strategy: "jwt",
     },
-    async session({ session, token }) {
-      // token.sub é o "subject" padrão do JWT — injetamos como id em
-      // session.user para uso nas rotas via getServerSession().
-      if (session.user && token.sub) {
-        session.user.id = token.sub;
-      }
-      return session;
+
+    pages: {
+      signIn: "/login",
     },
-  },
-};
+
+    providers,
+
+    callbacks: {
+      async jwt({ token, user }) {
+        if (user) {
+          token.sub = user.id;
+        }
+        return token;
+      },
+      async session({ session, token }) {
+        if (session.user && token.sub) {
+          session.user.id = token.sub;
+        }
+        return session;
+      },
+    },
+  };
+}
+
+export const authOptions = createAuthOptions();

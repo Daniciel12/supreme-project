@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, FormEvent } from "react";
-import { signIn } from "next-auth/react";
+import { useEffect, useState, FormEvent } from "react";
+import { getProviders, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
 type Mode = "login" | "register";
@@ -15,6 +15,27 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [googleAvailable, setGoogleAvailable] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+
+    void getProviders()
+      .then((providers) => {
+        if (active) {
+          setGoogleAvailable(Boolean(providers?.google));
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setGoogleAvailable(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function authenticate() {
     const result = await signIn("credentials", {
@@ -64,6 +85,19 @@ export default function LoginPage() {
     } catch (err) {
       console.error("Erro ao cadastrar", err);
       setError("Erro ao cadastrar.");
+      setLoading(false);
+    }
+  }
+
+  async function handleGoogleLogin() {
+    setError(null);
+    setLoading(true);
+
+    try {
+      await signIn("google", { callbackUrl: "/" });
+    } catch (err) {
+      console.error("Erro ao autenticar com Google", err);
+      setError("Não foi possível entrar com Google.");
       setLoading(false);
     }
   }
@@ -124,6 +158,22 @@ export default function LoginPage() {
                 : "Cadastrar"}
             </button>
           </form>
+
+          {googleAvailable && (
+            <div className="oauth-section">
+              <div className="auth-divider">
+                <span>ou</span>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline oauth-button"
+                disabled={loading}
+                onClick={handleGoogleLogin}
+              >
+                Continuar com Google
+              </button>
+            </div>
+          )}
 
           <p className="auth-footer">
             {mode === "login" ? (

@@ -17,11 +17,13 @@ datasource db {
 // ---------------------------------------------------------------------------
 model User {
   id        String   @id @default(cuid())
-  name      String?
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   habits          Habit[]
   checkIns        CheckIn[]
