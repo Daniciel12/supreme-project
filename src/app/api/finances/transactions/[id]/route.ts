@@ -56,7 +56,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     const updatedTransaction = await prisma.transaction.update({
-      where: { id: parsedId.data },
+      where: { id: parsedId.data, userId: session.user.id },
       data: { isPaid: payload.data.isPaid },
     });
 

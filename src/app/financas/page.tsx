@@ -13,6 +13,18 @@ import {
   PageHeader,
   Select,
 } from "@/components/ui";
+import {
+  ACCOUNT_TYPE_LABELS,
+  ACCOUNT_TYPES,
+  filterFinanceTransactions,
+  formatTransactionDate,
+  localDateKey,
+  summarizeTransactionsForMonth,
+  transactionStatusRequest,
+  type FinanceTransaction,
+  type TransactionStatusFilter,
+  type TransactionTypeFilter,
+} from "@/lib/finance-view";
 import styles from "./finances.module.css";
 
 interface FinancialAccount {
@@ -23,31 +35,9 @@ interface FinancialAccount {
   balance: number;
 }
 
-interface Transaction {
-  id: string;
+interface Transaction extends FinanceTransaction {
   title: string;
-  type: "INCOME" | "EXPENSE";
-  amount: number;
-  date: string;
-  isPaid: boolean;
-  accountId: string;
 }
-
-type TransactionStatusFilter = "ALL" | "PAID" | "PENDING";
-type TransactionTypeFilter = "ALL" | "INCOME" | "EXPENSE";
-
-const ACCOUNT_TYPES = [
-  { value: "CHECKING", label: "Conta corrente" },
-  { value: "SAVINGS", label: "Poupança" },
-  { value: "CASH", label: "Dinheiro / carteira" },
-  { value: "INVESTMENT", label: "Investimentos" },
-  { value: "CREDIT", label: "Cartão de crédito" },
-  { value: "OTHER", label: "Outra" },
-] as const;
-
-const ACCOUNT_TYPE_LABELS = Object.fromEntries(
-  ACCOUNT_TYPES.map((type) => [type.value, type.label])
-) as Record<string, string>;
 
 const brlFormatter = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -56,20 +46,6 @@ const brlFormatter = new Intl.NumberFormat("pt-BR", {
 
 function formatBRL(value: number) {
   return brlFormatter.format(value);
-}
-
-function localDateKey() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-function formatTransactionDate(value: string) {
-  return new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" }).format(
-    new Date(value)
-  );
 }
 
 async function fetchAccounts() {
@@ -110,7 +86,7 @@ export default function FinancasPage() {
   const [transactionAccountId, setTransactionAccountId] = useState("");
   const [transactionDate, setTransactionDate] = useState(localDateKey);
   const [transactionStatus, setTransactionStatus] = useState<"PAID" | "PENDING">(
-    "PAID"
+    "PENDING"
   );
   const [savingTransaction, setSavingTransaction] = useState(false);
   const [transactionError, setTransactionError] = useState<string | null>(null);
@@ -164,45 +140,17 @@ export default function FinancasPage() {
   );
 
   const currentMonthKey = localDateKey().slice(0, 7);
-  const monthlySummary = useMemo(() => {
-    const currentMonthTransactions = transactions.filter((transaction) =>
-      transaction.date.startsWith(currentMonthKey)
-    );
-    const paid = currentMonthTransactions.filter((transaction) => transaction.isPaid);
-    const pending = currentMonthTransactions.filter(
-      (transaction) => !transaction.isPaid
-    );
-
-    return {
-      income: paid
-        .filter((transaction) => transaction.type === "INCOME")
-        .reduce((sum, transaction) => sum + transaction.amount, 0),
-      expense: paid
-        .filter((transaction) => transaction.type === "EXPENSE")
-        .reduce((sum, transaction) => sum + transaction.amount, 0),
-      pendingCount: pending.length,
-      pendingIncome: pending
-        .filter((transaction) => transaction.type === "INCOME")
-        .reduce((sum, transaction) => sum + transaction.amount, 0),
-      pendingExpense: pending
-        .filter((transaction) => transaction.type === "EXPENSE")
-        .reduce((sum, transaction) => sum + transaction.amount, 0),
-    };
-  }, [currentMonthKey, transactions]);
+  const monthlySummary = useMemo(
+    () => summarizeTransactionsForMonth(transactions, currentMonthKey),
+    [currentMonthKey, transactions]
+  );
 
   const filteredTransactions = useMemo(
     () =>
-      transactions.filter((transaction) => {
-        const statusMatches =
-          statusFilter === "ALL" ||
-          (statusFilter === "PAID" && transaction.isPaid) ||
-          (statusFilter === "PENDING" && !transaction.isPaid);
-        const typeMatches =
-          typeFilter === "ALL" || transaction.type === typeFilter;
-        const accountMatches =
-          accountFilter === "ALL" || transaction.accountId === accountFilter;
-
-        return statusMatches && typeMatches && accountMatches;
+      filterFinanceTransactions(transactions, {
+        status: statusFilter,
+        type: typeFilter,
+        accountId: accountFilter,
       }),
     [accountFilter, statusFilter, transactions, typeFilter]
   );
@@ -305,7 +253,7 @@ export default function FinancasPage() {
       setTransactionTitle("");
       setTransactionAmount("");
       setTransactionDate(localDateKey());
-      setTransactionStatus("PAID");
+      setTransactionStatus("PENDING");
       setShowTransactionForm(false);
 
       if (data.isPaid) {
@@ -324,14 +272,8 @@ export default function FinancasPage() {
     setUpdatingTransactionId(transaction.id);
 
     try {
-      const response = await fetch(
-        `/api/finances/transactions/${transaction.id}`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ isPaid: !transaction.isPaid }),
-        }
-      );
+      const request = transactionStatusRequest(transaction);
+      const response = await fetch(request.url, request.init);
       const data = await response.json();
 
       if (!response.ok) {
@@ -661,7 +603,7 @@ export default function FinancasPage() {
                   }
                 >
                   <option value="ALL">Todos</option>
-                  <option value="PAID">Realizados</option>
+                  <option value="PAID">Pagas</option>
                   <option value="PENDING">Pendentes</option>
                 </Select>
               </FormField>
@@ -736,7 +678,7 @@ export default function FinancasPage() {
                             {transaction.type === "INCOME" ? "Receita" : "Despesa"}
                           </Badge>
                           <Badge tone={transaction.isPaid ? "success" : "warning"}>
-                            {transaction.isPaid ? "Realizado" : "Pendente"}
+                            {transaction.isPaid ? "Pago" : "Pendente"}
                           </Badge>
                         </div>
                         <strong className={styles.transactionTitle}>
@@ -762,10 +704,13 @@ export default function FinancasPage() {
                           variant="outline"
                           size="sm"
                           isLoading={updatingTransactionId === transaction.id}
+                          disabled={updatingTransactionId !== null}
                           loadingLabel="Atualizando..."
                           onClick={() => handleToggleTransactionStatus(transaction)}
                         >
-                          {transaction.isPaid ? "Reabrir" : "Marcar como pago"}
+                          {transaction.isPaid
+                            ? "Marcar como pendente"
+                            : "Marcar como pago"}
                         </Button>
                       </div>
                     </li>

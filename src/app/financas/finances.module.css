@@ -30,6 +30,7 @@
   font-size: clamp(1.5rem, 3vw, 2rem);
   line-height: 1.1;
   letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .metricHint {
@@ -124,6 +125,7 @@
 
 .accountBalance strong {
   font-size: var(--font-size-lg);
+  overflow-wrap: anywhere;
 }
 
 .accountBalance span {
@@ -186,6 +188,7 @@
 
 .transactionAside > strong {
   font-size: var(--font-size-lg);
+  overflow-wrap: anywhere;
 }
 
 @media (max-width: 1100px) {

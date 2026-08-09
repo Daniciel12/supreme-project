@@ -120,21 +120,48 @@ test("finance transaction status rejects an invalid payload before Prisma", asyn
   assert.equal(transactionUpdate.calls.length, 0);
 });
 
-test("finance transaction status returns 404 when transaction is not owned", async () => {
+test("finance transaction status rejects extra payload fields", async () => {
+  authenticate();
+  const response = await updateTransactionStatus(
+    request({ isPaid: true, title: "Injected" }),
+    context()
+  );
+  await bodyWithStatus(response, 400);
+  assert.equal(transactionFindFirst.calls.length, 0);
+  assert.equal(transactionUpdate.calls.length, 0);
+});
+
+test("finance transaction status returns 404 for a missing transaction", async () => {
   authenticate();
   transactionFindFirst.implementation = async () => null;
 
   const response = await updateTransactionStatus(request({ isPaid: true }), context());
-  await bodyWithStatus(response, 404);
+  const body = await bodyWithStatus(response, 404);
 
   assert.deepEqual(transactionFindFirst.calls[0][0], {
     where: { id: TRANSACTION_ID, userId: USER_ID },
     select: { id: true },
   });
+  assert.deepEqual(body, { error: "Transação não encontrada." });
   assert.equal(transactionUpdate.calls.length, 0);
 });
 
-test("finance transaction status updates only an owned transaction", async () => {
+test("finance transaction status rejects another user's transaction as not found", async () => {
+  authenticate("user-2");
+  transactionFindFirst.implementation = async () => null;
+
+  const response = await updateTransactionStatus(request({ isPaid: true }), context());
+  const body = await bodyWithStatus(response, 404);
+
+  assert.deepEqual(transactionFindFirst.calls[0][0], {
+    where: { id: TRANSACTION_ID, userId: "user-2" },
+    select: { id: true },
+  });
+  assert.deepEqual(body, { error: "Transação não encontrada." });
+  assert.equal(transactionUpdate.calls.length, 0);
+});
+
+function prepareOwnedTransaction() {
   authenticate();
   transactionFindFirst.implementation = async () => ({ id: TRANSACTION_ID });
   transactionUpdate.implementation = async ({ data }) => ({
@@ -147,16 +174,34 @@ test("finance transaction status updates only an owned transaction", async () =>
     accountId: "a53bd3f0-bdf0-4f86-9a48-3cbfdf915277",
     userId: USER_ID,
   });
+}
+
+test("finance transaction status marks an owned transaction as paid", async () => {
+  prepareOwnedTransaction();
 
   const response = await updateTransactionStatus(request({ isPaid: true }), context());
   const body = await bodyWithStatus(response, 200);
 
   assert.deepEqual(transactionUpdate.calls[0][0], {
-    where: { id: TRANSACTION_ID },
+    where: { id: TRANSACTION_ID, userId: USER_ID },
     data: { isPaid: true },
   });
   assert.equal(body.amount, 850.4);
   assert.equal(body.isPaid, true);
+});
+
+test("finance transaction status returns an owned transaction to pending", async () => {
+  prepareOwnedTransaction();
+
+  const response = await updateTransactionStatus(request({ isPaid: false }), context());
+  const body = await bodyWithStatus(response, 200);
+
+  assert.deepEqual(transactionUpdate.calls[0][0], {
+    where: { id: TRANSACTION_ID, userId: USER_ID },
+    data: { isPaid: false },
+  });
+  assert.equal(body.amount, 850.4);
+  assert.equal(body.isPaid, false);
 });
 
 test("finance transaction status hides internal errors", async (t) => {
