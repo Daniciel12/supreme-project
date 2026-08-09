@@ -1,6 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState, FormEvent } from "react";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  FormField,
+  Input,
+  LoadingState,
+  PageHeader,
+  Select,
+} from "@/components/ui";
 
 interface FinancialAccount {
   id: string;
@@ -33,6 +45,8 @@ export default function FinancasPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [accountsLoadError, setAccountsLoadError] = useState(false);
+  const [transactionsLoadError, setTransactionsLoadError] = useState(false);
 
   // --- Nova conta ---
   const [showAccountForm, setShowAccountForm] = useState(false);
@@ -61,8 +75,10 @@ export default function FinancasPage() {
         const res = await fetch("/api/finances/accounts");
         const data = await res.json();
         if (res.ok) setAccounts(data);
+        else setAccountsLoadError(true);
       } catch (err) {
         console.error("Erro ao carregar contas", err);
+        setAccountsLoadError(true);
       } finally {
         setLoadingAccounts(false);
       }
@@ -73,8 +89,10 @@ export default function FinancasPage() {
         const res = await fetch("/api/finances/transactions");
         const data = await res.json();
         if (res.ok) setTransactions(data);
+        else setTransactionsLoadError(true);
       } catch (err) {
         console.error("Erro ao carregar transações", err);
+        setTransactionsLoadError(true);
       } finally {
         setLoadingTransactions(false);
       }
@@ -208,58 +226,81 @@ export default function FinancasPage() {
   return (
     <main className="main-content">
       <div className="container">
+        <PageHeader
+          eyebrow="Finanças"
+          title="Visão financeira"
+          description="Acompanhe saldos e lançamentos sem perder a distinção entre o que está pago e pendente."
+          actions={<Badge tone="accent">Valores em BRL</Badge>}
+        />
         {/* Seção 1 — Visão Geral */}
         <div className="finance-overview">
-          <div className="card stat-card">
+          <Card className="stat-card">
             <span className="stat-label">Saldo Total</span>
             <span className="stat-value">
-              {loadingAccounts ? "—" : formatBRL(totalBalance)}
+              {loadingAccounts || accountsLoadError
+                ? "—"
+                : formatBRL(totalBalance)}
             </span>
-          </div>
-          <div className="card stat-card">
+          </Card>
+          <Card className="stat-card">
             <span className="stat-label">Receitas do Mês</span>
             <span className="stat-value text-success">
-              {loadingTransactions ? "—" : formatBRL(monthlyIncome)}
+              {loadingTransactions || transactionsLoadError
+                ? "—"
+                : formatBRL(monthlyIncome)}
             </span>
-          </div>
-          <div className="card stat-card">
+          </Card>
+          <Card className="stat-card">
             <span className="stat-label">Despesas do Mês</span>
             <span className="stat-value text-danger">
-              {loadingTransactions ? "—" : formatBRL(monthlyExpense)}
+              {loadingTransactions || transactionsLoadError
+                ? "—"
+                : formatBRL(monthlyExpense)}
             </span>
-          </div>
+          </Card>
         </div>
 
         {/* Seção 2 — Gestão */}
         <div className="finance-section-grid">
           {/* Minha Carteira */}
-          <div className="card">
+          <Card>
             <div className="card-header">
               <h2 className="card-title">Minha Carteira</h2>
-              <button
-                type="button"
-                className="btn btn-outline"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowAccountForm((v) => !v)}
               >
                 {showAccountForm ? "Fechar" : "+ Nova conta"}
-              </button>
+              </Button>
             </div>
 
             {loadingAccounts ? (
-              <p className="empty-state">Carregando contas...</p>
+              <LoadingState title="Carregando contas..." />
+            ) : accountsLoadError ? (
+              <ErrorState
+                title="Não foi possível carregar as contas"
+                description="Seus dados permanecem seguros. Tente atualizar a página."
+              />
             ) : accounts.length === 0 ? (
-              <p className="empty-state">
-                Nenhuma conta cadastrada ainda. Crie a primeira abaixo.
-              </p>
+              <EmptyState
+                title="Nenhuma conta cadastrada"
+                description="Crie sua primeira conta para começar a acompanhar seus saldos."
+                action={
+                  !showAccountForm ? (
+                    <Button size="sm" onClick={() => setShowAccountForm(true)}>
+                      Criar conta
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               <ul className="wallet-list">
                 {accounts.map((account) => (
                   <li key={account.id} className="wallet-item">
                     <div>
                       <div className="wallet-item-name">{account.name}</div>
-                      <span className="badge badge--accent">
-                        {account.type}
-                      </span>
+                      <Badge tone="accent">{account.type}</Badge>
                     </div>
                     <span className="wallet-item-balance">
                       {formatBRL(account.balance)}
@@ -273,63 +314,86 @@ export default function FinancasPage() {
               <div className="inline-toggle-panel">
                 <form className="form" onSubmit={handleCreateAccount}>
                   <div className="form-row">
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="Nome da conta"
-                      value={accountName}
-                      onChange={(e) => setAccountName(e.target.value)}
-                    />
-                    <input
-                      type="text"
-                      className="input"
-                      placeholder="Tipo (ex: Corrente)"
-                      value={accountType}
-                      onChange={(e) => setAccountType(e.target.value)}
-                    />
+                    <FormField label="Nome da conta" htmlFor="account-name">
+                      <Input
+                        id="account-name"
+                        type="text"
+                        placeholder="Ex: Conta principal"
+                        value={accountName}
+                        onChange={(e) => setAccountName(e.target.value)}
+                        disabled={savingAccount}
+                      />
+                    </FormField>
+                    <FormField label="Tipo" htmlFor="account-type">
+                      <Input
+                        id="account-type"
+                        type="text"
+                        placeholder="Ex: Corrente"
+                        value={accountType}
+                        onChange={(e) => setAccountType(e.target.value)}
+                        disabled={savingAccount}
+                      />
+                    </FormField>
                   </div>
-                  <input
-                    type="number"
-                    step="0.01"
-                    className="input"
-                    placeholder="Saldo inicial (R$)"
-                    value={accountBalance}
-                    onChange={(e) => setAccountBalance(e.target.value)}
-                  />
+                  <FormField label="Saldo inicial (R$)" htmlFor="account-balance">
+                    <Input
+                      id="account-balance"
+                      type="number"
+                      step="0.01"
+                      inputMode="decimal"
+                      placeholder="0,00"
+                      value={accountBalance}
+                      onChange={(e) => setAccountBalance(e.target.value)}
+                      disabled={savingAccount}
+                    />
+                  </FormField>
                   {accountError && (
                     <p className="error-text">{accountError}</p>
                   )}
-                  <button
+                  <Button
                     type="submit"
-                    className="btn btn-primary"
-                    disabled={savingAccount}
+                    isLoading={savingAccount}
+                    loadingLabel="Salvando..."
                   >
-                    {savingAccount ? "Salvando..." : "Salvar conta"}
-                  </button>
+                    Salvar conta
+                  </Button>
                 </form>
               </div>
             )}
-          </div>
+          </Card>
 
           {/* Últimas Transações */}
-          <div className="card">
+          <Card>
             <div className="card-header">
               <h2 className="card-title">Últimas Transações</h2>
-              <button
-                type="button"
-                className="btn btn-outline"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setShowTransactionForm((v) => !v)}
               >
                 {showTransactionForm ? "Fechar" : "+ Nova transação"}
-              </button>
+              </Button>
             </div>
 
             {loadingTransactions ? (
-              <p className="empty-state">Carregando transações...</p>
+              <LoadingState title="Carregando transações..." />
+            ) : transactionsLoadError ? (
+              <ErrorState
+                title="Não foi possível carregar as transações"
+                description="Tente atualizar a página em alguns instantes."
+              />
             ) : transactions.length === 0 ? (
-              <p className="empty-state">
-                Nenhuma transação lançada ainda. Crie a primeira abaixo.
-              </p>
+              <EmptyState
+                title="Nenhuma transação lançada"
+                description="Adicione um lançamento quando tiver uma conta cadastrada."
+                action={
+                  accounts.length > 0 && !showTransactionForm ? (
+                    <Button size="sm" onClick={() => setShowTransactionForm(true)}>
+                      Nova transação
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               <ul className="transaction-list">
                 {transactions.map((tx) => (
@@ -357,65 +421,78 @@ export default function FinancasPage() {
             {showTransactionForm && (
               <div className="inline-toggle-panel">
                 <form className="form" onSubmit={handleCreateTransaction}>
-                  <input
-                    type="text"
-                    className="input"
-                    placeholder="Título (ex: Salário, Aluguel)"
-                    value={transactionTitle}
-                    onChange={(e) => setTransactionTitle(e.target.value)}
-                  />
-                  <div className="form-row">
-                    <select
-                      className="input"
-                      value={transactionType}
-                      onChange={(e) =>
-                        setTransactionType(
-                          e.target.value as "INCOME" | "EXPENSE"
-                        )
-                      }
-                    >
-                      <option value="EXPENSE">Despesa</option>
-                      <option value="INCOME">Receita</option>
-                    </select>
-                    <input
-                      type="number"
-                      step="0.01"
-                      className="input"
-                      placeholder="Valor (R$)"
-                      value={transactionAmount}
-                      onChange={(e) => setTransactionAmount(e.target.value)}
+                  <FormField label="Título" htmlFor="transaction-title">
+                    <Input
+                      id="transaction-title"
+                      type="text"
+                      placeholder="Ex: Salário, aluguel"
+                      value={transactionTitle}
+                      onChange={(e) => setTransactionTitle(e.target.value)}
+                      disabled={savingTransaction}
                     />
+                  </FormField>
+                  <div className="form-row">
+                    <FormField label="Tipo" htmlFor="transaction-type">
+                      <Select
+                        id="transaction-type"
+                        value={transactionType}
+                        onChange={(e) =>
+                          setTransactionType(
+                            e.target.value as "INCOME" | "EXPENSE"
+                          )
+                        }
+                        disabled={savingTransaction}
+                      >
+                        <option value="EXPENSE">Despesa</option>
+                        <option value="INCOME">Receita</option>
+                      </Select>
+                    </FormField>
+                    <FormField label="Valor (R$)" htmlFor="transaction-amount">
+                      <Input
+                        id="transaction-amount"
+                        type="number"
+                        step="0.01"
+                        inputMode="decimal"
+                        placeholder="0,00"
+                        value={transactionAmount}
+                        onChange={(e) => setTransactionAmount(e.target.value)}
+                        disabled={savingTransaction}
+                      />
+                    </FormField>
                   </div>
-                  <select
-                    className="input"
-                    value={selectedAccountId}
-                    onChange={(e) => setTransactionAccountId(e.target.value)}
-                    disabled={accounts.length === 0}
-                  >
-                    {accounts.length === 0 ? (
-                      <option value="">Cadastre uma conta primeiro</option>
-                    ) : (
-                      accounts.map((account) => (
-                        <option key={account.id} value={account.id}>
-                          {account.name}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                  <FormField label="Conta" htmlFor="transaction-account">
+                    <Select
+                      id="transaction-account"
+                      value={selectedAccountId}
+                      onChange={(e) => setTransactionAccountId(e.target.value)}
+                      disabled={accounts.length === 0 || savingTransaction}
+                    >
+                      {accounts.length === 0 ? (
+                        <option value="">Cadastre uma conta primeiro</option>
+                      ) : (
+                        accounts.map((account) => (
+                          <option key={account.id} value={account.id}>
+                            {account.name}
+                          </option>
+                        ))
+                      )}
+                    </Select>
+                  </FormField>
                   {transactionError && (
                     <p className="error-text">{transactionError}</p>
                   )}
-                  <button
+                  <Button
                     type="submit"
-                    className="btn btn-primary"
-                    disabled={savingTransaction || accounts.length === 0}
+                    disabled={accounts.length === 0}
+                    isLoading={savingTransaction}
+                    loadingLabel="Salvando..."
                   >
-                    {savingTransaction ? "Salvando..." : "Lançar transação"}
-                  </button>
+                    Lançar transação
+                  </Button>
                 </form>
               </div>
             )}
-          </div>
+          </Card>
         </div>
       </div>
     </main>
