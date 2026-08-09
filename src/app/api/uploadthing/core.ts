@@ -27,7 +27,13 @@ export const ourFileRouter = {
         },
       });
 
-      return { image };
+      return {
+        image: {
+          id: image.id,
+          imageUrl: image.imageUrl,
+          createdAt: image.createdAt.toISOString(),
+        },
+      };
     }),
 } satisfies FileRouter;
 
