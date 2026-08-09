@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createHabitPayloadSchema } from "@/lib/api-validation";
 
-// GET /api/habits
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     const habits = await prisma.habit.findMany({
-      where: { userId: session.user.id },
+      where: { userId: session.user.id, active: true },
       orderBy: { createdAt: "desc" },
     });
 
@@ -27,7 +27,6 @@ export async function GET() {
   }
 }
 
-// POST /api/habits
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -36,22 +35,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, description, icon, color } = body;
+    const payload = createHabitPayloadSchema.safeParse(await request.json());
 
-    if (!name) {
-      return NextResponse.json(
-        { error: "Campo 'name' é obrigatório." },
-        { status: 400 }
-      );
+    if (!payload.success) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
     const habit = await prisma.habit.create({
-      data: { name, description, icon, color, userId: session.user.id },
+      data: {
+        ...payload.data,
+        userId: session.user.id,
+      },
     });
 
     return NextResponse.json(habit, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/habits]", error);
     return NextResponse.json(
       { error: "Erro ao criar hábito." },
