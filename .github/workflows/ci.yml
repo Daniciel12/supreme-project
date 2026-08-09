@@ -30,8 +30,9 @@ jobs:
 
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/supreme_ci?schema=public
-      NEXTAUTH_SECRET: supreme-ci-only-secret
+      NEXTAUTH_SECRET: supreme-ci-only-secret-with-more-than-thirty-two-characters
       NEXTAUTH_URL: http://localhost:3000
+      UPLOADTHING_TOKEN: supreme-ci-uploadthing-placeholder
 
     steps:
       - name: Checkout
@@ -66,3 +67,35 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Build production Docker targets
+        run: |
+          docker build --target migrator -t supreme-migrator-ci .
+          docker build --target runner -t supreme-app-ci .
+
+      - name: Smoke Docker readiness
+        run: |
+          docker run --rm --network host \
+            -e DATABASE_URL \
+            supreme-migrator-ci
+
+          docker run -d --name supreme-app-ci --network host \
+            -e DATABASE_URL \
+            -e NEXTAUTH_URL \
+            -e NEXTAUTH_SECRET \
+            -e UPLOADTHING_TOKEN \
+            supreme-app-ci
+
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error http://127.0.0.1:3000/api/health/ready; then
+              exit 0
+            fi
+            sleep 1
+          done
+
+          docker logs supreme-app-ci
+          exit 1
+
+      - name: Stop Docker smoke container
+        if: always()
+        run: docker rm --force supreme-app-ci 2>/dev/null || true
