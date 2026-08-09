@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createPhysicalRecordPayloadSchema } from "@/lib/api-validation";
 
 // height é esperado em metros (ex: 1.78), conforme fórmula padrão de IMC.
 function calculateImc(weight: number, height: number): number {
@@ -13,6 +14,10 @@ function getShapeStatus(imc: number): string {
   if (imc < 25.0) return "Shape em dia";
   if (imc < 30.0) return "Sobrepeso leve";
   return "Foco na saúde";
+}
+
+function utcDate(date: string) {
+  return new Date(`${date}T00:00:00.000Z`);
 }
 
 // GET /api/physical-records
@@ -40,7 +45,6 @@ export async function GET() {
 }
 
 // POST /api/physical-records
-// Body: { weight: number, height: number, notes?: string, photoUrl?: string, date?: string }
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -49,44 +53,36 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { weight, height, notes, photoUrl, date } = body;
+    const payload = createPhysicalRecordPayloadSchema.safeParse(await request.json());
 
-    if (weight == null || height == null) {
-      return NextResponse.json(
-        { error: "Campos 'weight' e 'height' são obrigatórios." },
-        { status: 400 }
-      );
+    if (!payload.success) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
-    const weightNum = Number(weight);
-    const heightNum = Number(height);
-
-    if (Number.isNaN(weightNum) || Number.isNaN(heightNum) || heightNum <= 0) {
-      return NextResponse.json(
-        { error: "'weight' e 'height' devem ser números válidos (height > 0)." },
-        { status: 400 }
-      );
-    }
-
-    const imc = calculateImc(weightNum, heightNum);
+    const { weight, height, bodyFat, notes, photoUrl, date } = payload.data;
+    const imc = calculateImc(weight, height);
     const shapeStatus = getShapeStatus(imc);
 
     const record = await prisma.physicalRecord.create({
       data: {
         userId: session.user.id,
-        weight: weightNum,
-        height: heightNum,
+        weight,
+        height,
+        bodyFat,
         imc,
         shapeStatus,
         notes,
         photoUrl,
-        ...(date ? { date: new Date(date) } : {}),
+        ...(date ? { date: utcDate(date) } : {}),
       },
     });
 
     return NextResponse.json(record, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/physical-records]", error);
     return NextResponse.json(
       { error: "Erro ao criar registro físico." },
