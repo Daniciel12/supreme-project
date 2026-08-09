@@ -324,9 +324,11 @@ test("task creation links only an owned goal", async () => {
   assert.equal(body.id, TASK_ID);
 });
 
-function taskPatchRequest(id = TASK_ID) {
+function taskPatchRequest(id = TASK_ID, payload = { isCompleted: true }) {
   return new NextRequest(`http://localhost/api/tasks/${id}`, {
     method: "PATCH",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload),
   });
 }
 
@@ -357,26 +359,25 @@ test("task update returns 404 outside ownership", async () => {
   await responseBody(response, 404);
   assert.deepEqual(taskFindFirst.calls[0][0], {
     where: { id: TASK_ID, goal: { userId: USER_ID } },
+    select: { id: true },
   });
   assert.equal(taskUpdate.calls.length, 0);
 });
 
 test("task update changes only a task owned by the session user", async () => {
   authenticate();
-  taskFindFirst.implementation = async () => ({
-    id: TASK_ID,
-    isCompleted: false,
-  });
+  taskFindFirst.implementation = async () => ({ id: TASK_ID });
   taskUpdate.implementation = async ({ data }) => ({
     id: TASK_ID,
     isCompleted: data.isCompleted,
   });
-  const response = await updateTask(taskPatchRequest(), {
+  const response = await updateTask(taskPatchRequest(TASK_ID, { isCompleted: true }), {
     params: Promise.resolve({ id: TASK_ID }),
   });
   const body = await responseBody(response, 200);
   assert.deepEqual(taskFindFirst.calls[0][0], {
     where: { id: TASK_ID, goal: { userId: USER_ID } },
+    select: { id: true },
   });
   assert.deepEqual(taskUpdate.calls[0][0], {
     where: { id: TASK_ID },
