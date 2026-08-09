@@ -43,6 +43,11 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Refresh lockfile for dependency override
+        run: |
+          npm install --package-lock-only --ignore-scripts
+          git diff -- package-lock.json
+
       - name: Install dependencies
         run: npm ci
 
