@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate:
@@ -36,6 +36,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -47,10 +49,18 @@ jobs:
         run: npm install --global npm@11.18.0
 
       - name: Refresh lockfile for dependency override
+        run: npm install --package-lock-only --ignore-scripts
+
+      - name: Persist refreshed lockfile
+        if: github.event_name == 'pull_request' && github.head_ref == 'codex/preproduction-hardening'
         run: |
-          npm install --package-lock-only --ignore-scripts
-          git diff --stat -- package-lock.json
-          git diff -- package-lock.json
+          if ! git diff --quiet -- package-lock.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add package-lock.json
+            git commit -m "chore: refresh lockfile for Effect security override"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
 
       - name: Install dependencies
         run: npm ci
