@@ -118,8 +118,12 @@ export async function GET(request: NextRequest) {
         select: {
           id: true,
           name: true,
-          completed: true,
           notes: true,
+          completions: {
+            where: { date: dayStart },
+            select: { id: true },
+            take: 1,
+          },
         },
       }),
       prisma.physicalRecord.findFirst({
@@ -181,6 +185,11 @@ export async function GET(request: NextRequest) {
       (habit) => habit.checkedToday
     ).length;
 
+    const dashboardWorkouts = workouts.map(({ completions, ...workout }) => ({
+      ...workout,
+      completed: completions.length > 0,
+    }));
+
     const dashboardGoals = goals.map(({ tasks, deadline, ...goal }) => {
       const totalTasks = tasks.length;
       const completedTasks = tasks.filter((task) => task.isCompleted).length;
@@ -211,7 +220,7 @@ export async function GET(request: NextRequest) {
           habitsCompleted,
           habitsTotal: dashboardHabits.length,
           pendingTasks,
-          workouts,
+          workouts: dashboardWorkouts,
         },
         finances: {
           balance: centsToNumber(currentBalanceCents),
