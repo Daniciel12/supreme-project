@@ -174,11 +174,12 @@ test("proxy and Next config expose health while keeping standalone output", () =
   assert.match(config, /output: "standalone"/);
 });
 
-test("Docker runtime is non-root and health-checks readiness", () => {
+test("Docker runtime is non-root, OpenSSL-ready and health-checks readiness", () => {
   const dockerfile = read("Dockerfile");
   const dockerignore = read(".dockerignore");
 
-  assert.match(dockerfile, /FROM node:22-bookworm-slim AS runner/);
+  assert.match(dockerfile, /apt-get install[^\n]*ca-certificates openssl/);
+  assert.match(dockerfile, /FROM base AS runner/);
   assert.match(dockerfile, /USER nextjs/);
   assert.match(dockerfile, /api\/health\/ready/);
   assert.match(dockerfile, /CMD \["node", "server\.js"\]/);
