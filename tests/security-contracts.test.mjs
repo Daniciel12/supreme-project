@@ -50,11 +50,14 @@ test("validation runs before ownership and does not replace it", () => {
     assert.match(source.slice(ownershipIndex, createIndex), /userId:\s*session\.user\.id/);
   }
 });
-test("Next.js 16 proxy entrypoint is explicit and old middleware entrypoint is absent", () => {
+
+test("Next.js 16 proxy entrypoint is explicit and only public boundaries bypass auth", () => {
   assert.equal(existsSync(new URL("../src/middleware.ts", import.meta.url)), false);
 
   const source = read("src/proxy.ts");
   assert.match(source, /export function proxy/);
-  assert.match(source, /api\/auth\|login/);
+  assert.match(source, /api\/auth/);
+  assert.match(source, /api\/health/);
+  assert.match(source, /login/);
   assert.match(source, /withAuth/);
 });
