@@ -22,6 +22,7 @@ export const financialAccountTypes = [
 ] as const;
 
 export const transactionTypes = ["INCOME", "EXPENSE"] as const;
+export const workoutDays = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"] as const;
 
 function normalizeFinancialAccountType(value: string) {
   const normalized = value
@@ -83,6 +84,31 @@ export const taskIdSchema = z.uuid();
 
 export const updateTaskStatusPayloadSchema = z.strictObject({
   isCompleted: z.boolean(),
+});
+
+export const createWorkoutPayloadSchema = z.strictObject({
+  name: requiredText(120),
+  dayOfWeek: z
+    .string()
+    .transform((value) => value.trim().toUpperCase())
+    .pipe(z.enum(workoutDays)),
+  notes: z.string().trim().max(1000).optional(),
+});
+
+export const workoutIdSchema = z.cuid();
+
+export const workoutCompletionPayloadSchema = z.strictObject({
+  date: z.iso.date(),
+  completed: z.boolean(),
+});
+
+export const createPhysicalRecordPayloadSchema = z.strictObject({
+  weight: z.number().finite().positive().max(500),
+  height: z.number().finite().min(0.5).max(2.8),
+  bodyFat: z.number().finite().min(1).max(80).optional(),
+  notes: z.string().trim().max(2000).optional(),
+  photoUrl: z.url().max(2048).optional(),
+  date: z.iso.date().optional(),
 });
 
 export const createFinancialAccountPayloadSchema = z.strictObject({
