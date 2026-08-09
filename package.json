@@ -36,11 +36,6 @@
     "typescript": "^5"
   },
   "overrides": {
-    "@uploadthing/shared": {
-      "effect": "3.20.0"
-    },
-    "uploadthing": {
-      "effect": "3.20.0"
-    }
+    "effect": "3.20.0"
   }
 }
