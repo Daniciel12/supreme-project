@@ -1,16 +1,33 @@
+import { getToken } from "next-auth/jwt";
 import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { UploadThingError } from "uploadthing/server";
+import { prisma } from "@/lib/prisma";
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
-  // Alterado de 'imageUploader' para 'visionImageUploader' para bater com o frontend
   visionImageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
-    .middleware(async () => {
-      return { status: "ok" };
+    .middleware(async ({ req }) => {
+      const token = await getToken({
+        req,
+        secret: process.env.NEXTAUTH_SECRET,
+      });
+
+      if (!token?.sub) {
+        throw new UploadThingError("Não autenticado.");
+      }
+
+      return { userId: token.sub };
     })
-    .onUploadComplete(async ({ file }) => {
-      console.log("Upload concluído com sucesso:", file.url);
-      return { url: file.url };
+    .onUploadComplete(async ({ metadata, file }) => {
+      const image = await prisma.visionImage.create({
+        data: {
+          imageUrl: file.ufsUrl,
+          userId: metadata.userId,
+        },
+      });
+
+      return { image };
     }),
 } satisfies FileRouter;
 
