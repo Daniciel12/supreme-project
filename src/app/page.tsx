@@ -1,6 +1,17 @@
 "use client";
 
 import { useEffect, useState, FormEvent } from "react";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  FormField,
+  Input,
+  LoadingState,
+  PageHeader,
+} from "@/components/ui";
 
 interface Habit {
   id: string;
@@ -14,6 +25,7 @@ interface Habit {
 export default function Home() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [loadingHabits, setLoadingHabits] = useState(true);
+  const [habitsLoadError, setHabitsLoadError] = useState(false);
   const [checkedIn, setCheckedIn] = useState<Set<string>>(new Set());
   const [checkinError, setCheckinError] = useState<string | null>(null);
 
@@ -33,9 +45,12 @@ export default function Home() {
         const data = await res.json();
         if (res.ok) {
           setHabits(data);
+        } else {
+          setHabitsLoadError(true);
         }
       } catch (err) {
         console.error("Erro ao carregar hábitos", err);
+        setHabitsLoadError(true);
       } finally {
         setLoadingHabits(false);
       }
@@ -108,25 +123,37 @@ export default function Home() {
   return (
     <main className="main-content">
       <div className="container">
+        <PageHeader
+          eyebrow="Rotina"
+          title="Seu dia começa aqui"
+          description="Acompanhe sua consistência e mantenha os hábitos importantes em movimento."
+          actions={<Badge tone="success">Rotina ativa</Badge>}
+        />
         <div className="dashboard-grid">
           {/* Coluna esquerda — ofensiva */}
-          <div className="card streak-card">
+          <Card className="streak-card" aria-label="Sequência atual">
             <span className="streak-number">{streak}</span>
             <span className="streak-label">
               {streak === 1 ? "dia consecutivo" : "dias consecutivos"}
             </span>
-          </div>
+          </Card>
 
           {/* Coluna direita — hábitos diários */}
-          <div className="card">
+          <Card>
             <h2 className="card-title">Hábitos Diários</h2>
 
             {loadingHabits ? (
-              <p className="empty-state">Carregando hábitos...</p>
+              <LoadingState title="Carregando hábitos..." />
+            ) : habitsLoadError ? (
+              <ErrorState
+                title="Não foi possível carregar seus hábitos"
+                description="Tente atualizar a página em alguns instantes."
+              />
             ) : habits.length === 0 ? (
-              <p className="empty-state">
-                Nenhum hábito cadastrado ainda. Crie o primeiro abaixo.
-              </p>
+              <EmptyState
+                title="Nenhum hábito cadastrado"
+                description="Crie seu primeiro hábito no formulário abaixo para começar."
+              />
             ) : (
               <ul className="habit-list">
                 {habits.map((habit) => {
@@ -141,14 +168,14 @@ export default function Home() {
                           </div>
                         )}
                       </div>
-                      <button
-                        type="button"
-                        className={`habit-checkin-btn${isDone ? " done" : ""}`}
+                      <Button
+                        variant={isDone ? "secondary" : "outline"}
+                        size="sm"
                         onClick={() => handleCheckIn(habit.id)}
                         disabled={isDone}
                       >
                         {isDone ? "Feito hoje" : "Check-in"}
-                      </button>
+                      </Button>
                     </li>
                   );
                 })}
@@ -159,31 +186,41 @@ export default function Home() {
 
             <form className="form" onSubmit={handleCreateHabit}>
               <div className="form-row">
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Nome do hábito"
-                  value={newHabitName}
-                  onChange={(e) => setNewHabitName(e.target.value)}
-                />
-                <input
-                  type="text"
-                  className="input"
-                  placeholder="Descrição (opcional)"
-                  value={newHabitDescription}
-                  onChange={(e) => setNewHabitDescription(e.target.value)}
-                />
+                <FormField label="Nome do hábito" htmlFor="habit-name">
+                  <Input
+                    id="habit-name"
+                    type="text"
+                    placeholder="Ex: Ler por 20 minutos"
+                    value={newHabitName}
+                    onChange={(e) => setNewHabitName(e.target.value)}
+                    disabled={creatingHabit}
+                  />
+                </FormField>
+                <FormField
+                  label="Descrição"
+                  htmlFor="habit-description"
+                  hint="Opcional"
+                >
+                  <Input
+                    id="habit-description"
+                    type="text"
+                    placeholder="Como você quer praticar?"
+                    value={newHabitDescription}
+                    onChange={(e) => setNewHabitDescription(e.target.value)}
+                    disabled={creatingHabit}
+                  />
+                </FormField>
               </div>
               {formError && <p className="error-text">{formError}</p>}
-              <button
+              <Button
                 type="submit"
-                className="btn btn-primary"
-                disabled={creatingHabit}
+                isLoading={creatingHabit}
+                loadingLabel="Adicionando..."
               >
-                {creatingHabit ? "Adicionando..." : "Adicionar hábito"}
-              </button>
+                Adicionar hábito
+              </Button>
             </form>
-          </div>
+          </Card>
         </div>
       </div>
     </main>
