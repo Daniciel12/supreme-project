@@ -44,6 +44,24 @@ test("Next.js config applies the security header baseline", () => {
 test("CI blocks high-severity dependency findings", () => {
   const workflow = read(".github/workflows/ci.yml");
   assert.match(workflow, /npm audit --audit-level=high/);
+  assert.match(workflow, /permissions:\s*\n\s*contents: read/);
+  assert.doesNotMatch(workflow, /git push|contents: write|package-lock-only/);
+});
+
+test("Effect security override removes vulnerable UploadThing copies", () => {
+  const manifest = JSON.parse(read("package.json"));
+  const lock = JSON.parse(read("package-lock.json"));
+
+  assert.equal(manifest.overrides?.effect, "3.20.0");
+  assert.equal(lock.packages?.["node_modules/effect"]?.version, "3.20.0");
+  assert.equal(
+    lock.packages?.["node_modules/@uploadthing/shared/node_modules/effect"],
+    undefined
+  );
+  assert.equal(
+    lock.packages?.["node_modules/uploadthing/node_modules/effect"],
+    undefined
+  );
 });
 
 test("environment template documents required keys without real secrets", () => {
