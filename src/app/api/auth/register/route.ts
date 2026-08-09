@@ -21,9 +21,17 @@ export async function POST(request: NextRequest) {
 
     const { email, password, name } = payload.data;
 
-    // Hash before attempting persistence so the duplicate-email path performs
-    // comparable password work instead of exposing an obvious fast lookup path.
+    // Perform the expensive password work before the duplicate-email lookup so
+    // the conflict path does not become an obvious fast account-enumeration path.
     const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+
+    if (existingUser) {
+      return NextResponse.json(
+        { error: REGISTRATION_CONFLICT_ERROR },
+        { status: 400 }
+      );
+    }
 
     const user = await prisma.user.create({
       data: {
@@ -42,6 +50,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
+    // Cover the race where another request creates the same unique email after
+    // the lookup but before this request reaches user.create().
     const prismaError = error as { code?: string };
     if (prismaError?.code === "P2002") {
       return NextResponse.json(
