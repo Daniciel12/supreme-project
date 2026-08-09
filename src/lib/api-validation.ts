@@ -53,6 +53,8 @@ function normalizeFinancialAccountType(value: string) {
   return "OTHER";
 }
 
+export const dashboardDateSchema = z.iso.date();
+
 export const checkInPayloadSchema = z.strictObject({
   habitId: z.cuid(),
   date: isoDateSchema.optional(),

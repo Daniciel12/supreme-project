@@ -1,5 +1,6 @@
 export const applicationNavigation = [
   { href: "/", label: "Início", shortLabel: "IN" },
+  { href: "/habitos", label: "Hábitos", shortLabel: "HA" },
   { href: "/financas", label: "Finanças", shortLabel: "FI" },
   { href: "/metas", label: "Metas", shortLabel: "ME" },
   { href: "/treinos", label: "Treinos", shortLabel: "TR" },
