@@ -43,9 +43,13 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Use npm 11 for lockfile refresh
+        run: npm install --global npm@11.18.0
+
       - name: Refresh lockfile for dependency override
         run: |
           npm install --package-lock-only --ignore-scripts
+          git diff --stat -- package-lock.json
           git diff -- package-lock.json
 
       - name: Install dependencies
