@@ -13,7 +13,6 @@ function serializeTransaction<T extends { amount: { toString(): string } }>(
   };
 }
 
-// GET /api/finances/transactions
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -39,8 +38,6 @@ export async function GET() {
   }
 }
 
-// POST /api/finances/transactions
-// Body: { accountId: string, title: string, type: "INCOME" | "EXPENSE", amount: number, date?: string, isPaid?: boolean }
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -60,7 +57,6 @@ export async function POST(request: NextRequest) {
     const { accountId, title, type, amount, date, isPaid } = payload.data;
     const account = await prisma.financialAccount.findFirst({
       where: { id: accountId, userId: session.user.id },
-      select: { id: true },
     });
 
     if (!account) {
