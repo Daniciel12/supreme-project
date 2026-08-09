@@ -157,3 +157,37 @@ test("smoke harness fails closed when required operator credentials are absent",
   assert.equal(result.code, 2);
   assert.match(result.stderr, /SMOKE_EMAIL|SMOKE_PASSWORD/);
 });
+
+test("Docker baseline keeps migrations separate and runtime non-root", () => {
+  const dockerfile = read("Dockerfile");
+  const compose = read("compose.production.example.yml");
+  const nextConfig = read("next.config.ts");
+  const workflow = read(".github/workflows/docker.yml");
+  const dockerignore = read(".dockerignore");
+
+  assert.match(nextConfig, /output: "standalone"/);
+  assert.match(dockerfile, /FROM node:22-bookworm-slim AS base/);
+  assert.match(dockerfile, /FROM base AS migrator/);
+  assert.match(dockerfile, /FROM base AS runner/);
+  assert.match(dockerfile, /USER nextjs/);
+  assert.match(dockerfile, /CMD \["node", "server\.js"\]/);
+  assert.match(dockerfile, /HEALTHCHECK[\s\S]*\/api\/health/);
+  assert.match(dockerfile, /ENTRYPOINT \["\.\/node_modules\/\.bin\/prisma"\]/);
+  assert.match(dockerfile, /CMD \["migrate", "deploy"\]/);
+  assert.doesNotMatch(dockerfile, /COPY .*\.env\.production/);
+
+  assert.match(compose, /127\.0\.0\.1:3000:3000/);
+  assert.match(compose, /profiles:[\s\S]*- ops/);
+  assert.match(compose, /no-new-privileges:true/);
+  assert.match(compose, /cap_drop:[\s\S]*- ALL/);
+
+  assert.match(workflow, /permissions:[\s\S]*contents: read/);
+  assert.match(workflow, /docker build --target migrator/);
+  assert.match(workflow, /docker build --target runner/);
+  assert.match(workflow, /Run authenticated smoke test/);
+  assert.match(workflow, /npm run smoke/);
+
+  assert.match(dockerignore, /^\.env\*/m);
+  assert.match(dockerignore, /^node_modules$/m);
+  assert.match(dockerignore, /^\.next$/m);
+});
