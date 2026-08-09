@@ -4,6 +4,10 @@ FROM node:22-bookworm-slim AS base
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends ca-certificates openssl \
+  && rm -rf /var/lib/apt/lists/*
+
 FROM base AS deps
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -29,10 +33,8 @@ COPY prisma.config.ts ./
 COPY prisma ./prisma
 CMD ["./node_modules/.bin/prisma", "migrate", "deploy"]
 
-FROM node:22-bookworm-slim AS runner
-WORKDIR /app
+FROM base AS runner
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
 
