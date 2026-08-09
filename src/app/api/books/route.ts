@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createBookPayloadSchema } from "@/lib/api-validation";
 
 // GET /api/books
 export async function GET() {
@@ -28,7 +29,6 @@ export async function GET() {
 }
 
 // POST /api/books
-// Body: { title: string, author: string, totalPages: number }
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -37,36 +37,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { title, author, totalPages } = body;
+    const payload = createBookPayloadSchema.safeParse(await request.json());
 
-    if (!title || !author || totalPages == null) {
-      return NextResponse.json(
-        { error: "Campos 'title', 'author' e 'totalPages' são obrigatórios." },
-        { status: 400 }
-      );
-    }
-
-    const totalPagesNum = parseInt(totalPages, 10);
-
-    if (Number.isNaN(totalPagesNum) || totalPagesNum <= 0) {
-      return NextResponse.json(
-        { error: "'totalPages' deve ser um número inteiro maior que zero." },
-        { status: 400 }
-      );
+    if (!payload.success) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
     const book = await prisma.book.create({
       data: {
-        title,
-        author,
-        totalPages: totalPagesNum,
+        ...payload.data,
         userId: session.user.id,
       },
     });
 
     return NextResponse.json(book, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/books]", error);
     return NextResponse.json(
       { error: "Erro ao criar livro." },
