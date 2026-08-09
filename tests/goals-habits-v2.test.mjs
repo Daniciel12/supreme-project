@@ -250,8 +250,9 @@ test("habits and goals pages use real daily state and shared foundation", () => 
     /type="date"/,
     /JSON\.stringify\(\{ isCompleted: nextCompleted \}\)/,
     /Vencida em/,
-    /Fontes de conhecimento/,
   ]) {
     assert.match(goalsPage, contract);
   }
+
+  assert.doesNotMatch(goalsPage, /Fontes de conhecimento|\/api\/books/);
 });

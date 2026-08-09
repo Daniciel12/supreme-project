@@ -14,7 +14,7 @@ function read(path) {
 test("application navigation covers every existing authenticated module", () => {
   assert.deepEqual(
     applicationNavigation.map(({ href }) => href),
-    ["/", "/habitos", "/financas", "/metas", "/treinos", "/visao"]
+    ["/", "/habitos", "/financas", "/metas", "/livros", "/treinos", "/visao"]
   );
 });
 
@@ -24,6 +24,7 @@ test("active navigation matches route boundaries without prefix collisions", () 
   assert.equal(isActivePath("/financas", "/financas"), true);
   assert.equal(isActivePath("/financas/contas", "/financas"), true);
   assert.equal(isActivePath("/financas-extra", "/financas"), false);
+  assert.equal(isActivePath("/livros", "/livros"), true);
   assert.equal(isActivePath("/login", "/"), false);
 });
 

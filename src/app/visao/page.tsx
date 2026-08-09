@@ -4,6 +4,16 @@ import { useEffect, useState } from "react";
 import "@uploadthing/react/styles.css";
 import { UploadDropzone } from "@uploadthing/react";
 import type { OurFileRouter } from "@/app/api/uploadthing/core";
+import {
+  Badge,
+  Button,
+  Card,
+  EmptyState,
+  ErrorState,
+  LoadingState,
+  PageHeader,
+} from "@/components/ui";
+import styles from "./visao.module.css";
 
 interface VisionImage {
   id: string;
@@ -14,38 +24,53 @@ interface VisionImage {
 export default function VisaoPage() {
   const [images, setImages] = useState<VisionImage[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
+  const [loadError, setLoadError] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
-    async function loadImages() {
-      try {
-        const res = await fetch("/api/vision");
-        const data = await res.json();
-        if (res.ok) setImages(data);
-      } catch (err) {
-        console.error("Erro ao carregar imagens", err);
-      } finally {
-        setLoadingImages(false);
-      }
-    }
+    let cancelled = false;
 
-    loadImages();
+    fetch("/api/vision")
+      .then(async (response) => {
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error ?? "Erro ao carregar imagens.");
+        if (!cancelled) {
+          setImages(data);
+          setLoadError(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoadError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingImages(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  async function handleDelete(id: string) {
-    setDeletingId(id);
-    try {
-      const res = await fetch(`/api/vision?id=${id}`, { method: "DELETE" });
+  async function handleDelete(image: VisionImage) {
+    if (!window.confirm("Remover esta referência do quadro de visão?")) return;
 
-      if (!res.ok) {
-        const data = await res.json();
-        console.error(data.error ?? "Erro ao remover imagem.");
+    setActionError(null);
+    setDeletingId(image.id);
+    try {
+      const response = await fetch(`/api/vision?id=${image.id}`, {
+        method: "DELETE",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setActionError(data.error ?? "Erro ao remover imagem.");
         return;
       }
 
-      setImages((prev) => prev.filter((image) => image.id !== id));
-    } catch (err) {
-      console.error("Erro ao remover imagem", err);
+      setImages((previous) => previous.filter((item) => item.id !== image.id));
+    } catch {
+      setActionError("Erro ao remover imagem.");
     } finally {
       setDeletingId(null);
     }
@@ -54,66 +79,95 @@ export default function VisaoPage() {
   return (
     <main className="main-content">
       <div className="container">
-        <div className="card">
-          <h2 className="card-title">Quadro de Visão</h2>
+        <PageHeader
+          eyebrow="Visão"
+          title="Quadro de Visão"
+          description="Reúna referências visuais que representem objetivos, ambientes e experiências que você quer construir."
+          actions={<Badge tone="accent">{images.length} referências</Badge>}
+        />
+
+        <Card className={styles.uploadCard}>
+          <div>
+            <h2 className="card-title">Adicionar referência</h2>
+            <p className={styles.description}>
+              O upload exige uma sessão autenticada e a imagem é vinculada diretamente à sua conta no servidor.
+            </p>
+          </div>
 
           <UploadDropzone<OurFileRouter, "visionImageUploader">
             endpoint="visionImageUploader"
             className="ut-dropzone-dark"
-            onClientUploadComplete={async (res) => {
-              const imageUrl = res?.[0]?.url;
-              if (!imageUrl) return;
+            onClientUploadComplete={(result) => {
+              const image = result?.[0]?.serverData?.image;
 
-              try {
-                const response = await fetch("/api/vision", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ imageUrl }),
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                  console.error(data.error ?? "Erro ao salvar imagem.");
-                  return;
-                }
-
-                setImages((prev) => [data, ...prev]);
-              } catch (err) {
-                console.error("Erro ao salvar imagem enviada", err);
+              if (!image) {
+                setActionError(
+                  "Upload concluído, mas não foi possível registrar a imagem."
+                );
+                return;
               }
+
+              setImages((previous) => [image, ...previous]);
+              setActionError(null);
             }}
             onUploadError={(error: Error) => {
-              console.error("Erro no upload", error);
+              setActionError(error.message || "Erro ao enviar imagem.");
             }}
           />
-        </div>
+        </Card>
 
-        <div className="vision-grid">
+        {actionError && (
+          <div className={styles.actionError} role="alert">
+            {actionError}
+          </div>
+        )}
+
+        <section className={styles.gallerySection} aria-labelledby="vision-gallery-title">
+          <div className={styles.sectionHeader}>
+            <h2 id="vision-gallery-title" className="card-title">
+              Referências salvas
+            </h2>
+            <span className={styles.sectionHint}>Mais recentes primeiro</span>
+          </div>
+
           {loadingImages ? (
-            <p className="empty-state">Carregando imagens...</p>
+            <LoadingState title="Carregando quadro de visão..." />
+          ) : loadError ? (
+            <ErrorState
+              title="Não foi possível carregar o quadro de visão"
+              description="Atualize a página para tentar novamente."
+            />
           ) : images.length === 0 ? (
-            <p className="empty-state">
-              Nenhuma imagem cadastrada ainda. Envie a primeira acima.
-            </p>
+            <EmptyState
+              title="Seu quadro ainda está vazio"
+              description="Envie a primeira referência visual para começar a compor sua visão."
+            />
           ) : (
-            images.map((image) => (
-              <div key={image.id} className="vision-item">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={image.imageUrl} alt="Imagem do quadro de visão" />
-                <button
-                  type="button"
-                  className="vision-delete-btn"
-                  onClick={() => handleDelete(image.id)}
-                  disabled={deletingId === image.id}
-                  aria-label="Excluir imagem"
-                >
-                  ×
-                </button>
-              </div>
-            ))
+            <div className={styles.visionGrid}>
+              {images.map((image) => (
+                <Card key={image.id} className={styles.visionItem}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={image.imageUrl}
+                    alt="Referência do quadro de visão"
+                    className={styles.visionImage}
+                    loading="lazy"
+                  />
+                  <Button
+                    size="sm"
+                    variant="danger"
+                    isLoading={deletingId === image.id}
+                    loadingLabel="Removendo..."
+                    onClick={() => handleDelete(image)}
+                    aria-label="Remover referência do quadro de visão"
+                  >
+                    Remover
+                  </Button>
+                </Card>
+              ))}
+            </div>
           )}
-        </div>
+        </section>
       </div>
     </main>
   );

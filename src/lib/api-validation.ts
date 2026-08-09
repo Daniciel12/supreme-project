@@ -111,6 +111,24 @@ export const createPhysicalRecordPayloadSchema = z.strictObject({
   date: z.iso.date().optional(),
 });
 
+export const createBookPayloadSchema = z.strictObject({
+  title: requiredText(200),
+  author: requiredText(160),
+  totalPages: z.number().int().positive().max(100000),
+});
+
+export const bookIdSchema = z.uuid();
+
+export const updateBookProgressPayloadSchema = z.strictObject({
+  readPages: z.number().int().min(0).max(100000),
+});
+
+export const createVisionImagePayloadSchema = z.strictObject({
+  imageUrl: z.url().max(2048),
+});
+
+export const visionImageIdSchema = z.uuid();
+
 export const createFinancialAccountPayloadSchema = z.strictObject({
   name: requiredText(100),
   type: requiredText(50)

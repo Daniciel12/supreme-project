@@ -3,6 +3,7 @@ export const applicationNavigation = [
   { href: "/habitos", label: "Hábitos", shortLabel: "HA" },
   { href: "/financas", label: "Finanças", shortLabel: "FI" },
   { href: "/metas", label: "Metas", shortLabel: "ME" },
+  { href: "/livros", label: "Livros", shortLabel: "LI" },
   { href: "/treinos", label: "Treinos", shortLabel: "TR" },
   { href: "/visao", label: "Visão", shortLabel: "VI" },
 ] as const;

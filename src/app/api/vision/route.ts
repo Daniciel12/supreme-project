@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import {
+  createVisionImagePayloadSchema,
+  visionImageIdSchema,
+} from "@/lib/api-validation";
 
 // GET /api/vision
 export async function GET() {
@@ -28,7 +32,6 @@ export async function GET() {
 }
 
 // POST /api/vision
-// Body: { imageUrl: string }
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -37,22 +40,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { imageUrl } = body;
+    const payload = createVisionImagePayloadSchema.safeParse(await request.json());
 
-    if (!imageUrl) {
-      return NextResponse.json(
-        { error: "Campo 'imageUrl' é obrigatório." },
-        { status: 400 }
-      );
+    if (!payload.success) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
     const image = await prisma.visionImage.create({
-      data: { imageUrl, userId: session.user.id },
+      data: {
+        imageUrl: payload.data.imageUrl,
+        userId: session.user.id,
+      },
     });
 
     return NextResponse.json(image, { status: 201 });
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/vision]", error);
     return NextResponse.json(
       { error: "Erro ao salvar imagem." },
@@ -70,29 +76,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const { searchParams } = new URL(request.url);
-    const id = searchParams.get("id");
+    const parsedId = visionImageIdSchema.safeParse(
+      request.nextUrl.searchParams.get("id")
+    );
 
-    if (!id) {
-      return NextResponse.json(
-        { error: "Parâmetro 'id' é obrigatório." },
-        { status: 400 }
-      );
+    if (!parsedId.success) {
+      return NextResponse.json({ error: "Imagem inválida." }, { status: 400 });
     }
 
-    // Confere que a imagem pertence ao usuário autenticado antes de remover.
-    const image = await prisma.visionImage.findFirst({
-      where: { id, userId: session.user.id },
+    const result = await prisma.visionImage.deleteMany({
+      where: { id: parsedId.data, userId: session.user.id },
     });
 
-    if (!image) {
+    if (result.count === 0) {
       return NextResponse.json(
         { error: "Imagem não encontrada." },
         { status: 404 }
       );
     }
-
-    await prisma.visionImage.delete({ where: { id } });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
