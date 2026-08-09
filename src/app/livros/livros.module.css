@@ -1,0 +1,118 @@
+.summaryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+
+.statLabel {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-bottom: var(--space-2);
+}
+
+.statValue {
+  display: block;
+  font-size: clamp(1.45rem, 3vw, 2rem);
+  line-height: 1.1;
+}
+
+.statHint {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  margin-top: var(--space-2);
+}
+
+.actionError {
+  margin-bottom: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-md);
+  color: var(--danger);
+  background: var(--surface);
+}
+
+.workspaceGrid {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.5fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+.libraryColumn {
+  min-width: 0;
+}
+
+.bookGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.bookCard {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.bookHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.bookTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.bookAuthor {
+  margin-top: var(--space-1);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.progressMeta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--text-secondary);
+  font-size: 0.84rem;
+}
+
+.progressForm {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: end;
+}
+
+@media (max-width: 980px) {
+  .workspaceGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .summaryGrid,
+  .bookGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .bookHeader,
+  .progressMeta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .progressForm {
+    grid-template-columns: 1fr;
+  }
+
+  .progressForm > * {
+    width: 100%;
+  }
+}
