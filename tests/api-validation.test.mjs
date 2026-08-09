@@ -37,6 +37,30 @@ test("transaction rejects invalid payload", () => {
   );
 });
 
+test("transaction rejects invalid enum and sub-cent amounts independently", () => {
+  const validTransaction = {
+    accountId: "550e8400-e29b-41d4-a716-446655440000",
+    title: "Compra",
+    type: "EXPENSE",
+    amount: 10.5,
+  };
+
+  assert.equal(
+    createTransactionPayloadSchema.safeParse({
+      ...validTransaction,
+      type: "TRANSFER",
+    }).success,
+    false
+  );
+  assert.equal(
+    createTransactionPayloadSchema.safeParse({
+      ...validTransaction,
+      amount: 10.001,
+    }).success,
+    false
+  );
+});
+
 test("registration rejects invalid email", () => {
   assert.equal(
     registerPayloadSchema.safeParse({

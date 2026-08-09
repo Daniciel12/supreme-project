@@ -2,6 +2,20 @@
 -- Preserve existing data while moving money to decimal-safe storage and
 -- constraining closed financial domain values.
 
+-- Transaction semantics cannot be inferred safely from an unknown value.
+-- Abort before changing any columns instead of silently reclassifying data.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM "transactions"
+    WHERE UPPER(TRIM("type")) NOT IN ('INCOME', 'EXPENSE')
+  ) THEN
+    RAISE EXCEPTION 'Cannot migrate unknown transaction type to TransactionType';
+  END IF;
+END
+$$;
+
 CREATE TYPE "FinancialAccountType" AS ENUM (
   'CHECKING',
   'SAVINGS',
@@ -40,6 +54,5 @@ ALTER TABLE "transactions"
     CASE
       WHEN UPPER(TRIM("type")) = 'INCOME' THEN 'INCOME'
       WHEN UPPER(TRIM("type")) = 'EXPENSE' THEN 'EXPENSE'
-      ELSE 'EXPENSE'
     END
   )::"TransactionType";

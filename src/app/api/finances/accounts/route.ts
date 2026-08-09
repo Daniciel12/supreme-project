@@ -3,18 +3,20 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createFinancialAccountPayloadSchema } from "@/lib/api-validation";
+import type { Prisma } from "@/generated/prisma/client";
 
 function currentBalance(account: {
-  initialBalance: { toString(): string };
+  initialBalance: Prisma.Decimal;
   transactions: Array<{
-    amount: { toString(): string };
+    amount: Prisma.Decimal;
     type: "INCOME" | "EXPENSE";
   }>;
 }) {
   return account.transactions.reduce((balance, transaction) => {
-    const amount = Number(transaction.amount.toString());
-    return transaction.type === "INCOME" ? balance + amount : balance - amount;
-  }, Number(account.initialBalance.toString()));
+    return transaction.type === "INCOME"
+      ? balance.plus(transaction.amount)
+      : balance.minus(transaction.amount);
+  }, account.initialBalance);
 }
 
 // GET /api/finances/accounts
@@ -41,7 +43,9 @@ export async function GET() {
       accounts.map(({ transactions, initialBalance, ...account }) => ({
         ...account,
         initialBalance: Number(initialBalance.toString()),
-        balance: currentBalance({ initialBalance, transactions }),
+        balance: Number(
+          currentBalance({ initialBalance, transactions }).toString()
+        ),
       })),
       { status: 200 }
     );
