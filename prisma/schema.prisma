@@ -1,7 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
+// This is your Prisma schema file
 
 generator client {
   provider = "prisma-client"
@@ -12,45 +9,35 @@ datasource db {
   provider = "postgresql"
 }
 
-// ---------------------------------------------------------------------------
-// User
-// ---------------------------------------------------------------------------
 model User {
-  id        String   @id @default(cuid())
+  id            String   @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String   @unique
   emailVerified DateTime?
   image         String?
   password      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   habits          Habit[]
   checkIns        CheckIn[]
   physicalRecords PhysicalRecord[]
   workouts        Workout[]
 
-  // Módulo financeiro
   financialAccounts FinancialAccount[]
   transactions      Transaction[]
 
-  // Módulo Ordem no Caos
   goals Goal[]
   books Book[]
 
-  // Quadro de Visão
   visionImages VisionImage[]
 
-  // Requeridos pelo PrismaAdapter do NextAuth
   accounts Account[]
   sessions Session[]
 
   @@map("users")
 }
 
-// ---------------------------------------------------------------------------
-// Modelos estruturais do NextAuth (PrismaAdapter)
-// ---------------------------------------------------------------------------
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -91,9 +78,6 @@ model VerificationToken {
   @@map("verification_tokens")
 }
 
-// ---------------------------------------------------------------------------
-// Habit (hábitos / rituais cadastrados pelo usuário)
-// ---------------------------------------------------------------------------
 model Habit {
   id          String   @id @default(cuid())
   name        String
@@ -113,10 +97,6 @@ model Habit {
   @@map("habits")
 }
 
-// ---------------------------------------------------------------------------
-// CheckIn (registro diário de conclusão de um hábito)
-// Regra: um único check-in por hábito por dia
-// ---------------------------------------------------------------------------
 model CheckIn {
   id        String   @id @default(cuid())
   date      DateTime @db.Date
@@ -135,9 +115,6 @@ model CheckIn {
   @@map("check_ins")
 }
 
-// ---------------------------------------------------------------------------
-// PhysicalRecord (histórico de peso / medidas / "shape")
-// ---------------------------------------------------------------------------
 model PhysicalRecord {
   id          String   @id @default(cuid())
   date        DateTime @default(now())
@@ -158,9 +135,6 @@ model PhysicalRecord {
   @@map("physical_records")
 }
 
-// ---------------------------------------------------------------------------
-// Workout (treinos - "Forja do Templo")
-// ---------------------------------------------------------------------------
 model Workout {
   id        String   @id @default(cuid())
   name      String
@@ -177,14 +151,25 @@ model Workout {
   @@map("workouts")
 }
 
-// ---------------------------------------------------------------------------
-// Módulo financeiro
-// ---------------------------------------------------------------------------
+enum FinancialAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  INVESTMENT
+  CREDIT
+  OTHER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
 model FinancialAccount {
-  id      String @id @default(uuid())
-  name    String
-  type    String
-  balance Float
+  id             String               @id @default(uuid())
+  name           String
+  type           FinancialAccountType
+  initialBalance Decimal              @db.Decimal(19, 2) @map("balance")
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -195,14 +180,13 @@ model FinancialAccount {
   @@map("financial_accounts")
 }
 
-// type: "INCOME" ou "EXPENSE"
 model Transaction {
-  id     String   @id @default(uuid())
+  id     String          @id @default(uuid())
   title  String
-  type   String
-  amount Float
+  type   TransactionType
+  amount Decimal         @db.Decimal(19, 2)
   date   DateTime
-  isPaid Boolean  @default(false)
+  isPaid Boolean         @default(false)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -215,9 +199,6 @@ model Transaction {
   @@map("transactions")
 }
 
-// ---------------------------------------------------------------------------
-// Módulo Ordem no Caos
-// ---------------------------------------------------------------------------
 model Goal {
   id          String    @id @default(uuid())
   title       String
@@ -247,9 +228,6 @@ model Task {
   @@map("tasks")
 }
 
-// ---------------------------------------------------------------------------
-// Quadro de Visão
-// ---------------------------------------------------------------------------
 model VisionImage {
   id        String   @id @default(uuid())
   imageUrl  String
