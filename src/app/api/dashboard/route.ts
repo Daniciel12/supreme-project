@@ -9,14 +9,15 @@ const DAY_KEYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"] as const;
 type DecimalLike = { toString(): string };
 
 function moneyToCents(value: DecimalLike | null | undefined) {
-  if (!value) return 0n;
+  if (!value) return BigInt(0);
 
   const raw = value.toString();
   const negative = raw.startsWith("-");
   const unsigned = negative ? raw.slice(1) : raw;
   const [whole = "0", fraction = ""] = unsigned.split(".");
   const cents =
-    BigInt(whole || "0") * 100n + BigInt((fraction + "00").slice(0, 2));
+    BigInt(whole || "0") * BigInt(100) +
+    BigInt((fraction + "00").slice(0, 2));
 
   return negative ? -cents : cents;
 }
