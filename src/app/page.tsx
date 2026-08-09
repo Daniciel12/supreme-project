@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Badge,
   Button,
@@ -93,8 +93,26 @@ function formatDashboardDate(date: string) {
   }).format(new Date(`${date}T12:00:00`));
 }
 
-function formatDate(date: string) {
+function formatGoalDeadline(date: string) {
+  const [year, month, day] = date.slice(0, 10).split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function formatRecordDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR").format(new Date(date));
+}
+
+async function fetchDashboard(date: string): Promise<DashboardData> {
+  const response = await fetch(`/api/dashboard?date=${date}`, {
+    cache: "no-store",
+  });
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.error ?? "Erro ao carregar dashboard.");
+  }
+
+  return data;
 }
 
 export default function Home() {
@@ -105,31 +123,41 @@ export default function Home() {
   const [checkingHabitId, setCheckingHabitId] = useState<string | null>(null);
   const [checkinError, setCheckinError] = useState<string | null>(null);
 
-  const loadDashboard = useCallback(async () => {
+  useEffect(() => {
+    let active = true;
+
+    fetchDashboard(dateKey)
+      .then((data) => {
+        if (!active) return;
+        setDashboard(data);
+        setLoadError(false);
+      })
+      .catch((error) => {
+        console.error("Erro ao carregar dashboard", error);
+        if (active) setLoadError(true);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [dateKey]);
+
+  async function retryDashboard() {
     setLoading(true);
     setLoadError(false);
 
     try {
-      const response = await fetch(`/api/dashboard?date=${dateKey}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        setLoadError(true);
-        return;
-      }
-
-      setDashboard(data);
+      setDashboard(await fetchDashboard(dateKey));
     } catch (error) {
-      console.error("Erro ao carregar dashboard", error);
+      console.error("Erro ao recarregar dashboard", error);
       setLoadError(true);
     } finally {
       setLoading(false);
     }
-  }, [dateKey]);
-
-  useEffect(() => {
-    loadDashboard();
-  }, [loadDashboard]);
+  }
 
   async function handleCheckIn(habitId: string) {
     setCheckinError(null);
@@ -191,7 +219,7 @@ export default function Home() {
           <ErrorState
             title="Não foi possível carregar o Dashboard"
             description="Tente novamente. Nenhum dado foi alterado."
-            action={<Button onClick={loadDashboard}>Tentar novamente</Button>}
+            action={<Button onClick={retryDashboard}>Tentar novamente</Button>}
           />
         ) : (
           <>
@@ -367,7 +395,7 @@ export default function Home() {
                               </span>
                               {goal.deadline && (
                                 <span className={styles.goalDeadline}>
-                                  Prazo: {formatDate(goal.deadline)}
+                                  Prazo: {formatGoalDeadline(goal.deadline)}
                                 </span>
                               )}
                             </div>
@@ -482,7 +510,7 @@ export default function Home() {
                         </div>
                       </div>
                       <p className={styles.pendingNotice}>
-                        Último registro: {formatDate(dashboard.evolution.date)}
+                        Último registro: {formatRecordDate(dashboard.evolution.date)}
                       </p>
                     </>
                   )}
