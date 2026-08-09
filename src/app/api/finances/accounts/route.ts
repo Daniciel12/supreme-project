@@ -2,6 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { createFinancialAccountPayloadSchema } from "@/lib/api-validation";
+import type { Prisma } from "@/generated/prisma/client";
+
+function currentBalance(account: {
+  initialBalance: Prisma.Decimal;
+  transactions: Array<{
+    amount: Prisma.Decimal;
+    type: "INCOME" | "EXPENSE";
+  }>;
+}) {
+  return account.transactions.reduce((balance, transaction) => {
+    return transaction.type === "INCOME"
+      ? balance.plus(transaction.amount)
+      : balance.minus(transaction.amount);
+  }, account.initialBalance);
+}
 
 // GET /api/finances/accounts
 export async function GET() {
@@ -15,9 +31,24 @@ export async function GET() {
     const accounts = await prisma.financialAccount.findMany({
       where: { userId: session.user.id },
       orderBy: { name: "asc" },
+      include: {
+        transactions: {
+          where: { isPaid: true },
+          select: { amount: true, type: true },
+        },
+      },
     });
 
-    return NextResponse.json(accounts, { status: 200 });
+    return NextResponse.json(
+      accounts.map(({ transactions, initialBalance, ...account }) => ({
+        ...account,
+        initialBalance: Number(initialBalance.toString()),
+        balance: Number(
+          currentBalance({ initialBalance, transactions }).toString()
+        ),
+      })),
+      { status: 200 }
+    );
   } catch (error) {
     console.error("[GET /api/finances/accounts]", error);
     return NextResponse.json(
@@ -28,7 +59,7 @@ export async function GET() {
 }
 
 // POST /api/finances/accounts
-// Body: { name: string, type: string, balance: number }
+// Body: { name: string, type: FinancialAccountType, balance: number }
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -37,36 +68,35 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Não autenticado." }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, type, balance } = body;
+    const payload = createFinancialAccountPayloadSchema.safeParse(
+      await request.json()
+    );
 
-    if (!name || !type || balance == null) {
-      return NextResponse.json(
-        { error: "Campos 'name', 'type' e 'balance' são obrigatórios." },
-        { status: 400 }
-      );
+    if (!payload.success) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
-    const balanceNum = Number(balance);
-
-    if (Number.isNaN(balanceNum)) {
-      return NextResponse.json(
-        { error: "'balance' deve ser um número válido." },
-        { status: 400 }
-      );
-    }
-
+    const { name, type, balance } = payload.data;
     const account = await prisma.financialAccount.create({
       data: {
         name,
         type,
-        balance: balanceNum,
+        initialBalance: balance,
         userId: session.user.id,
       },
     });
 
-    return NextResponse.json(account, { status: 201 });
+    const initialBalance = Number(account.initialBalance.toString());
+
+    return NextResponse.json(
+      { ...account, initialBalance, balance: initialBalance },
+      { status: 201 }
+    );
   } catch (error) {
+    if (error instanceof SyntaxError) {
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
+    }
+
     console.error("[POST /api/finances/accounts]", error);
     return NextResponse.json(
       { error: "Erro ao criar conta." },

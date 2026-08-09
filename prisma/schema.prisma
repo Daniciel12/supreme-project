@@ -180,11 +180,25 @@ model Workout {
 // ---------------------------------------------------------------------------
 // Módulo financeiro
 // ---------------------------------------------------------------------------
+enum FinancialAccountType {
+  CHECKING
+  SAVINGS
+  CASH
+  INVESTMENT
+  CREDIT
+  OTHER
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
 model FinancialAccount {
-  id      String @id @default(uuid())
-  name    String
-  type    String
-  balance Float
+  id             String               @id @default(uuid())
+  name           String
+  type           FinancialAccountType
+  initialBalance Decimal              @db.Decimal(19, 2) @map("balance")
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -195,14 +209,13 @@ model FinancialAccount {
   @@map("financial_accounts")
 }
 
-// type: "INCOME" ou "EXPENSE"
 model Transaction {
-  id     String   @id @default(uuid())
+  id     String          @id @default(uuid())
   title  String
-  type   String
-  amount Float
+  type   TransactionType
+  amount Decimal         @db.Decimal(19, 2)
   date   DateTime
-  isPaid Boolean  @default(false)
+  isPaid Boolean         @default(false)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
