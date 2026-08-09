@@ -23,6 +23,36 @@ export const financialAccountTypes = [
 
 export const transactionTypes = ["INCOME", "EXPENSE"] as const;
 
+function normalizeFinancialAccountType(value: string) {
+  const normalized = value
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase();
+
+  if (["CHECKING", "CORRENTE", "CONTA CORRENTE"].includes(normalized)) {
+    return "CHECKING";
+  }
+  if (["SAVINGS", "POUPANCA"].includes(normalized)) return "SAVINGS";
+  if (["CASH", "DINHEIRO", "CARTEIRA"].includes(normalized)) return "CASH";
+  if (["INVESTMENT", "INVESTIMENTO", "INVESTIMENTOS"].includes(normalized)) {
+    return "INVESTMENT";
+  }
+  if (
+    [
+      "CREDIT",
+      "CREDITO",
+      "CARTAO",
+      "CARTAO DE CREDITO",
+      "CREDIT CARD",
+    ].includes(normalized)
+  ) {
+    return "CREDIT";
+  }
+
+  return "OTHER";
+}
+
 export const checkInPayloadSchema = z.strictObject({
   habitId: z.cuid(),
   date: isoDateSchema.optional(),
@@ -38,7 +68,9 @@ export const taskIdSchema = z.uuid();
 
 export const createFinancialAccountPayloadSchema = z.strictObject({
   name: requiredText(100),
-  type: z.enum(financialAccountTypes),
+  type: requiredText(50)
+    .transform(normalizeFinancialAccountType)
+    .pipe(z.enum(financialAccountTypes)),
   balance: moneySchema,
 });
 
