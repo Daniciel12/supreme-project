@@ -4,6 +4,15 @@ import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createTransactionPayloadSchema } from "@/lib/api-validation";
 
+function serializeTransaction<T extends { amount: { toString(): string } }>(
+  transaction: T
+) {
+  return {
+    ...transaction,
+    amount: Number(transaction.amount.toString()),
+  };
+}
+
 // GET /api/finances/transactions
 export async function GET() {
   try {
@@ -18,7 +27,9 @@ export async function GET() {
       orderBy: { date: "desc" },
     });
 
-    return NextResponse.json(transactions, { status: 200 });
+    return NextResponse.json(transactions.map(serializeTransaction), {
+      status: 200,
+    });
   } catch (error) {
     console.error("[GET /api/finances/transactions]", error);
     return NextResponse.json(
@@ -43,17 +54,13 @@ export async function POST(request: NextRequest) {
     );
 
     if (!payload.success) {
-      return NextResponse.json(
-        { error: "Payload inválido." },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
     }
 
     const { accountId, title, type, amount, date, isPaid } = payload.data;
-    // Garante que a conta pertence ao usuário autenticado antes de vincular
-    // a transação a ela.
     const account = await prisma.financialAccount.findFirst({
       where: { id: accountId, userId: session.user.id },
+      select: { id: true },
     });
 
     if (!account) {
@@ -75,7 +82,9 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(transaction, { status: 201 });
+    return NextResponse.json(serializeTransaction(transaction), {
+      status: 201,
+    });
   } catch (error) {
     if (error instanceof SyntaxError) {
       return NextResponse.json({ error: "Payload inválido." }, { status: 400 });
