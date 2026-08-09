@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      target: runner
+    image: supreme-app:${SUPREME_IMAGE_TAG:-local}
+    restart: unless-stopped
+    init: true
+    env_file:
+      - .env.production
+    ports:
+      - "127.0.0.1:3000:3000"
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+  migrate:
+    build:
+      context: .
+      target: migrator
+    image: supreme-migrator:${SUPREME_IMAGE_TAG:-local}
+    profiles:
+      - ops
+    env_file:
+      - .env.production
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
