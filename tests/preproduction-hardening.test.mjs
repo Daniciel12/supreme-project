@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { test } from "node:test";
+import { buildSecurityHeaders } from "../next.config.ts";
 
 function read(relativePath) {
   return readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8");
@@ -33,12 +34,44 @@ test("Next.js config applies the security header baseline", () => {
     /strict-origin-when-cross-origin/,
     /Permissions-Policy/,
     /camera=\(\), microphone=\(\), geolocation=\(\)/,
+    /browsing-topics=\(\)/,
     /X-Frame-Options/,
     /DENY/,
     /source: "\/:path\*"/,
   ]) {
     assert.match(source, contract);
   }
+});
+
+test("production headers enforce HSTS and a bounded CSP", () => {
+  const headers = new Map(
+    buildSecurityHeaders("production").map(({ key, value }) => [key, value])
+  );
+  const csp = headers.get("Content-Security-Policy") ?? "";
+
+  assert.equal(headers.get("Strict-Transport-Security"), "max-age=31536000");
+  assert.match(csp, /default-src 'self'/);
+  assert.match(csp, /script-src 'self' 'unsafe-inline'/);
+  assert.doesNotMatch(csp, /'unsafe-eval'/);
+  assert.match(csp, /img-src[^;]+https:\/\/utfs\.io[^;]+https:\/\/\*\.ufs\.sh/);
+  assert.match(csp, /connect-src[^;]+https:\/\/\*\.uploadthing\.com/);
+  assert.match(csp, /object-src 'none'/);
+  assert.match(csp, /base-uri 'self'/);
+  assert.match(csp, /form-action 'self'/);
+  assert.match(csp, /frame-ancestors 'none'/);
+  assert.match(csp, /upgrade-insecure-requests/);
+});
+
+test("development CSP permits tooling without persisting HSTS", () => {
+  const headers = new Map(
+    buildSecurityHeaders("development").map(({ key, value }) => [key, value])
+  );
+  const csp = headers.get("Content-Security-Policy") ?? "";
+
+  assert.equal(headers.has("Strict-Transport-Security"), false);
+  assert.match(csp, /'unsafe-eval'/);
+  assert.match(csp, /connect-src[^;]+ws: wss:/);
+  assert.doesNotMatch(csp, /upgrade-insecure-requests/);
 });
 
 test("CI blocks high-severity dependency findings", () => {
