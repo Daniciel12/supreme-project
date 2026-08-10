@@ -18,7 +18,7 @@ test("application shell exposes identity and explicit logout with full reset", (
   assert.match(source, /sessionUser\?\.email/);
   assert.match(source, /signOut\(\{ redirect: false \}\)/);
   assert.match(source, /window\.location\.replace\("\/login"\)/);
-  assert.match(source, />Sair</);
+  assert.match(source, /signingOut \? "Saindo\.\.\." : "Sair"/);
 });
 
 test("isolation smoke uses independent sessions and verifies cross-account ownership", () => {
