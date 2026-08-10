@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import test from "node:test";
-import nextProxyTesting from "next/experimental/testing/server.js";
-import { config as proxyConfig } from "../src/proxy.ts";
-
-const { unstable_doesMiddlewareMatch } = nextProxyTesting;
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -68,12 +64,14 @@ test("Next.js 16 proxy entrypoint is explicit and only deliberate public routes 
 });
 
 test("UploadThing reaches its signed route without weakening other auth boundaries", () => {
+  const source = read("src/proxy.ts");
+  const matcherSource = source.match(/matcher:\s*\[\s*"([^"]+)"/u)?.[1];
+
+  assert.ok(matcherSource, "expected a static proxy matcher");
+
+  const matcher = new RegExp(`^${matcherSource}$`, "u");
   const doesProxyMatch = (url) =>
-    unstable_doesMiddlewareMatch({
-      config: proxyConfig,
-      nextConfig: {},
-      url,
-    });
+    matcher.test(new URL(url, "https://supreme.example").pathname);
 
   assert.equal(
     doesProxyMatch("/api/uploadthing?slug=visionImageUploader"),
