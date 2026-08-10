@@ -2,15 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { getSession, signOut } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import {
   applicationNavigation,
   isActivePath,
 } from "@/components/application-navigation";
 
+type SessionUser = {
+  name?: string | null;
+  email?: string | null;
+};
+
 export function ApplicationShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
@@ -18,9 +26,40 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
     if (menuOpen) sidebarRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
   }, [menuOpen]);
 
+  useEffect(() => {
+    if (pathname === "/login") return;
+
+    let active = true;
+
+    void getSession()
+      .then((session) => {
+        if (active) setSessionUser(session?.user ?? null);
+      })
+      .catch(() => {
+        if (active) setSessionUser(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [pathname]);
+
   function closeMenu({ restoreFocus = false } = {}) {
     setMenuOpen(false);
     if (restoreFocus) menuButtonRef.current?.focus();
+  }
+
+  async function handleSignOut() {
+    if (signingOut) return;
+
+    setSigningOut(true);
+    try {
+      await signOut({ redirect: false });
+    } finally {
+      // Uma navegação de documento completo elimina estado e cache do cliente
+      // associados à identidade anterior antes de outro login.
+      window.location.replace("/login");
+    }
   }
 
   if (pathname === "/login") return children;
@@ -40,6 +79,8 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
       </Link>
     );
   });
+
+  const sessionLabel = sessionUser?.email ?? sessionUser?.name ?? "Área pessoal";
 
   return (
     <div
@@ -87,7 +128,15 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
             <span aria-hidden="true">{menuOpen ? "×" : "☰"}</span>
           </button>
           <Link href="/" className="app-header__brand">Supreme</Link>
-          <span className="app-header__context">Área pessoal</span>
+          <span className="app-header__context" title={sessionLabel}>{sessionLabel}</span>
+          <button
+            type="button"
+            className="ui-button ui-button--outline ui-button--sm"
+            disabled={signingOut}
+            onClick={handleSignOut}
+          >
+            {signingOut ? "Saindo..." : "Sair"}
+          </button>
         </header>
         <div className="app-shell__content">{children}</div>
       </div>

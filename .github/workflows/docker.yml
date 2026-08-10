@@ -34,6 +34,10 @@ jobs:
       NEXTAUTH_URL: http://127.0.0.1:3000
       SMOKE_EMAIL: ci-smoke@example.com
       SMOKE_PASSWORD: supreme-ci-smoke-password
+      ISOLATION_A_EMAIL: ci-isolation-a@example.com
+      ISOLATION_A_PASSWORD: supreme-ci-isolation-a-password
+      ISOLATION_B_EMAIL: ci-isolation-b@example.com
+      ISOLATION_B_PASSWORD: supreme-ci-isolation-b-password
 
     steps:
       - name: Checkout
@@ -80,28 +84,48 @@ jobs:
           docker logs supreme-app-ci
           exit 1
 
-      - name: Register disposable smoke user
+      - name: Register disposable test users
         run: |
-          response_file=$(mktemp)
-          status=$(curl --silent --show-error \
-            --output "$response_file" \
-            --write-out "%{http_code}" \
-            --request POST \
-            --header "Content-Type: application/json" \
-            --data "{\"name\":\"CI Smoke\",\"email\":\"${SMOKE_EMAIL}\",\"password\":\"${SMOKE_PASSWORD}\"}" \
-            http://127.0.0.1:3000/api/auth/register)
+          register_user() {
+            local name="$1"
+            local email="$2"
+            local password="$3"
+            local response_file
+            local status
 
-          if [ "$status" != "201" ]; then
-            echo "Smoke user registration failed with HTTP $status"
-            cat "$response_file"
-            exit 1
-          fi
+            response_file=$(mktemp)
+            status=$(curl --silent --show-error \
+              --output "$response_file" \
+              --write-out "%{http_code}" \
+              --request POST \
+              --header "Content-Type: application/json" \
+              --data "{\"name\":\"${name}\",\"email\":\"${email}\",\"password\":\"${password}\"}" \
+              http://127.0.0.1:3000/api/auth/register)
+
+            if [ "$status" != "201" ]; then
+              echo "Disposable user registration failed with HTTP $status"
+              cat "$response_file"
+              rm -f "$response_file"
+              exit 1
+            fi
+
+            rm -f "$response_file"
+          }
+
+          register_user "CI Smoke" "$SMOKE_EMAIL" "$SMOKE_PASSWORD"
+          register_user "CI Isolation A" "$ISOLATION_A_EMAIL" "$ISOLATION_A_PASSWORD"
+          register_user "CI Isolation B" "$ISOLATION_B_EMAIL" "$ISOLATION_B_PASSWORD"
 
       - name: Run authenticated smoke test
         run: npm run smoke
         env:
           BASE_URL: http://127.0.0.1:3000
           SMOKE_DATE: "2026-08-09"
+
+      - name: Run multiuser isolation smoke test
+        run: npm run smoke:isolation
+        env:
+          BASE_URL: http://127.0.0.1:3000
 
       - name: Show container logs on failure
         if: failure()
