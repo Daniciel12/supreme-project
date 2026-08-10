@@ -1,0 +1,41 @@
+[Unit]
+Description=Supreme external PostgreSQL backup
+Documentation=https://github.com/Daniciel12/supreme-project/blob/main/docs/POSTGRES_BACKUP_SCHEDULING.md
+Wants=network-online.target
+After=network-online.target docker.service
+Requires=docker.service
+ConditionPathExists=/opt/supreme/app/scripts/postgres-backup-job.sh
+ConditionPathExists=/opt/supreme/runtime/.env.production
+ConditionPathExists=/etc/supreme/backup.env
+ConditionPathExists=/etc/supreme/backup-monitor.env
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/supreme/app
+EnvironmentFile=/opt/supreme/runtime/.env.production
+EnvironmentFile=/etc/supreme/backup.env
+EnvironmentFile=/etc/supreme/backup-monitor.env
+ExecStart=/usr/bin/bash /opt/supreme/app/scripts/postgres-backup-job.sh
+UMask=0077
+TimeoutStartSec=2h
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=read-only
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

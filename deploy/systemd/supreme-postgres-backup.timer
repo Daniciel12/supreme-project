@@ -1,0 +1,12 @@
+[Unit]
+Description=Run the Supreme PostgreSQL backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:00:00 UTC
+Persistent=true
+RandomizedDelaySec=15m
+FixedRandomDelay=true
+Unit=supreme-postgres-backup.service
+
+[Install]
+WantedBy=timers.target
