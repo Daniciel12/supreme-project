@@ -5,7 +5,7 @@ import {
   attachRateLimitHeaders,
   clientRateLimitKey,
   credentialsRateLimiter,
-  rateLimitExceededResponse,
+  nextAuthRateLimitExceededResponse,
 } from "@/lib/rate-limit";
 
 const handler = NextAuth(authOptions);
@@ -25,7 +25,7 @@ export async function POST(
   );
 
   if (!rateLimit.allowed) {
-    return rateLimitExceededResponse(rateLimit);
+    return nextAuthRateLimitExceededResponse(request, rateLimit);
   }
 
   const response = await handler(request, context);

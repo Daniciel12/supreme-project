@@ -6,6 +6,10 @@ O Supreme aplica limites locais aos três pontos públicos mais sujeitos a abuso
 - login por senha: 10 tentativas por cliente a cada 15 minutos;
 - início de upload: 30 requisições por cliente a cada 15 minutos.
 
+O limite de upload protege somente a solicitação iniciada pelo cliente. Callbacks
+assinados do UploadThing não passam por essa cota local e continuam sendo
+validados pelo próprio handler antes de concluir o processamento.
+
 Ao exceder o limite, a API responde `429` com `Retry-After` e cabeçalhos `RateLimit-*`. O estado fica apenas na memória do processo e possui capacidade limitada para não permitir crescimento irrestrito.
 
 ## Ativação atrás do Caddy
@@ -35,4 +39,4 @@ Depois de alterar o ambiente, recrie o container da aplicação e confirme:
 
 ## Limite da arquitetura atual
 
-O contador é adequado à implantação atual com uma única instância do processo web. Ele é reiniciado em deploys e não é compartilhado entre réplicas. Antes de escalar horizontalmente, substitua o armazenamento local por um backend distribuído e mantenha os mesmos contratos de resposta e privacidade.
+O contador é adequado à implantação atual com uma única instância do processo web. Ele é reiniciado em deploys e não é compartilhado entre réplicas. Ao atingir a capacidade de clientes distintos, novas chaves compartilham uma cota conservadora sem expulsar contadores ativos. Antes de escalar horizontalmente, substitua o armazenamento local por um backend distribuído e mantenha os mesmos contratos de resposta e privacidade.

@@ -1,6 +1,7 @@
 import { isIP } from "node:net";
 
 const DEFAULT_MAX_ENTRIES = 10_000;
+const MAX_PRUNE_INTERVAL_MS = 60_000;
 const SHARED_CLIENT_IDENTIFIER = "shared-client";
 
 export interface RateLimitPolicy {
@@ -27,6 +28,8 @@ export class FixedWindowRateLimiter {
   private readonly maxEntries: number;
   private readonly policy: RateLimitPolicy;
   private readonly now: () => number;
+  private nextPruneAt = 0;
+  private overflowEntry: RateLimitEntry | null = null;
 
   constructor(
     policy: RateLimitPolicy,
@@ -52,17 +55,25 @@ export class FixedWindowRateLimiter {
     const now = this.now();
     let entry = this.entries.get(key);
 
-    if (!entry || entry.resetAt <= now) {
-      this.makeRoom(now, key);
+    if (entry?.resetAt && entry.resetAt <= now) {
       entry = { count: 0, resetAt: now + this.policy.windowMs };
+      this.entries.set(key, entry);
+    } else if (!entry) {
+      this.pruneExpiredEntriesIfDue(now);
+
+      if (this.entries.size >= this.maxEntries) {
+        return this.recordOverflowAttempt(now);
+      }
+
+      entry = { count: 0, resetAt: now + this.policy.windowMs };
+      this.entries.set(key, entry);
     }
 
+    return this.recordAttempt(entry, now);
+  }
+
+  private recordAttempt(entry: RateLimitEntry, now: number): RateLimitDecision {
     entry.count += 1;
-
-    // Refresh insertion order so capacity pressure evicts an older client.
-    this.entries.delete(key);
-    this.entries.set(key, entry);
-
     return {
       allowed: entry.count <= this.policy.limit,
       limit: this.policy.limit,
@@ -72,28 +83,34 @@ export class FixedWindowRateLimiter {
     };
   }
 
-  private makeRoom(now: number, incomingKey: string) {
-    if (this.entries.has(incomingKey)) {
-      this.entries.delete(incomingKey);
-    }
-
+  private pruneExpiredEntriesIfDue(now: number) {
     if (this.entries.size < this.maxEntries) {
       return;
     }
+
+    if (now < this.nextPruneAt) {
+      return;
+    }
+
+    this.nextPruneAt =
+      now + Math.min(this.policy.windowMs, MAX_PRUNE_INTERVAL_MS);
 
     for (const [key, entry] of this.entries) {
       if (entry.resetAt <= now) {
         this.entries.delete(key);
       }
     }
+  }
 
-    while (this.entries.size >= this.maxEntries) {
-      const oldestKey = this.entries.keys().next().value;
-      if (oldestKey === undefined) {
-        break;
-      }
-      this.entries.delete(oldestKey);
+  private recordOverflowAttempt(now: number): RateLimitDecision {
+    if (!this.overflowEntry || this.overflowEntry.resetAt <= now) {
+      this.overflowEntry = {
+        count: 0,
+        resetAt: now + this.policy.windowMs,
+      };
     }
+
+    return this.recordAttempt(this.overflowEntry, now);
   }
 }
 
@@ -152,6 +169,31 @@ export function rateLimitExceededResponse(
       },
     }
   );
+}
+
+export function nextAuthRateLimitExceededResponse(
+  request: Pick<Request, "url">,
+  decision: RateLimitDecision
+): Response {
+  const errorUrl = new URL("/api/auth/error", request.url);
+  errorUrl.searchParams.set("error", "TooManyRequests");
+
+  return Response.json(
+    { url: errorUrl.toString() },
+    {
+      status: 429,
+      headers: {
+        ...rateLimitHeaders(decision),
+        "Retry-After": String(decision.retryAfterSeconds),
+      },
+    }
+  );
+}
+
+export function isUploadInitiationRequest(
+  request: Pick<Request, "url">
+): boolean {
+  return new URL(request.url).searchParams.get("actionType") === "upload";
 }
 
 export const registrationRateLimiter = new FixedWindowRateLimiter({

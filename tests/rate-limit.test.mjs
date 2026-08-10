@@ -5,6 +5,8 @@ import {
   FixedWindowRateLimiter,
   attachRateLimitHeaders,
   clientRateLimitKey,
+  isUploadInitiationRequest,
+  nextAuthRateLimitExceededResponse,
   rateLimitExceededResponse,
 } from "../src/lib/rate-limit.ts";
 
@@ -33,7 +35,7 @@ test("fixed-window limiter blocks only after the configured allowance", () => {
   assert.equal(limiter.check("client-a").allowed, true);
 });
 
-test("capacity pressure evicts an older client without disabling limits", () => {
+test("capacity pressure preserves active counters and fails closed", () => {
   const limiter = new FixedWindowRateLimiter({
     limit: 1,
     windowMs: 60_000,
@@ -43,7 +45,9 @@ test("capacity pressure evicts an older client without disabling limits", () => 
   assert.equal(limiter.check("client-a").allowed, true);
   assert.equal(limiter.check("client-b").allowed, true);
   assert.equal(limiter.check("client-c").allowed, true);
+  assert.equal(limiter.check("client-d").allowed, false);
   assert.equal(limiter.check("client-c").allowed, false);
+  assert.equal(limiter.check("client-a").allowed, false);
 });
 
 test("forwarded client address is trusted only when explicitly enabled", () => {
@@ -89,6 +93,55 @@ test("429 response is generic and includes retry metadata", async () => {
   });
 });
 
+test("NextAuth 429 response preserves the redirect-false client contract", async () => {
+  const request = new Request(
+    "https://supreme.example/api/auth/callback/credentials"
+  );
+  const response = nextAuthRateLimitExceededResponse(request, {
+    allowed: false,
+    limit: 10,
+    remaining: 0,
+    resetAt: 61_000,
+    retryAfterSeconds: 60,
+  });
+
+  assert.equal(response.status, 429);
+  assert.equal(response.headers.get("retry-after"), "60");
+
+  const data = await response.json();
+  const errorUrl = new URL(data.url);
+  assert.equal(errorUrl.origin, "https://supreme.example");
+  assert.equal(errorUrl.pathname, "/api/auth/error");
+  assert.equal(errorUrl.searchParams.get("error"), "TooManyRequests");
+});
+
+test("only client upload initiation is subject to the local quota", () => {
+  assert.equal(
+    isUploadInitiationRequest(
+      new Request(
+        "https://supreme.example/api/uploadthing?actionType=upload&slug=receiptUploader"
+      )
+    ),
+    true
+  );
+  assert.equal(
+    isUploadInitiationRequest(
+      new Request("https://supreme.example/api/uploadthing", {
+        headers: { "uploadthing-hook": "callback" },
+      })
+    ),
+    false
+  );
+  assert.equal(
+    isUploadInitiationRequest(
+      new Request("https://supreme.example/api/uploadthing", {
+        headers: { "uploadthing-hook": "error" },
+      })
+    ),
+    false
+  );
+});
+
 test("successful responses receive remaining quota metadata", () => {
   const response = attachRateLimitHeaders(
     Response.json({ ok: true }),
@@ -130,6 +183,6 @@ test("public abuse surfaces use their dedicated policies", () => {
     const source = readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
     assert.match(source, new RegExp(limiter));
     assert.ok(source.includes(routeContract));
-    assert.match(source, /rateLimitExceededResponse/);
+    assert.match(source, /[rR]ateLimitExceededResponse/);
   }
 });

@@ -3,6 +3,7 @@ import { createRouteHandler } from "uploadthing/next";
 import {
   attachRateLimitHeaders,
   clientRateLimitKey,
+  isUploadInitiationRequest,
   rateLimitExceededResponse,
   uploadRateLimiter,
 } from "@/lib/rate-limit";
@@ -15,6 +16,10 @@ const handlers = createRouteHandler({
 export const GET = handlers.GET;
 
 export async function POST(request: NextRequest) {
+  if (!isUploadInitiationRequest(request)) {
+    return handlers.POST(request);
+  }
+
   const rateLimit = uploadRateLimiter.check(
     clientRateLimitKey(request, "upload")
   );
