@@ -1,0 +1,36 @@
+[Unit]
+Description=Supreme public application health monitor
+Documentation=https://github.com/Daniciel12/supreme-project/blob/main/docs/APP_MONITORING.md
+Wants=network-online.target
+After=network-online.target
+ConditionPathExists=/opt/supreme/app/scripts/app-health-monitor.sh
+ConditionPathExists=/etc/supreme/app-monitor.env
+
+[Service]
+Type=oneshot
+User=deploy
+Group=deploy
+WorkingDirectory=/opt/supreme/app
+EnvironmentFile=/etc/supreme/app-monitor.env
+ExecStart=/usr/bin/bash /opt/supreme/app/scripts/app-health-monitor.sh
+UMask=0077
+TimeoutStartSec=90s
+NoNewPrivileges=true
+PrivateDevices=true
+PrivateTmp=true
+ProtectClock=true
+ProtectControlGroups=true
+ProtectHome=true
+ProtectHostname=true
+ProtectKernelLogs=true
+ProtectKernelModules=true
+ProtectKernelTunables=true
+ProtectSystem=strict
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target

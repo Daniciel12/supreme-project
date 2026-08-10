@@ -114,6 +114,9 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `docs/POSTGRES_BACKUP_RESTORE.md`: runbook de configuração e execução controlada.
 - `deploy/systemd/supreme-postgres-backup.*`: serviço e timer para backup diário monitorado.
 - `docs/POSTGRES_BACKUP_SCHEDULING.md`: ativação segura, alerta por e-mail e retenção externa.
+- `scripts/app-health-monitor.sh`: verifica disponibilidade pública e sinaliza o monitor externo.
+- `deploy/systemd/supreme-app-health.*`: serviço e timer para monitoramento da aplicação.
+- `docs/APP_MONITORING.md`: ativação, alertas de falha/ausência e desativação segura.
 
 ### Preparar o ambiente
 

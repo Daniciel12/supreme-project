@@ -8,11 +8,10 @@
 O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo e restore descartável já foram validados. O foco atual é fechar os gates restantes de produção e então iniciar o **Frontend v3**.
 
 **Próximos passos:**
-1. rate limiting / anti-abuse;
-2. observabilidade e alertas da aplicação;
-3. smoke visual desktop/mobile;
-4. Google OAuth e validação pública do UploadThing;
-5. Frontend v3 / redesign completo.
+1. observabilidade e alertas da aplicação;
+2. smoke visual desktop/mobile;
+3. Google OAuth e validação pública do UploadThing;
+4. Frontend v3 / redesign completo.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -85,8 +84,8 @@ O restore de produção continua deliberadamente manual e nunca é automatizado.
 
 ## 🔵 7. Hardening de produção — etapa atual
 
-- [ ] rate limiting / anti-abuse;
-- [ ] proteção reforçada de login/cadastro/uploads;
+- [x] rate limiting / anti-abuse;
+- [x] proteção reforçada de login/cadastro/uploads;
 - [ ] observabilidade da aplicação;
 - [ ] alertas operacionais;
 - [ ] revisão final de HSTS/CSP;
