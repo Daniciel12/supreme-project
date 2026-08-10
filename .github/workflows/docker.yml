@@ -52,6 +52,11 @@ jobs:
       - name: Install host dependencies
         run: npm ci
 
+      - name: Install external backup client
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes rclone
+
       - name: Build migration image
         run: docker build --target migrator --tag supreme-migrator:ci .
 
@@ -115,6 +120,26 @@ jobs:
           register_user "CI Smoke" "$SMOKE_EMAIL" "$SMOKE_PASSWORD"
           register_user "CI Isolation A" "$ISOLATION_A_EMAIL" "$ISOLATION_A_PASSWORD"
           register_user "CI Isolation B" "$ISOLATION_B_EMAIL" "$ISOLATION_B_PASSWORD"
+
+      - name: Verify external backup and disposable restore
+        shell: bash
+        run: |
+          rclone_config="$RUNNER_TEMP/rclone.conf"
+          external_directory="$RUNNER_TEMP/external-postgres-backups"
+          printf '[ci-external]\ntype = local\n' > "$rclone_config"
+          chmod 600 "$rclone_config"
+
+          backup_object="$(
+            RCLONE_CONFIG="$rclone_config" \
+            RCLONE_DESTINATION="ci-external:${external_directory}" \
+            POSTGRES_DOCKER_NETWORK=host \
+            bash scripts/postgres-backup.sh
+          )"
+
+          RCLONE_CONFIG="$rclone_config" \
+          RCLONE_DESTINATION="ci-external:${external_directory}" \
+          BACKUP_OBJECT="$backup_object" \
+          bash scripts/postgres-restore-test.sh
 
       - name: Run authenticated smoke test
         run: npm run smoke

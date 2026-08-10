@@ -108,6 +108,9 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `.dockerignore`: impede que `.env`, caches e arquivos locais entrem no contexto da imagem.
 - `GET /api/health`: readiness público e genérico que valida aplicação + conexão com PostgreSQL.
 - `scripts/smoke.mjs`: smoke test autenticado somente-leitura contra um ambiente alvo.
+- `scripts/postgres-backup.sh`: dump validado, checksum e envio para storage externo.
+- `scripts/postgres-restore-test.sh`: restore somente em PostgreSQL descartável e isolado.
+- `docs/POSTGRES_BACKUP_RESTORE.md`: runbook de configuração e execução controlada.
 
 ### Preparar o ambiente
 
@@ -207,6 +210,12 @@ Antes de tráfego público:
 Mantenha imagens identificadas por SHA/versão para poder voltar o container web para a versão anterior.
 
 Rollback de aplicação não desfaz automaticamente migrations. Antes de qualquer migration incompatível ou destrutiva, deve existir plano explícito de compatibilidade, expansão/contração, backup e restauração. Não use `prisma migrate reset` em produção.
+
+### Backup externo e restore descartável
+
+O fluxo versionado usa um remote `rclone` externo à VPS. O backup é validado antes do upload e baixado novamente para conferir SHA-256. O teste de restore cria seu próprio PostgreSQL sem rede, sem portas publicadas e com armazenamento temporário; ele não aceita uma URL de banco de destino e nunca restaura sobre produção.
+
+Leia e execute o runbook [docs/POSTGRES_BACKUP_RESTORE.md](docs/POSTGRES_BACKUP_RESTORE.md). O merge desses scripts deixa o gate pronto para operação, mas os itens da checklist só podem ser concluídos depois de uma execução real e registrada na VPS.
 
 ## Checklist pré-produção
 
