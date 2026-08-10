@@ -111,6 +111,8 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `scripts/postgres-backup.sh`: dump validado, checksum e envio para storage externo.
 - `scripts/postgres-restore-test.sh`: restore somente em PostgreSQL descartável e isolado.
 - `docs/POSTGRES_BACKUP_RESTORE.md`: runbook de configuração e execução controlada.
+- `deploy/systemd/supreme-postgres-backup.*`: serviço e timer para backup diário monitorado.
+- `docs/POSTGRES_BACKUP_SCHEDULING.md`: ativação segura, alerta por e-mail e retenção externa.
 
 ### Preparar o ambiente
 
