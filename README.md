@@ -254,8 +254,10 @@ A aplicação define uma baseline compatível com os fluxos atuais:
 - `Referrer-Policy: strict-origin-when-cross-origin`
 - `Permissions-Policy` desabilitando câmera, microfone e geolocalização
 - `X-Frame-Options: DENY`
+- `Content-Security-Policy` limitando scripts, estilos, conexões, imagens, formulários e enquadramento aos recursos usados pelo Supreme
+- `Strict-Transport-Security: max-age=31536000` somente no build de produção
 
-Uma CSP estrita não deve ser adicionada às cegas: precisa ser validada no ambiente real contra NextAuth/OAuth, Next.js e UploadThing.
+A CSP preserva a renderização estática do Next.js e libera somente os hosts externos necessários ao UploadThing. O HSTS não inclui subdomínios nem preload até que todo o domínio seja auditado. Consulte [docs/PRODUCTION_SECURITY_HEADERS.md](docs/PRODUCTION_SECURITY_HEADERS.md) antes de alterar a política ou executar o deploy.
 
 ## Fluxo de contribuição
 
