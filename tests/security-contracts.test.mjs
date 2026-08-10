@@ -58,6 +58,33 @@ test("Next.js 16 proxy entrypoint is explicit and only deliberate public routes 
   assert.match(source, /export function proxy/);
   assert.match(source, /api\/auth/);
   assert.match(source, /api\/health/);
+  assert.match(source, /api\/uploadthing/);
   assert.match(source, /login/);
   assert.match(source, /withAuth/);
+});
+
+test("UploadThing reaches its signed route without weakening other auth boundaries", () => {
+  const source = read("src/proxy.ts");
+  const matcherSource = source.match(/matcher:\s*\[\s*"([^"]+)"/u)?.[1];
+
+  assert.ok(matcherSource, "expected a static proxy matcher");
+
+  const matcher = new RegExp(`^${matcherSource}$`, "u");
+  const doesProxyMatch = (url) =>
+    matcher.test(new URL(url, "https://supreme.example").pathname);
+
+  assert.equal(
+    doesProxyMatch("/api/uploadthing?slug=visionImageUploader"),
+    false,
+    "provider callbacks must reach UploadThing signature verification"
+  );
+  assert.equal(
+    doesProxyMatch(
+      "/api/uploadthing?actionType=upload&slug=visionImageUploader"
+    ),
+    false,
+    "client initiation is authenticated inside the UploadThing route"
+  );
+  assert.equal(doesProxyMatch("/api/vision-images"), true);
+  assert.equal(doesProxyMatch("/visao"), true);
 });
