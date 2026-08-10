@@ -50,8 +50,8 @@ while [[ "$#" -gt 0 ]]; do
 done
 if [[ "$config_from_stdin" == true ]]; then
   IFS= read -r config_line
-  url="\${config_line#url = \"}"
-  url="\${url%\"}"
+  url="\${config_line#url = \\\"}"
+  url="\${url%\\\"}"
 fi
 if [[ "$url" == https://monitor.example/* ]]; then
   printf '%s\n' "$url" >>"$FAKE_CURL_LOG"
@@ -68,6 +68,8 @@ exit "$FAKE_HEALTH_EXIT"
     "utf8"
   );
   chmodSync(curlPath, 0o755);
+  writeFileSync(curlLog, "", "utf8");
+  writeFileSync(argvLog, "", "utf8");
 
   try {
     const result = spawnSync("bash", [monitorPath], {
