@@ -13,6 +13,7 @@ test("backup creates a validated custom dump and verifies the external round tri
   assert.match(backup, /umask 077/);
   assert.match(backup, /pg_dump[\s\S]*--format=custom/);
   assert.match(backup, /--no-owner --no-privileges/);
+  assert.match(backup, /query_parameter[\s\S]*schema=\*/);
   assert.match(backup, /pg_restore --list/);
   assert.match(backup, /sha256sum/);
   assert.match(backup, /rclone copyto --immutable/);

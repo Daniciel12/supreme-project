@@ -75,7 +75,24 @@ if ! docker run --rm \
   --network "$POSTGRES_DOCKER_NETWORK" \
   --env DATABASE_URL \
   "$POSTGRES_CLIENT_IMAGE" \
-  sh -Eeuc 'exec pg_dump --dbname="$DATABASE_URL" --format=custom --compress=9 --no-owner --no-privileges' \
+  bash -Eeuc '
+    database_url_base="${DATABASE_URL%%\?*}"
+    if [[ "$DATABASE_URL" == *\?* ]]; then
+      database_url_query="${DATABASE_URL#*\?}"
+      pg_dump_query=""
+      separator=""
+      IFS="&" read -r -a query_parameters <<<"$database_url_query"
+      for query_parameter in "${query_parameters[@]}"; do
+        [[ "$query_parameter" == schema=* || -z "$query_parameter" ]] && continue
+        pg_dump_query+="${separator}${query_parameter}"
+        separator="&"
+      done
+      if [[ -n "$pg_dump_query" ]]; then
+        database_url_base+="?${pg_dump_query}"
+      fi
+    fi
+    exec pg_dump --dbname="$database_url_base" --format=custom --compress=9 --no-owner --no-privileges
+  ' \
   >"$dump_path"; then
   fail "pg_dump failed"
 fi

@@ -5,6 +5,7 @@ Este runbook prepara o gate operacional da issue #34 sem acessar secrets pelo re
 ## Garantias do fluxo
 
 - `scripts/postgres-backup.sh` cria um dump customizado com `pg_dump`, sem ownership ou ACLs, valida a estrutura e calcula SHA-256;
+- parâmetros exclusivos do Prisma, como `schema`, são removidos da cópia interna da URL antes de chamar `pg_dump`; a URL original não é alterada nem impressa;
 - o dump e o checksum são enviados para um destino externo via `rclone`;
 - o backup é baixado novamente e seu SHA-256 é comparado antes de o comando ser considerado bem-sucedido;
 - `scripts/postgres-restore-test.sh` baixa um objeto escolhido explicitamente e restaura somente em um container PostgreSQL temporário;
