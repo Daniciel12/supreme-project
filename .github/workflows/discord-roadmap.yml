@@ -1,0 +1,94 @@
+name: Discord Roadmap
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - docs/ROADMAP.md
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      DISCORD_ROADMAP_WEBHOOK_URL: ${{ secrets.DISCORD_ROADMAP_WEBHOOK_URL }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish roadmap to Discord
+        shell: bash
+        run: |
+          if [ -z "${DISCORD_ROADMAP_WEBHOOK_URL:-}" ]; then
+            echo "DISCORD_ROADMAP_WEBHOOK_URL is not configured; skipping roadmap publication."
+            exit 0
+          fi
+
+          python3 <<'PY'
+          import json
+          import os
+          import sys
+          import urllib.error
+          import urllib.request
+          from pathlib import Path
+
+          webhook = os.environ["DISCORD_ROADMAP_WEBHOOK_URL"]
+          roadmap = Path("docs/ROADMAP.md").read_text(encoding="utf-8").strip()
+
+          if not roadmap:
+              print("docs/ROADMAP.md is empty; refusing to publish.", file=sys.stderr)
+              sys.exit(1)
+
+          max_length = 1850
+          chunks = []
+          remaining = roadmap
+
+          while remaining:
+              if len(remaining) <= max_length:
+                  chunks.append(remaining)
+                  break
+
+              cut = remaining.rfind("\n## ", 0, max_length)
+              if cut < 600:
+                  cut = remaining.rfind("\n", 0, max_length)
+              if cut < 1:
+                  cut = max_length
+
+              chunks.append(remaining[:cut].strip())
+              remaining = remaining[cut:].strip()
+
+          for index, chunk in enumerate(chunks, start=1):
+              prefix = "" if index == 1 else f"**Roadmap — continuação {index}/{len(chunks)}**\n\n"
+              payload = {
+                  "content": prefix + chunk,
+                  "allowed_mentions": {"parse": []},
+              }
+              request = urllib.request.Request(
+                  webhook,
+                  data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+                  headers={
+                      "Content-Type": "application/json",
+                      "User-Agent": "Supreme-Roadmap-GitHub-Actions",
+                  },
+                  method="POST",
+              )
+
+              try:
+                  with urllib.request.urlopen(request, timeout=20) as response:
+                      if response.status not in (200, 204):
+                          print(f"Discord returned unexpected HTTP {response.status}.", file=sys.stderr)
+                          sys.exit(1)
+              except urllib.error.HTTPError as error:
+                  print(f"Discord returned HTTP {error.code}.", file=sys.stderr)
+                  sys.exit(1)
+              except urllib.error.URLError:
+                  print("Could not reach Discord webhook endpoint.", file=sys.stderr)
+                  sys.exit(1)
+
+          print(f"Published roadmap to Discord in {len(chunks)} message(s).")
+          PY
