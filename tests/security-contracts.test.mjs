@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import test from "node:test";
+import nextProxyTesting from "next/experimental/testing/server.js";
+import { config as proxyConfig } from "../src/proxy.ts";
+
+const { unstable_doesMiddlewareMatch } = nextProxyTesting;
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -58,6 +62,31 @@ test("Next.js 16 proxy entrypoint is explicit and only deliberate public routes 
   assert.match(source, /export function proxy/);
   assert.match(source, /api\/auth/);
   assert.match(source, /api\/health/);
+  assert.match(source, /api\/uploadthing/);
   assert.match(source, /login/);
   assert.match(source, /withAuth/);
+});
+
+test("UploadThing reaches its signed route without weakening other auth boundaries", () => {
+  const doesProxyMatch = (url) =>
+    unstable_doesMiddlewareMatch({
+      config: proxyConfig,
+      nextConfig: {},
+      url,
+    });
+
+  assert.equal(
+    doesProxyMatch("/api/uploadthing?slug=visionImageUploader"),
+    false,
+    "provider callbacks must reach UploadThing signature verification"
+  );
+  assert.equal(
+    doesProxyMatch(
+      "/api/uploadthing?actionType=upload&slug=visionImageUploader"
+    ),
+    false,
+    "client initiation is authenticated inside the UploadThing route"
+  );
+  assert.equal(doesProxyMatch("/api/vision-images"), true);
+  assert.equal(doesProxyMatch("/visao"), true);
 });
