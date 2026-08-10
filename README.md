@@ -48,6 +48,7 @@ cp .env.example .env
 | `DATABASE_URL` | Sim | Conexão PostgreSQL usada pelo Prisma |
 | `NEXTAUTH_URL` | Sim | URL pública da aplicação |
 | `NEXTAUTH_SECRET` | Sim | Assinatura/criptografia da sessão; use valor aleatório forte |
+| `RATE_LIMIT_TRUST_PROXY` | Não | Use `true` somente atrás do primeiro proxy público confiável |
 | `GOOGLE_CLIENT_ID` | Não | Google OAuth; só habilitado quando ID e secret existem |
 | `GOOGLE_CLIENT_SECRET` | Não | Google OAuth |
 | `UPLOADTHING_TOKEN` | Para Vision Board | Autorização server-side do UploadThing |
@@ -122,7 +123,7 @@ No VPS, crie um arquivo local que nunca será commitado:
 cp .env.example .env.production
 ```
 
-Preencha pelo menos `DATABASE_URL`, `NEXTAUTH_URL` e `NEXTAUTH_SECRET`. Configure Google OAuth e UploadThing somente se esses recursos estiverem habilitados no ambiente.
+Preencha pelo menos `DATABASE_URL`, `NEXTAUTH_URL` e `NEXTAUTH_SECRET`. Configure Google OAuth e UploadThing somente se esses recursos estiverem habilitados no ambiente. Na implantação privada atrás do Caddy, siga [docs/PRODUCTION_RATE_LIMITING.md](docs/PRODUCTION_RATE_LIMITING.md) antes de habilitar `RATE_LIMIT_TRUST_PROXY`.
 
 `NEXTAUTH_URL` deve ser a URL HTTPS pública final, não `localhost` nem a porta interna do container.
 
@@ -236,7 +237,7 @@ Antes de qualquer deploy real:
 - [ ] `npm run smoke` passa contra a URL HTTPS candidata.
 - [ ] Smoke test visual autenticado em desktop e mobile cobre login, Dashboard, Finanças, Hábitos, Metas, Treinos, Livros e Vision Board.
 - [ ] Isolamento multiusuário foi testado com ao menos duas contas.
-- [ ] Rate limiting/anti-abuse está configurado na plataforma para cadastro, login e uploads.
+- [ ] Rate limiting/anti-abuse de cadastro, login e uploads foi ativado e validado conforme `docs/PRODUCTION_RATE_LIMITING.md`.
 - [ ] Logs, captura de erros e alertas operacionais estão configurados sem registrar secrets ou dados sensíveis desnecessários.
 - [ ] HTTPS está obrigatório; HSTS deve ser habilitado na camada de produção após validar todo o domínio em HTTPS.
 - [ ] Backups do PostgreSQL e procedimento de restauração estão definidos e testados.

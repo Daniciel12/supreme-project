@@ -36,21 +36,35 @@ export default function LoginPage() {
   }, []);
 
   async function authenticate() {
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      setError("E-mail ou senha inválidos.");
+      if (result?.error) {
+        setError(
+          result.error === "TooManyRequests"
+            ? "Muitas tentativas. Tente novamente mais tarde."
+            : "E-mail ou senha inválidos."
+        );
+        setLoading(false);
+        return;
+      }
+
+      if (!result?.ok) {
+        throw new Error("Authentication did not complete.");
+      }
+
+      // A troca de identidade precisa descartar por completo estado React e cache
+      // de navegação pertencentes à sessão anterior.
+      window.location.replace("/");
+    } catch (err) {
+      console.error("Erro ao autenticar", err);
+      setError("Não foi possível entrar. Tente novamente.");
       setLoading(false);
-      return;
     }
-
-    // A troca de identidade precisa descartar por completo estado React e cache
-    // de navegação pertencentes à sessão anterior.
-    window.location.replace("/");
   }
 
   async function handleLogin(event: FormEvent) {
