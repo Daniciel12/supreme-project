@@ -27,10 +27,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (pathname === "/login") {
-      setSessionUser(null);
-      return;
-    }
+    if (pathname === "/login") return;
 
     let active = true;
 
