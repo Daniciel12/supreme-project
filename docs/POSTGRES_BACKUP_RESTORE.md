@@ -25,6 +25,18 @@ O teste confirma integridade de transporte, legibilidade do archive, restauraç�
 
 Use credenciais exclusivas e de menor privilégio para o remote. O arquivo de configuração do `rclone` deve ficar fora do repositório, com permissão `0600`. Não cole sua configuração, chaves ou URLs do banco em issues, PRs ou logs.
 
+### Cloudflare R2 com token limitado ao bucket
+
+Tokens R2 com permissão `Object Read & Write` aplicada somente ao bucket não podem executar operações administrativas de bucket. Para evitar que o `rclone` tente essas operações antes do upload, mantenha esta opção no remote:
+
+```ini
+no_check_bucket = true
+```
+
+Sem essa opção, leituras podem funcionar enquanto uploads falham com `AccessDenied`, mesmo quando o token possui permissão de escrita nos objetos. Valide a configuração com um upload de arquivo de tamanho conhecido; `rclone rcat` usa streaming e não reproduz necessariamente o caminho usado pelo script de backup.
+
+Algumas versões do `rclone config update` imprimem o remote completo após a alteração, inclusive credenciais. Não execute esse comando em uma sessão gravada nem publique sua saída. Edite o arquivo protegido diretamente ou use o assistente interativo sem compartilhar a tela, confirme `chmod 600` e rotacione imediatamente qualquer credencial que aparecer em logs ou capturas.
+
 O `POSTGRES_CLIENT_IMAGE` usa `postgres:16` por padrão e deve manter o mesmo major do servidor. Antes da primeira execução, registre o digest aprovado da imagem no procedimento operacional da VPS.
 
 ## Configuração fora do repositório

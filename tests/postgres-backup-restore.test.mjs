@@ -33,6 +33,15 @@ test("restore is structurally unable to target production", () => {
   assert.doesNotMatch(restore, /DATABASE_URL|RESTORE_DATABASE_URL|TARGET_DATABASE_URL/);
 });
 
+test("runbook covers bucket-scoped Cloudflare R2 tokens without leaking config", () => {
+  const runbook = read("docs/POSTGRES_BACKUP_RESTORE.md");
+
+  assert.match(runbook, /Object Read & Write/);
+  assert.match(runbook, /no_check_bucket = true/);
+  assert.match(runbook, /rclone config update/);
+  assert.match(runbook, /rotacione imediatamente/);
+});
+
 test("Docker CI exercises backup and disposable restore scripts", () => {
   const workflow = read(".github/workflows/docker.yml");
 
