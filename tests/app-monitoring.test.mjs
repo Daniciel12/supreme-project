@@ -214,7 +214,7 @@ test("application monitoring runbook requires protected secrets and email alerts
   assert.match(runbook, /logs --since 30m --tail 200 app/);
   assert.match(runbook, /max-size=10m/);
   assert.match(runbook, /sudoedit \/opt\/supreme\/runtime\/compose\.yml/);
-  assert.match(runbook, /\(\n  set -Eeuo pipefail/);
+  assert.match(runbook, /\(\r?\n  set -Eeuo pipefail/);
   assert.match(runbook, /trap rollback_on_error EXIT/);
   assert.match(runbook, /config --quiet/);
   assert.match(runbook, /up -d --no-deps --no-build app/);

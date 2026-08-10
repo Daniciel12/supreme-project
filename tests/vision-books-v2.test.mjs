@@ -296,3 +296,18 @@ test("books and vision pages use dedicated foundation workspaces", () => {
   assert.doesNotMatch(goals, /\/api\/books|interface Book|Fontes de conhecimento/);
   assert.match(navigation, /href: "\/livros"/);
 });
+
+test("vision upload is localized and fits compact mobile cards", () => {
+  const vision = read("src/app/visao/page.tsx");
+  const visionStyles = read("src/app/visao/visao.module.css");
+  const globalStyles = read("src/app/globals.css");
+
+  assert.match(vision, /Escolha uma imagem ou arraste e solte/);
+  assert.match(vision, /Solte a imagem aqui/);
+  assert.match(vision, /Imagem de até 4 MB/);
+  assert.match(vision, /Escolher imagem/);
+  assert.match(visionStyles, /grid-template-columns:\s*minmax\(0,\s*1fr\)/);
+  assert.match(visionStyles, /\.uploadCard > \*\s*\{[^}]*min-width:\s*0/s);
+  assert.match(globalStyles, /\.ut-dropzone-dark\s*\{[^}]*width:\s*100%\s*!important/s);
+  assert.match(globalStyles, /\.ut-dropzone-dark\s*\{[^}]*min-width:\s*0\s*!important/s);
+});
