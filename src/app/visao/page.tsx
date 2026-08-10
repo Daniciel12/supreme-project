@@ -97,6 +97,17 @@ export default function VisaoPage() {
           <UploadDropzone<OurFileRouter, "visionImageUploader">
             endpoint="visionImageUploader"
             className="ut-dropzone-dark"
+            content={{
+              label: ({ isDragActive }) =>
+                isDragActive
+                  ? "Solte a imagem aqui"
+                  : "Escolha uma imagem ou arraste e solte",
+              allowedContent: "Imagem de até 4 MB",
+              button: ({ ready, isUploading }) => {
+                if (isUploading) return "Enviando...";
+                return ready ? "Escolher imagem" : "Preparando...";
+              },
+            }}
             onClientUploadComplete={(result) => {
               const image = result?.[0]?.serverData?.image;
 

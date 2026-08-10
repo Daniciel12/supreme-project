@@ -1472,6 +1472,9 @@ svg {
   background-color: var(--color-bg-secondary) !important;
   border: 2px dashed var(--color-border-strong) !important;
   border-radius: var(--radius-lg) !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
   padding: var(--space-6) !important;
 }
 
