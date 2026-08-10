@@ -2,12 +2,10 @@
 
 import { useEffect, useState, FormEvent } from "react";
 import { getProviders, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 type Mode = "login" | "register";
 
 export default function LoginPage() {
-  const router = useRouter();
   const [mode, setMode] = useState<Mode>("login");
 
   const [name, setName] = useState("");
@@ -50,8 +48,9 @@ export default function LoginPage() {
       return;
     }
 
-    router.push("/");
-    router.refresh();
+    // A troca de identidade precisa descartar por completo estado React e cache
+    // de navegação pertencentes à sessão anterior.
+    window.location.replace("/");
   }
 
   async function handleLogin(event: FormEvent) {
