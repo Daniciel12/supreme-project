@@ -1,0 +1,209 @@
+.workspace {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.creationPanel {
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-border) 82%, transparent);
+}
+
+.creationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.creationTitle {
+  color: var(--ds-text-primary);
+  font-size: var(--font-size-xl);
+  font-weight: 850;
+  letter-spacing: -0.035em;
+}
+
+.creationDescription {
+  max-width: 64ch;
+  margin-top: var(--space-1);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+}
+
+.categoryStack {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.categoryBlock {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.categoryHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.categoryTitle {
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: 850;
+  letter-spacing: 0.085em;
+  text-transform: uppercase;
+}
+
+.goalGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.goalCard {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid color-mix(in srgb, var(--ds-border) 90%, transparent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ds-surface-elevated) 86%, transparent), color-mix(in srgb, var(--ds-surface) 94%, transparent));
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.08);
+  transition:
+    border-color var(--transition-fast),
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.goalCard:hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 30%, var(--ds-border));
+  transform: translateY(-2px);
+  box-shadow: 0 20px 52px rgba(0, 0, 0, 0.11);
+}
+
+.goalHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.goalTitle {
+  display: block;
+  color: var(--ds-text-primary);
+  font-size: var(--font-size-lg);
+  font-weight: 850;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+}
+
+.progressSummary {
+  flex: 0 0 auto;
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: 750;
+  text-align: right;
+}
+
+.progressTrack {
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--ds-border) 76%, transparent);
+}
+
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ds-accent), var(--ds-success));
+  transition: width var(--transition-normal);
+}
+
+.taskList {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.taskItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--ds-border) 76%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--ds-surface-elevated) 55%, transparent);
+}
+
+.taskItem input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  accent-color: var(--ds-accent);
+}
+
+.taskTitle {
+  min-width: 0;
+  color: var(--ds-text-primary);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.taskAdd {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  align-items: center;
+  margin-top: auto;
+  padding-top: var(--space-3);
+  border-top: 1px solid color-mix(in srgb, var(--ds-border) 72%, transparent);
+}
+
+.errorText {
+  margin-top: var(--space-3);
+  color: var(--ds-danger);
+  font-size: var(--font-size-sm);
+}
+
+@media (max-width: 1040px) {
+  .goalGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .creationHeader,
+  .categoryHeader,
+  .goalHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .progressSummary {
+    text-align: left;
+  }
+
+  .taskAdd {
+    grid-template-columns: 1fr;
+  }
+
+  .taskAdd :global(.ui-button) {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .goalCard,
+  .progressFill {
+    transition: none;
+  }
+
+  .goalCard:hover {
+    transform: none;
+  }
+}
