@@ -5,15 +5,17 @@
 
 ## 📍 Estado atual
 
-O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público, limpeza de arquivos remotos, HSTS/CSP e tratamento controlado de erros OAuth já foram validados em repositório. O **Frontend v3 já foi iniciado** pelo novo Application Shell.
+O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público, limpeza de arquivos remotos, HSTS/CSP e tratamento controlado de erros OAuth já foram validados em repositório.
+
+O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard e todos os módulos principais de produto**. Restam a consolidação visual transversal, experiência mobile-first global, motion/microinterações e a revisão final de acessibilidade/performance.
 
 O único gate restante das integrações de produção é ativar e validar Google OAuth no ambiente real da VPS, operação que depende de secrets configurados somente no servidor.
 
 **Próximos passos:**
 1. ativar e validar Google OAuth em produção;
-2. consolidar Design System v2 e tokens semânticos;
-3. evoluir login/onboarding e Dashboard v3;
-4. seguir o redesign dos demais módulos.
+2. consolidar identidade visual definitiva do Frontend v3;
+3. concluir revisão mobile-first, motion, acessibilidade e performance;
+4. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -46,7 +48,7 @@ O único gate restante das integrações de produção é ativar e validar Googl
 - loading, empty e error states;
 - base responsiva e acessível.
 
-> A Foundation é a base técnica. O redesign visual definitivo está sendo feito incrementalmente no Frontend v3.
+> A Foundation é a base técnica. O redesign visual definitivo está sendo consolidado incrementalmente no Frontend v3.
 
 ## ✅ 4. VPS e deploy controlado — operacional
 
@@ -105,17 +107,17 @@ O código e o runbook do Google OAuth estão preparados. A conclusão deste item
 ## 🎨 9. Frontend v3 — em andamento
 
 - [ ] identidade visual definitiva;
-- [ ] Design System v2;
+- [x] Design System v2;
 - [x] novo Application Shell;
 - [x] sidebar/header/perfil redesenhados;
-- [ ] login + onboarding;
-- [ ] Dashboard v3;
-- [ ] Finanças v3;
-- [ ] Hábitos v3;
-- [ ] Metas v3;
-- [ ] Treinos v3;
-- [ ] Livros v3;
-- [ ] Vision Board v3;
+- [x] login + onboarding;
+- [x] Dashboard v3;
+- [x] Finanças v3;
+- [x] Hábitos v3;
+- [x] Metas v3;
+- [x] Treinos v3;
+- [x] Livros v3;
+- [x] Vision Board v3;
 - [ ] experiência mobile-first;
 - [ ] motion e microinterações;
 - [ ] revisão de acessibilidade e performance.
