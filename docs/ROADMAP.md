@@ -1,17 +1,19 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 10/08/2026  
+**Atualizado em:** 11/08/2026  
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
 ## 📍 Estado atual
 
-O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público e HSTS/CSP já foram validados. O foco atual é concluir as integrações de produção e então iniciar o **Frontend v3**.
+O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público, limpeza de arquivos remotos, HSTS/CSP e tratamento controlado de erros OAuth já foram validados em repositório. O **Frontend v3 já foi iniciado** pelo novo Application Shell.
+
+O único gate restante das integrações de produção é ativar e validar Google OAuth no ambiente real da VPS, operação que depende de secrets configurados somente no servidor.
 
 **Próximos passos:**
-1. Google OAuth em produção;
-2. política de limpeza de arquivos órfãos do UploadThing;
-3. revisão final de callbacks e erros externos;
-4. Frontend v3 / redesign completo.
+1. ativar e validar Google OAuth em produção;
+2. consolidar Design System v2 e tokens semânticos;
+3. evoluir login/onboarding e Dashboard v3;
+4. seguir o redesign dos demais módulos.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -44,7 +46,7 @@ O Supreme já possui backend multiusuário, módulos principais, CI, Docker e am
 - loading, empty e error states;
 - base responsiva e acessível.
 
-> A Foundation é a base técnica. O redesign visual definitivo será feito no Frontend v3.
+> A Foundation é a base técnica. O redesign visual definitivo está sendo feito incrementalmente no Frontend v3.
 
 ## ✅ 4. VPS e deploy controlado — operacional
 
@@ -95,15 +97,17 @@ O restore de produção continua deliberadamente manual e nunca é automatizado.
 
 - [ ] Google OAuth em produção;
 - [x] UploadThing validado pela URL pública;
-- [ ] política de limpeza de arquivos órfãos;
-- [ ] revisão final de callbacks e erros externos.
+- [x] política de limpeza de arquivos órfãos;
+- [x] revisão final de callbacks e erros externos.
 
-## 🎨 9. Frontend v3 — próxima grande fase
+O código e o runbook do Google OAuth estão preparados. A conclusão deste item exige configuração das credenciais no ambiente da VPS e smoke real, sem registrar secrets no GitHub.
+
+## 🎨 9. Frontend v3 — em andamento
 
 - [ ] identidade visual definitiva;
 - [ ] Design System v2;
-- [ ] novo Application Shell;
-- [ ] sidebar/header/perfil redesenhados;
+- [x] novo Application Shell;
+- [x] sidebar/header/perfil redesenhados;
 - [ ] login + onboarding;
 - [ ] Dashboard v3;
 - [ ] Finanças v3;
