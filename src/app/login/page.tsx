@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, FormEvent } from "react";
+import { Suspense, useEffect, useState, FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
 import { getProviders, signIn } from "next-auth/react";
 
 type Mode = "login" | "register";
@@ -19,24 +20,20 @@ function oauthErrorMessage(code: string | null) {
   );
 }
 
-export default function LoginPage() {
+function LoginContent() {
+  const searchParams = useSearchParams();
+  const redirectError = oauthErrorMessage(searchParams.get("error"));
   const [mode, setMode] = useState<Mode>("login");
-
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null | undefined>(undefined);
   const [googleAvailable, setGoogleAvailable] = useState(false);
+  const visibleError = error === undefined ? redirectError : error;
 
   useEffect(() => {
     let active = true;
-    const oauthError = new URLSearchParams(window.location.search).get("error");
-    const message = oauthErrorMessage(oauthError);
-
-    if (message) {
-      setError(message);
-    }
 
     void getProviders()
       .then((providers) => {
@@ -77,8 +74,6 @@ export default function LoginPage() {
         throw new Error("Authentication did not complete.");
       }
 
-      // A troca de identidade precisa descartar por completo estado React e cache
-      // de navegação pertencentes à sessão anterior.
       window.location.replace("/");
     } catch (err) {
       console.error("Erro ao autenticar", err);
@@ -181,7 +176,7 @@ export default function LoginPage() {
               />
             </div>
 
-            {error && <p className="error-text">{error}</p>}
+            {visibleError && <p className="error-text">{visibleError}</p>}
 
             <button type="submit" className="btn btn-primary" disabled={loading}>
               {loading
@@ -242,5 +237,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<main className="main-content" />}>
+      <LoginContent />
+    </Suspense>
   );
 }
