@@ -8,6 +8,7 @@ import {
   applicationNavigation,
   isActivePath,
 } from "@/components/application-navigation";
+import styles from "./application-shell-v3.module.css";
 
 type SessionUser = {
   name?: string | null;
@@ -56,8 +57,6 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
     try {
       await signOut({ redirect: false });
     } finally {
-      // Uma navegação de documento completo elimina estado e cache do cliente
-      // associados à identidade anterior antes de outro login.
       window.location.replace("/login");
     }
   }
@@ -70,21 +69,28 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
       <Link
         key={item.href}
         href={item.href}
-        className={`app-nav__link${active ? " app-nav__link--active" : ""}`}
+        className={`app-nav__link ${styles.navLink}${
+          active ? ` app-nav__link--active ${styles.navLinkActive}` : ""
+        }`}
         aria-current={active ? "page" : undefined}
         onClick={() => closeMenu()}
       >
-        <span className="app-nav__icon" aria-hidden="true">{item.shortLabel}</span>
+        <span className={`app-nav__icon ${styles.navIcon}`} aria-hidden="true">
+          {item.shortLabel}
+        </span>
         <span>{item.label}</span>
       </Link>
     );
   });
 
   const sessionLabel = sessionUser?.email ?? sessionUser?.name ?? "Área pessoal";
+  const sessionInitial = (sessionUser?.name ?? sessionUser?.email ?? "S")
+    .trim()
+    .charAt(0) || "S";
 
   return (
     <div
-      className="app-shell"
+      className={`app-shell ${styles.shell}`}
       onKeyDown={(event) => {
         if (event.key === "Escape" && menuOpen) closeMenu({ restoreFocus: true });
       }}
@@ -92,16 +98,27 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
       <aside
         id="supreme-sidebar"
         ref={sidebarRef}
-        className={`app-sidebar${menuOpen ? " app-sidebar--open" : ""}`}
+        className={`app-sidebar ${styles.sidebar}${
+          menuOpen ? " app-sidebar--open" : ""
+        }`}
       >
-        <div className="app-brand">
-          <span className="app-brand__mark" aria-hidden="true">S</span>
-          <div>
-            <span className="app-brand__name">Supreme</span>
-            <span className="app-brand__caption">Seu sistema pessoal</span>
+        <div className={`app-brand ${styles.brand}`}>
+          <span
+            className={`app-brand__mark ${styles.brandMark}`}
+            aria-hidden="true"
+          >
+            S
+          </span>
+          <div className={styles.brandMeta}>
+            <span className={`app-brand__name ${styles.brandName}`}>Supreme</span>
+            <span className={`app-brand__caption ${styles.brandCaption}`}>
+              Seu sistema pessoal
+            </span>
           </div>
         </div>
-        <nav className="app-nav" aria-label="Navegação principal">{navigationLinks}</nav>
+        <nav className={`app-nav ${styles.nav}`} aria-label="Navegação principal">
+          {navigationLinks}
+        </nav>
         <p className="app-sidebar__footer">Organize hoje. Evolua sempre.</p>
       </aside>
 
@@ -115,7 +132,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
       )}
 
       <div className="app-shell__workspace">
-        <header className="app-header">
+        <header className={`app-header ${styles.header}`}>
           <button
             type="button"
             ref={menuButtonRef}
@@ -127,8 +144,22 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
           >
             <span aria-hidden="true">{menuOpen ? "×" : "☰"}</span>
           </button>
-          <Link href="/" className="app-header__brand">Supreme</Link>
-          <span className="app-header__context" title={sessionLabel}>{sessionLabel}</span>
+          <Link href="/" className="app-header__brand">
+            Supreme
+          </Link>
+
+          <div className={styles.profile} title={sessionLabel}>
+            <span className={styles.profileAvatar} aria-hidden="true">
+              {sessionInitial}
+            </span>
+            <span className={styles.profileText}>
+              <span className={styles.profileEyebrow}>Workspace pessoal</span>
+              <span className={`app-header__context ${styles.profileLabel}`}>
+                {sessionLabel}
+              </span>
+            </span>
+          </div>
+
           <button
             type="button"
             className="ui-button ui-button--outline ui-button--sm"
@@ -138,7 +169,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
             {signingOut ? "Saindo..." : "Sair"}
           </button>
         </header>
-        <div className="app-shell__content">{children}</div>
+        <div className={`app-shell__content ${styles.content}`}>{children}</div>
       </div>
     </div>
   );
