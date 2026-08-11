@@ -16,34 +16,59 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--ds-border) 84%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-surface-elevated) 88%, transparent), color-mix(in srgb, var(--ds-surface) 94%, transparent));
+  box-shadow: var(--ds-shadow-card);
+}
+
+.metricCard::after {
+  content: "";
+  position: absolute;
+  inset: auto -18% -55% 30%;
+  height: 110px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-accent) 9%, transparent);
+  filter: blur(24px);
+  pointer-events: none;
+}
+
+.metricLabel,
+.metricValue,
+.metricHint {
+  position: relative;
+  z-index: 1;
 }
 
 .metricLabel {
-  color: var(--text-secondary);
+  color: var(--ds-text-secondary);
   font-size: var(--font-size-xs);
-  font-weight: 800;
-  letter-spacing: 0.06em;
+  font-weight: 850;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .metricValue {
-  font-size: clamp(1.5rem, 3vw, 2rem);
-  line-height: 1.1;
-  letter-spacing: -0.04em;
+  color: var(--ds-text-primary);
+  font-size: clamp(1.55rem, 3vw, 2.15rem);
+  line-height: 1.05;
+  font-weight: 850;
+  letter-spacing: -0.05em;
   overflow-wrap: anywhere;
 }
 
 .metricHint {
-  color: var(--text-secondary);
+  color: var(--ds-text-muted);
   font-size: var(--font-size-xs);
 }
 
 .success {
-  color: var(--success);
+  color: var(--ds-success);
 }
 
 .danger {
-  color: var(--danger);
+  color: var(--ds-danger);
 }
 
 .formsGrid {
@@ -55,8 +80,8 @@
 
 .contentGrid {
   display: grid;
-  grid-template-columns: minmax(280px, 0.85fr) minmax(0, 1.65fr);
-  gap: var(--space-4);
+  grid-template-columns: minmax(300px, 0.8fr) minmax(0, 1.7fr);
+  gap: var(--space-5);
   align-items: start;
 }
 
@@ -73,15 +98,17 @@
 }
 
 .sectionTitle {
-  font-size: var(--font-size-xl);
-  line-height: 1.25;
-  letter-spacing: -0.025em;
+  color: var(--ds-text-primary);
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+  line-height: 1.2;
+  font-weight: 850;
+  letter-spacing: -0.035em;
 }
 
 .sectionDescription {
   max-width: 62ch;
   margin-top: var(--space-1);
-  color: var(--text-secondary);
+  color: var(--ds-text-secondary);
   font-size: var(--font-size-sm);
 }
 
@@ -92,6 +119,22 @@
   gap: var(--space-3);
 }
 
+.accountItem,
+.transactionItem {
+  border: 1px solid color-mix(in srgb, var(--ds-border) 84%, transparent);
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--ds-motion-fast),
+    background-color var(--ds-motion-fast),
+    transform var(--ds-motion-fast);
+}
+
+.accountItem:hover,
+.transactionItem:hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 32%, var(--ds-border));
+  transform: translateY(-1px);
+}
+
 .accountItem {
   display: flex;
   align-items: center;
@@ -99,9 +142,7 @@
   gap: var(--space-4);
   min-width: 0;
   padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-elevated) 68%, transparent);
+  background: color-mix(in srgb, var(--ds-surface-elevated) 68%, transparent);
 }
 
 .accountMeta,
@@ -124,12 +165,13 @@
 }
 
 .accountBalance strong {
+  color: var(--ds-text-primary);
   font-size: var(--font-size-lg);
   overflow-wrap: anywhere;
 }
 
 .accountBalance span {
-  color: var(--text-secondary);
+  color: var(--ds-text-secondary);
   font-size: var(--font-size-xs);
 }
 
@@ -138,6 +180,10 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-3);
   margin-bottom: var(--space-5);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--ds-border) 80%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--ds-surface-elevated) 38%, transparent);
 }
 
 .transactionItem {
@@ -147,9 +193,7 @@
   gap: var(--space-4);
   min-width: 0;
   padding: var(--space-4);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, var(--surface-elevated) 55%, transparent);
+  background: color-mix(in srgb, var(--ds-surface-elevated) 55%, transparent);
 }
 
 .transactionMain {
@@ -167,13 +211,14 @@
 }
 
 .transactionTitle {
+  color: var(--ds-text-primary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .transactionMeta {
-  color: var(--text-secondary);
+  color: var(--ds-text-secondary);
   font-size: var(--font-size-xs);
 }
 
@@ -187,7 +232,9 @@
 }
 
 .transactionAside > strong {
+  color: var(--ds-text-primary);
   font-size: var(--font-size-lg);
+  letter-spacing: -0.02em;
   overflow-wrap: anywhere;
 }
 
@@ -224,5 +271,17 @@
 
   .transactionAside :global(.ui-button) {
     width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .accountItem,
+  .transactionItem {
+    transition: none;
+  }
+
+  .accountItem:hover,
+  .transactionItem:hover {
+    transform: none;
   }
 }
