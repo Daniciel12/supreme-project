@@ -13,6 +13,7 @@ import {
   PageHeader,
   Select,
 } from "@/components/ui";
+import { useLocalDateKey } from "@/lib/local-date";
 import styles from "./goals-v3.module.css";
 
 const CATEGORIES = ["Profissional", "Saúde", "Espiritualidade", "Pessoal"] as const;
@@ -33,13 +34,6 @@ interface Goal {
   tasks: Task[];
 }
 
-function localDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 const dateFormatter = new Intl.DateTimeFormat("pt-BR", { timeZone: "UTC" });
 
 function formatDeadline(deadline: string) {
@@ -54,7 +48,7 @@ async function fetchGoals() {
 }
 
 export default function MetasPage() {
-  const todayKey = localDateKey();
+  const todayKey = useLocalDateKey();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loadingGoals, setLoadingGoals] = useState(true);
   const [goalsLoadError, setGoalsLoadError] = useState(false);
@@ -365,9 +359,12 @@ export default function MetasPage() {
                       const isOverdue =
                         !goal.isCompleted &&
                         deadlineKey !== null &&
+                        todayKey !== null &&
                         deadlineKey < todayKey;
                       const isDueToday =
-                        !goal.isCompleted && deadlineKey === todayKey;
+                        !goal.isCompleted &&
+                        todayKey !== null &&
+                        deadlineKey === todayKey;
 
                       return (
                         <article key={goal.id} className={`goal-card ${styles.goalCard}`}>

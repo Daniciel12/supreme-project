@@ -12,6 +12,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui";
+import { useLocalDateKey } from "@/lib/local-date";
 import styles from "./treinos.module.css";
 
 const DAYS = ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SAB"] as const;
@@ -49,13 +50,6 @@ interface WorkoutSummary {
   completionsLast7: number;
 }
 
-function localDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function dayForDate(date: string) {
   return DAYS[new Date(`${date}T00:00:00`).getDay()];
 }
@@ -74,8 +68,13 @@ function formatNumber(value: number, digits = 1) {
 }
 
 export default function TreinosPage() {
-  const [selectedDate, setSelectedDate] = useState(() => localDateKey());
-  const selectedDay = useMemo(() => dayForDate(selectedDate), [selectedDate]);
+  const todayKey = useLocalDateKey();
+  const [selectedDateOverride, setSelectedDateOverride] = useState<string | null>(null);
+  const selectedDate = selectedDateOverride ?? todayKey ?? "";
+  const selectedDay = useMemo(
+    () => (selectedDate ? dayForDate(selectedDate) : DAYS[0]),
+    [selectedDate]
+  );
 
   const [records, setRecords] = useState<PhysicalRecord[]>([]);
   const [loadingRecords, setLoadingRecords] = useState(true);
@@ -83,7 +82,8 @@ export default function TreinosPage() {
   const [weight, setWeight] = useState("");
   const [height, setHeight] = useState("");
   const [bodyFat, setBodyFat] = useState("");
-  const [recordDate, setRecordDate] = useState(() => localDateKey());
+  const [recordDateOverride, setRecordDateOverride] = useState<string | null>(null);
+  const recordDate = recordDateOverride ?? todayKey ?? "";
   const [recordNotes, setRecordNotes] = useState("");
   const [savingRecord, setSavingRecord] = useState(false);
   const [recordError, setRecordError] = useState<string | null>(null);
@@ -123,6 +123,8 @@ export default function TreinosPage() {
   }, []);
 
   useEffect(() => {
+    if (!selectedDate) return;
+
     let active = true;
 
     Promise.all([
@@ -166,7 +168,7 @@ export default function TreinosPage() {
 
   function handleDateChange(value: string) {
     setLoadingWorkouts(true);
-    setSelectedDate(value);
+    setSelectedDateOverride(value);
   }
 
   async function refreshRecords() {
@@ -186,6 +188,8 @@ export default function TreinosPage() {
   async function handleAddRecord(event: FormEvent) {
     event.preventDefault();
     setRecordError(null);
+
+    if (!recordDate) return;
 
     const weightNum = Number(weight);
     const heightNum = Number(height);
@@ -266,6 +270,8 @@ export default function TreinosPage() {
   }
 
   async function handleWorkoutCompletion(workout: Workout) {
+    if (!selectedDate) return;
+
     setWorkoutError(null);
     setUpdatingWorkoutId(workout.id);
 
@@ -496,7 +502,7 @@ export default function TreinosPage() {
                     id="record-date"
                     type="date"
                     value={recordDate}
-                    onChange={(event) => setRecordDate(event.target.value)}
+                    onChange={(event) => setRecordDateOverride(event.target.value)}
                     disabled={savingRecord}
                   />
                 </FormField>
