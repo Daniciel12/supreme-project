@@ -13,6 +13,7 @@ import {
   PageHeader,
   Select,
 } from "@/components/ui";
+import styles from "./goals-v3.module.css";
 
 const CATEGORIES = ["Profissional", "Saúde", "Espiritualidade", "Pessoal"] as const;
 
@@ -256,55 +257,71 @@ export default function MetasPage() {
           actions={<Badge tone="accent">{goals.length} metas</Badge>}
         />
 
-        <Card>
-          <h2 className="card-title">Meus objetivos</h2>
+        <Card className={styles.workspace}>
+          <section className={styles.creationPanel} aria-labelledby="goals-create-title">
+            <div className={styles.creationHeader}>
+              <div>
+                <h2 id="goals-create-title" className={`card-title ${styles.creationTitle}`}>
+                  Meus objetivos
+                </h2>
+                <p className={styles.creationDescription}>
+                  Registre um objetivo claro, associe um prazo quando fizer sentido e transforme-o em tarefas executáveis.
+                </p>
+              </div>
+              <Badge tone="accent">{goals.length} no total</Badge>
+            </div>
 
-          <form className="form" onSubmit={handleCreateGoal}>
-            <FormField label="Título" htmlFor="goal-title">
-              <Input
-                id="goal-title"
-                value={goalTitle}
-                onChange={(event) => setGoalTitle(event.target.value)}
-                placeholder="Ex: Concluir certificação"
-                disabled={savingGoal}
-              />
-            </FormField>
-            <div className="form-row">
-              <FormField label="Categoria" htmlFor="goal-category">
-                <Select
-                  id="goal-category"
-                  value={goalCategory}
-                  onChange={(event) => setGoalCategory(event.target.value)}
-                  disabled={savingGoal}
-                >
-                  {CATEGORIES.map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </Select>
-              </FormField>
-              <FormField label="Prazo" htmlFor="goal-deadline" hint="Opcional">
+            <form className="form" onSubmit={handleCreateGoal}>
+              <FormField label="Título" htmlFor="goal-title">
                 <Input
-                  id="goal-deadline"
-                  type="date"
-                  value={goalDeadline}
-                  onChange={(event) => setGoalDeadline(event.target.value)}
+                  id="goal-title"
+                  value={goalTitle}
+                  onChange={(event) => setGoalTitle(event.target.value)}
+                  placeholder="Ex: Concluir certificação"
                   disabled={savingGoal}
                 />
               </FormField>
-            </div>
-            {goalError && <p className="error-text">{goalError}</p>}
-            <Button
-              type="submit"
-              isLoading={savingGoal}
-              loadingLabel="Salvando meta..."
-            >
-              Adicionar meta
-            </Button>
-          </form>
+              <div className="form-row">
+                <FormField label="Categoria" htmlFor="goal-category">
+                  <Select
+                    id="goal-category"
+                    value={goalCategory}
+                    onChange={(event) => setGoalCategory(event.target.value)}
+                    disabled={savingGoal}
+                  >
+                    {CATEGORIES.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </Select>
+                </FormField>
+                <FormField label="Prazo" htmlFor="goal-deadline" hint="Opcional">
+                  <Input
+                    id="goal-deadline"
+                    type="date"
+                    value={goalDeadline}
+                    onChange={(event) => setGoalDeadline(event.target.value)}
+                    disabled={savingGoal}
+                  />
+                </FormField>
+              </div>
+              {goalError && (
+                <p className={`error-text ${styles.errorText}`} role="alert">
+                  {goalError}
+                </p>
+              )}
+              <Button
+                type="submit"
+                isLoading={savingGoal}
+                loadingLabel="Salvando meta..."
+              >
+                Adicionar meta
+              </Button>
+            </form>
+          </section>
 
-          <div className="mt-lg">
+          <div className={`mt-lg ${styles.categoryStack}`}>
             {loadingGoals ? (
               <LoadingState title="Carregando metas..." />
             ) : goalsLoadError ? (
@@ -319,129 +336,150 @@ export default function MetasPage() {
               />
             ) : (
               categoryOrder.map((category) => (
-                <div key={category} className="goal-category-block">
-                  <div className="goal-category-title">{category}</div>
+                <section
+                  key={category}
+                  className={`goal-category-block ${styles.categoryBlock}`}
+                  aria-labelledby={`goal-category-${category}`}
+                >
+                  <div className={styles.categoryHeader}>
+                    <div
+                      id={`goal-category-${category}`}
+                      className={`goal-category-title ${styles.categoryTitle}`}
+                    >
+                      {category}
+                    </div>
+                    <Badge>{goalsByCategory.get(category)?.length ?? 0} metas</Badge>
+                  </div>
 
-                  {goalsByCategory.get(category)?.map((goal) => {
-                    const totalTasks = goal.tasks.length;
-                    const completedTasks = goal.tasks.filter(
-                      (task) => task.isCompleted
-                    ).length;
-                    const progress =
-                      totalTasks > 0
-                        ? Math.round((completedTasks / totalTasks) * 100)
-                        : null;
-                    const deadlineKey = goal.deadline?.slice(0, 10) ?? null;
-                    const isOverdue =
-                      !goal.isCompleted &&
-                      deadlineKey !== null &&
-                      deadlineKey < todayKey;
-                    const isDueToday =
-                      !goal.isCompleted && deadlineKey === todayKey;
+                  <div className={styles.goalGrid}>
+                    {goalsByCategory.get(category)?.map((goal) => {
+                      const totalTasks = goal.tasks.length;
+                      const completedTasks = goal.tasks.filter(
+                        (task) => task.isCompleted
+                      ).length;
+                      const progress =
+                        totalTasks > 0
+                          ? Math.round((completedTasks / totalTasks) * 100)
+                          : null;
+                      const deadlineKey = goal.deadline?.slice(0, 10) ?? null;
+                      const isOverdue =
+                        !goal.isCompleted &&
+                        deadlineKey !== null &&
+                        deadlineKey < todayKey;
+                      const isDueToday =
+                        !goal.isCompleted && deadlineKey === todayKey;
 
-                    return (
-                      <div key={goal.id} className="goal-card">
-                        <div className="goal-card-header">
-                          <div>
-                            <span
-                              className={`goal-card-title${
-                                goal.isCompleted ? " completed" : ""
-                              }`}
-                            >
-                              {goal.title}
-                            </span>
-                            <div className="mt-sm">
-                              {goal.isCompleted ? (
-                                <Badge tone="success">Concluída</Badge>
-                              ) : isOverdue ? (
-                                <Badge tone="danger">
-                                  Vencida em {formatDeadline(goal.deadline!)}
-                                </Badge>
-                              ) : isDueToday ? (
-                                <Badge tone="warning">Vence hoje</Badge>
-                              ) : goal.deadline ? (
-                                <Badge tone="accent">
-                                  Prazo {formatDeadline(goal.deadline)}
-                                </Badge>
-                              ) : (
-                                <Badge>Sem prazo</Badge>
-                              )}
+                      return (
+                        <article key={goal.id} className={`goal-card ${styles.goalCard}`}>
+                          <div className={`goal-card-header ${styles.goalHeader}`}>
+                            <div>
+                              <span
+                                className={`goal-card-title ${styles.goalTitle}${
+                                  goal.isCompleted ? " completed" : ""
+                                }`}
+                              >
+                                {goal.title}
+                              </span>
+                              <div className="mt-sm">
+                                {goal.isCompleted ? (
+                                  <Badge tone="success">Concluída</Badge>
+                                ) : isOverdue ? (
+                                  <Badge tone="danger">
+                                    Vencida em {formatDeadline(goal.deadline!)}
+                                  </Badge>
+                                ) : isDueToday ? (
+                                  <Badge tone="warning">Vence hoje</Badge>
+                                ) : goal.deadline ? (
+                                  <Badge tone="accent">
+                                    Prazo {formatDeadline(goal.deadline)}
+                                  </Badge>
+                                ) : (
+                                  <Badge>Sem prazo</Badge>
+                                )}
+                              </div>
                             </div>
+                            <span className={`goal-progress-percent ${styles.progressSummary}`}>
+                              {progress === null
+                                ? "Sem tarefas"
+                                : `${progress}% · ${completedTasks}/${totalTasks}`}
+                            </span>
                           </div>
-                          <span className="goal-progress-percent">
-                            {progress === null
-                              ? "Sem tarefas"
-                              : `${progress}% · ${completedTasks}/${totalTasks}`}
-                          </span>
-                        </div>
 
-                        <div className="progress-bar-track">
-                          <div
-                            className="progress-bar-fill"
-                            style={{ width: `${progress ?? 0}%` }}
-                          />
-                        </div>
+                          <div className={`progress-bar-track ${styles.progressTrack}`}>
+                            <div
+                              className={`progress-bar-fill ${styles.progressFill}`}
+                              style={{ width: `${progress ?? 0}%` }}
+                            />
+                          </div>
 
-                        {totalTasks > 0 && (
-                          <ul className="goal-task-list">
-                            {goal.tasks.map((task) => (
-                              <li key={task.id} className="goal-task-item">
-                                <input
-                                  type="checkbox"
-                                  checked={task.isCompleted}
-                                  onChange={() => handleToggleTask(goal.id, task)}
-                                  disabled={updatingTaskId !== null}
-                                  aria-label={`${task.isCompleted ? "Reabrir" : "Concluir"} tarefa ${task.title}`}
-                                />
-                                <span
-                                  className={`goal-task-item-title${
-                                    task.isCompleted ? " completed" : ""
-                                  }`}
+                          {totalTasks > 0 && (
+                            <ul className={`goal-task-list ${styles.taskList}`}>
+                              {goal.tasks.map((task) => (
+                                <li
+                                  key={task.id}
+                                  className={`goal-task-item ${styles.taskItem}`}
                                 >
-                                  {task.title}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        )}
+                                  <input
+                                    type="checkbox"
+                                    checked={task.isCompleted}
+                                    onChange={() => handleToggleTask(goal.id, task)}
+                                    disabled={updatingTaskId !== null}
+                                    aria-label={`${task.isCompleted ? "Reabrir" : "Concluir"} tarefa ${task.title}`}
+                                  />
+                                  <span
+                                    className={`goal-task-item-title ${styles.taskTitle}${
+                                      task.isCompleted ? " completed" : ""
+                                    }`}
+                                  >
+                                    {task.title}
+                                  </span>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
 
-                        <form
-                          className="goal-task-add"
-                          onSubmit={(event) => handleAddTask(event, goal.id)}
-                        >
-                          <Input
-                            type="text"
-                            className="goal-task-add-input"
-                            placeholder="Nova sub-tarefa"
-                            value={newTaskByGoal[goal.id] ?? ""}
-                            onChange={(event) =>
-                              setNewTaskByGoal((previous) => ({
-                                ...previous,
-                                [goal.id]: event.target.value,
-                              }))
-                            }
-                            disabled={savingTaskGoalId === goal.id}
-                            aria-label={`Nova tarefa para ${goal.title}`}
-                          />
-                          <Button
-                            type="submit"
-                            size="sm"
-                            variant="outline"
-                            isLoading={savingTaskGoalId === goal.id}
-                            loadingLabel="Adicionando..."
+                          <form
+                            className={`goal-task-add ${styles.taskAdd}`}
+                            onSubmit={(event) => handleAddTask(event, goal.id)}
                           >
-                            Adicionar tarefa
-                          </Button>
-                        </form>
-                      </div>
-                    );
-                  })}
-                </div>
+                            <Input
+                              type="text"
+                              className="goal-task-add-input"
+                              placeholder="Nova sub-tarefa"
+                              value={newTaskByGoal[goal.id] ?? ""}
+                              onChange={(event) =>
+                                setNewTaskByGoal((previous) => ({
+                                  ...previous,
+                                  [goal.id]: event.target.value,
+                                }))
+                              }
+                              disabled={savingTaskGoalId === goal.id}
+                              aria-label={`Nova tarefa para ${goal.title}`}
+                            />
+                            <Button
+                              type="submit"
+                              size="sm"
+                              variant="outline"
+                              isLoading={savingTaskGoalId === goal.id}
+                              loadingLabel="Adicionando..."
+                            >
+                              Adicionar tarefa
+                            </Button>
+                          </form>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
               ))
             )}
           </div>
 
-          {taskError && <p className="error-text">{taskError}</p>}
+          {taskError && (
+            <p className={`error-text ${styles.errorText}`} role="alert">
+              {taskError}
+            </p>
+          )}
         </Card>
       </div>
     </main>
