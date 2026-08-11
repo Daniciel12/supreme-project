@@ -5,6 +5,20 @@ import { getProviders, signIn } from "next-auth/react";
 
 type Mode = "login" | "register";
 
+const oauthErrorMessages: Record<string, string> = {
+  OAuthAccountNotLinked:
+    "Já existe uma conta com este e-mail usando outro método de acesso. Entre com o método original.",
+  AccessDenied: "O acesso com Google foi cancelado ou negado.",
+};
+
+function oauthErrorMessage(code: string | null) {
+  if (!code) return null;
+  return (
+    oauthErrorMessages[code] ??
+    "Não foi possível concluir o acesso com Google. Tente novamente."
+  );
+}
+
 export default function LoginPage() {
   const [mode, setMode] = useState<Mode>("login");
 
@@ -17,6 +31,12 @@ export default function LoginPage() {
 
   useEffect(() => {
     let active = true;
+    const oauthError = new URLSearchParams(window.location.search).get("error");
+    const message = oauthErrorMessage(oauthError);
+
+    if (message) {
+      setError(message);
+    }
 
     void getProviders()
       .then((providers) => {
