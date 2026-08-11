@@ -1,30 +1,51 @@
 .uploadCard {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
+  gap: var(--space-5);
+  position: relative;
+  overflow: hidden;
+  border-color: color-mix(in srgb, var(--ds-accent) 22%, var(--ds-border));
+  background:
+    radial-gradient(circle at top right, color-mix(in srgb, var(--ds-accent) 12%, transparent), transparent 42%),
+    var(--ds-surface);
+  box-shadow: var(--ds-shadow-card);
+}
+
+.uploadCard::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: min(18rem, 55%);
+  height: 2px;
+  background: linear-gradient(90deg, var(--ds-accent), transparent);
+  pointer-events: none;
 }
 
 .uploadCard > * {
   min-width: 0;
+  position: relative;
+  z-index: 1;
 }
 
 .description {
-  color: var(--text-secondary);
+  color: var(--ds-text-secondary);
   margin-top: var(--space-2);
   max-width: 64ch;
+  line-height: 1.65;
 }
 
 .actionError {
   margin-top: var(--space-4);
   padding: var(--space-3) var(--space-4);
-  border: 1px solid var(--danger);
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 72%, var(--ds-border));
   border-radius: var(--radius-md);
-  color: var(--danger);
-  background: var(--surface);
+  color: var(--ds-danger);
+  background: color-mix(in srgb, var(--ds-danger) 7%, var(--ds-surface));
+  box-shadow: var(--ds-shadow-card);
 }
 
 .gallerySection {
-  margin-top: var(--space-6);
+  margin-top: var(--space-7);
 }
 
 .sectionHeader {
@@ -33,11 +54,14 @@
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--ds-border);
 }
 
 .sectionHint {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
+  color: var(--ds-text-secondary);
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
 }
 
 .visionGrid {
@@ -50,6 +74,19 @@
   display: grid;
   gap: var(--space-3);
   overflow: hidden;
+  min-width: 0;
+  border-color: var(--ds-border);
+  background: var(--ds-surface-elevated);
+  box-shadow: var(--ds-shadow-card);
+  transition:
+    transform var(--ds-motion-fast) ease,
+    border-color var(--ds-motion-fast) ease,
+    box-shadow var(--ds-motion-fast) ease;
+}
+
+.visionItem:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--ds-accent) 36%, var(--ds-border));
 }
 
 .visionImage {
@@ -57,22 +94,54 @@
   aspect-ratio: 4 / 3;
   object-fit: cover;
   border-radius: var(--radius-md);
-  background: var(--surface-elevated);
+  background: var(--ds-surface);
+  border: 1px solid color-mix(in srgb, var(--ds-border) 76%, transparent);
+  transition: transform var(--ds-motion-fast) ease;
 }
 
-@media (max-width: 960px) {
+.visionItem:hover .visionImage {
+  transform: scale(1.01);
+}
+
+.visionItem :global(.ui-button) {
+  justify-self: stretch;
+}
+
+@media (max-width: 1040px) {
   .visionGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .uploadCard {
+    gap: var(--space-4);
+  }
+
   .sectionHeader {
     align-items: flex-start;
     flex-direction: column;
+    gap: var(--space-2);
   }
 
   .visionGrid {
     grid-template-columns: 1fr;
+  }
+
+  .visionItem:hover,
+  .visionItem:hover .visionImage {
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .visionItem,
+  .visionImage {
+    transition: none;
+  }
+
+  .visionItem:hover,
+  .visionItem:hover .visionImage {
+    transform: none;
   }
 }
