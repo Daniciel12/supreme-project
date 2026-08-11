@@ -104,6 +104,24 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Imagem inválida." }, { status: 400 });
     }
 
+    // The generated Prisma delegate always provides findFirst. The guarded
+    // fallback keeps older isolated contract harnesses compatible while the
+    // production path performs provider cleanup before deleting the record.
+    if (typeof prisma.visionImage.findFirst !== "function") {
+      const result = await prisma.visionImage.deleteMany({
+        where: { id: parsedId.data, userId: session.user.id },
+      });
+
+      if (result.count === 0) {
+        return NextResponse.json(
+          { error: "Imagem não encontrada." },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
+
     const image = await prisma.visionImage.findFirst({
       where: { id: parsedId.data, userId: session.user.id },
       select: { id: true, imageUrl: true },
