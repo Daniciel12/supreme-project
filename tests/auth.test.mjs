@@ -176,6 +176,12 @@ test("Google is registered without exposing its secret to provider data", () => 
   assert.equal("allowDangerousEmailAccountLinking" in google.options, false);
 });
 
+test("auth errors return to the Supreme login page", () => {
+  const options = createAuthOptions({});
+  assert.equal(options.pages?.signIn, "/login");
+  assert.equal(options.pages?.error, "/login");
+});
+
 test("JWT callback copies OAuth user.id to token.sub", async () => {
   const options = createAuthOptions({});
   const token = { name: "Daniel" };
@@ -233,4 +239,19 @@ test("login UI discovers Google through getProviders without client secrets", as
   assert.match(loginPage, /providers\?\.google/);
   assert.match(loginPage, /Continuar com Google/);
   assert.doesNotMatch(loginPage, /GOOGLE_CLIENT_SECRET|NEXT_PUBLIC_GOOGLE/);
+});
+
+test("login UI handles OAuth redirect errors without exposing provider details", async () => {
+  const loginPage = await readFile(
+    new URL("../src/app/login/page.tsx", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(loginPage, /useSearchParams\(\)/);
+  assert.match(loginPage, /searchParams\.get\("error"\)/);
+  assert.match(loginPage, /OAuthAccountNotLinked/);
+  assert.match(loginPage, /outro método de acesso/);
+  assert.match(loginPage, /AccessDenied/);
+  assert.match(loginPage, /Não foi possível concluir o acesso com Google/);
+  assert.doesNotMatch(loginPage, /OAuthCallbackError|client_secret|access_token/);
 });
