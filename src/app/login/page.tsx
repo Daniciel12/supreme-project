@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState, FormEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { getProviders, signIn } from "next-auth/react";
+import styles from "./login-v3.module.css";
 
 type Mode = "login" | "register";
 
@@ -130,119 +131,196 @@ function LoginContent() {
     }
   }
 
-  return (
-    <main className="main-content">
-      <div className="auth-wrapper">
-        <div className="card">
-          <h1 className="auth-title">
-            {mode === "login" ? "Entrar" : "Criar conta"}
-          </h1>
+  function switchMode(nextMode: Mode) {
+    setError(null);
+    setMode(nextMode);
+  }
 
-          <form
-            className="form"
-            onSubmit={mode === "login" ? handleLogin : handleRegister}
-          >
-            {mode === "register" && (
-              <div>
-                <label className="form-label">Nome</label>
+  return (
+    <main className={`${styles.page} main-content`}>
+      <section className={styles.frame} aria-label="Acesso ao Supreme">
+        <div className={styles.story}>
+          <span className={styles.storyGlow} aria-hidden="true" />
+
+          <div className={styles.brand}>
+            <span className={styles.brandMark} aria-hidden="true">
+              S
+            </span>
+            <span className={styles.brandText}>
+              <span className={styles.brandName}>Supreme</span>
+              <span className={styles.brandCaption}>Seu sistema pessoal</span>
+            </span>
+          </div>
+
+          <div className={styles.storyContent}>
+            <p className={styles.eyebrow}>Evolução pessoal, organizada</p>
+            <h2 className={styles.storyTitle}>Sua vida, em um sistema.</h2>
+            <p className={styles.storyDescription}>
+              Reúna finanças, metas, hábitos, treinos, livros e visão pessoal em
+              uma experiência construída para acompanhar sua evolução.
+            </p>
+          </div>
+
+          <div className={styles.capabilities} aria-label="Recursos do Supreme">
+            <p className={styles.capability}>
+              <span className={styles.capabilityMark} aria-hidden="true">✓</span>
+              Finanças, metas e hábitos no mesmo lugar
+            </p>
+            <p className={styles.capability}>
+              <span className={styles.capabilityMark} aria-hidden="true">✓</span>
+              Treinos, livros e evolução acompanhados no tempo
+            </p>
+            <p className={styles.capability}>
+              <span className={styles.capabilityMark} aria-hidden="true">✓</span>
+              Experiência pessoal com dados isolados por conta
+            </p>
+          </div>
+        </div>
+
+        <div className={styles.authPanel}>
+          <div className={`${styles.authCard} card auth-wrapper`}>
+            <p className={styles.modePill}>
+              {mode === "login" ? "Acesso seguro" : "Comece sua jornada"}
+            </p>
+            <h1 className={`${styles.title} auth-title`}>
+              {mode === "login" ? "Bem-vindo de volta" : "Crie sua conta"}
+            </h1>
+            <p className={styles.subtitle}>
+              {mode === "login"
+                ? "Entre para continuar de onde parou."
+                : "Cadastre-se para começar a organizar sua evolução."}
+            </p>
+
+            <form
+              className={`${styles.form} form`}
+              onSubmit={mode === "login" ? handleLogin : handleRegister}
+            >
+              {mode === "register" && (
+                <div className={styles.field}>
+                  <label className={`${styles.label} form-label`} htmlFor="name">
+                    Nome
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    type="text"
+                    autoComplete="name"
+                    className={`${styles.input} input`}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </div>
+              )}
+
+              <div className={styles.field}>
+                <label className={`${styles.label} form-label`} htmlFor="email">
+                  E-mail
+                </label>
                 <input
-                  type="text"
-                  className="input"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="email"
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  className={`${styles.input} input`}
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
                 />
               </div>
-            )}
 
-            <div>
-              <label className="form-label">E-mail</label>
-              <input
-                type="email"
-                className="input"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="form-label">Senha</label>
-              <input
-                type="password"
-                className="input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-
-            {visibleError && <p className="error-text">{visibleError}</p>}
-
-            <button type="submit" className="btn btn-primary" disabled={loading}>
-              {loading
-                ? "Aguarde..."
-                : mode === "login"
-                ? "Acessar"
-                : "Cadastrar"}
-            </button>
-          </form>
-
-          {googleAvailable && (
-            <div className="oauth-section">
-              <div className="auth-divider">
-                <span>ou</span>
+              <div className={styles.field}>
+                <label
+                  className={`${styles.label} form-label`}
+                  htmlFor="password"
+                >
+                  Senha
+                </label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
+                  className={`${styles.input} input`}
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  required
+                />
               </div>
-              <button
-                type="button"
-                className="btn btn-outline oauth-button"
-                disabled={loading}
-                onClick={handleGoogleLogin}
-              >
-                Continuar com Google
-              </button>
-            </div>
-          )}
 
-          <p className="auth-footer">
-            {mode === "login" ? (
-              <>
-                Não tem conta?{" "}
+              {visibleError && (
+                <p
+                  className={`${styles.error} error-text`}
+                  role="alert"
+                  aria-live="polite"
+                >
+                  {visibleError}
+                </p>
+              )}
+
+              <button
+                type="submit"
+                className={`${styles.submit} btn btn-primary`}
+                disabled={loading}
+              >
+                {loading
+                  ? "Aguarde..."
+                  : mode === "login"
+                    ? "Entrar no Supreme"
+                    : "Criar minha conta"}
+              </button>
+            </form>
+
+            {googleAvailable && (
+              <div className={`${styles.oauth} oauth-section`}>
+                <div className={`${styles.divider} auth-divider`}>
+                  <span>ou continue com</span>
+                </div>
                 <button
                   type="button"
-                  className="link-button"
-                  onClick={() => {
-                    setError(null);
-                    setMode("register");
-                  }}
+                  className={`${styles.googleButton} btn btn-outline oauth-button`}
+                  disabled={loading}
+                  onClick={handleGoogleLogin}
                 >
-                  Cadastre-se
+                  Continuar com Google
                 </button>
-              </>
-            ) : (
-              <>
-                Já tem conta?{" "}
-                <button
-                  type="button"
-                  className="link-button"
-                  onClick={() => {
-                    setError(null);
-                    setMode("login");
-                  }}
-                >
-                  Entrar
-                </button>
-              </>
+              </div>
             )}
-          </p>
+
+            <p className={`${styles.footer} auth-footer`}>
+              {mode === "login" ? (
+                <>
+                  Ainda não tem conta?{" "}
+                  <button
+                    type="button"
+                    className={`${styles.switchButton} link-button`}
+                    onClick={() => switchMode("register")}
+                  >
+                    Cadastre-se
+                  </button>
+                </>
+              ) : (
+                <>
+                  Já tem uma conta?{" "}
+                  <button
+                    type="button"
+                    className={`${styles.switchButton} link-button`}
+                    onClick={() => switchMode("login")}
+                  >
+                    Entrar
+                  </button>
+                </>
+              )}
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
     </main>
   );
 }
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<main className="main-content" />}>
+    <Suspense fallback={<main className={styles.fallback} />}>
       <LoginContent />
     </Suspense>
   );
