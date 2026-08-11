@@ -75,6 +75,7 @@ export function createAuthOptions(
 
     pages: {
       signIn: "/login",
+      error: "/login",
     },
 
     providers,
