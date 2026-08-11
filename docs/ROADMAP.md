@@ -5,12 +5,12 @@
 
 ## 📍 Estado atual
 
-O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas e UploadThing público já foram validados. O foco atual é fechar os últimos gates de produção e então iniciar o **Frontend v3**.
+O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público e HSTS/CSP já foram validados. O foco atual é concluir as integrações de produção e então iniciar o **Frontend v3**.
 
 **Próximos passos:**
-1. revisão final de HSTS/CSP;
-2. Google OAuth em produção;
-3. política de limpeza de arquivos órfãos do UploadThing;
+1. Google OAuth em produção;
+2. política de limpeza de arquivos órfãos do UploadThing;
+3. revisão final de callbacks e erros externos;
 4. Frontend v3 / redesign completo.
 
 ## ✅ 1. Fundação técnica — concluída
@@ -82,16 +82,16 @@ P0 #35: **resolvido**.
 
 O restore de produção continua deliberadamente manual e nunca é automatizado.
 
-## 🔵 7. Hardening de produção — etapa atual
+## ✅ 7. Hardening de produção — concluído
 
 - [x] rate limiting / anti-abuse;
 - [x] proteção reforçada de login/cadastro/uploads;
 - [x] observabilidade da aplicação;
 - [x] alertas operacionais;
-- [ ] revisão final de HSTS/CSP;
+- [x] revisão final de HSTS/CSP;
 - [x] smoke visual desktop/mobile.
 
-## 🟡 8. Integrações de produção — próxima
+## 🔵 8. Integrações de produção — etapa atual
 
 - [ ] Google OAuth em produção;
 - [x] UploadThing validado pela URL pública;
