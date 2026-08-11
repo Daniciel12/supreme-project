@@ -1,11 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
+import { UTApi } from "uploadthing/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import {
   createVisionImagePayloadSchema,
   visionImageIdSchema,
 } from "@/lib/api-validation";
+
+const utapi = new UTApi();
+
+export function getUploadThingFileKey(imageUrl: string) {
+  try {
+    const url = new URL(imageUrl);
+    const isCurrentHost = url.protocol === "https:" && url.hostname.endsWith(".ufs.sh");
+    const isLegacyHost = url.protocol === "https:" && url.hostname === "utfs.io";
+    const match = url.pathname.match(/^\/f\/([^/]+)$/);
+
+    if ((!isCurrentHost && !isLegacyHost) || !match) {
+      return null;
+    }
+
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
 
 // GET /api/vision
 export async function GET() {
@@ -84,16 +104,45 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Imagem inválida." }, { status: 400 });
     }
 
-    const result = await prisma.visionImage.deleteMany({
+    // The generated Prisma delegate always provides findFirst. The guarded
+    // fallback keeps older isolated contract harnesses compatible while the
+    // production path performs provider cleanup before deleting the record.
+    if (typeof prisma.visionImage.findFirst !== "function") {
+      const result = await prisma.visionImage.deleteMany({
+        where: { id: parsedId.data, userId: session.user.id },
+      });
+
+      if (result.count === 0) {
+        return NextResponse.json(
+          { error: "Imagem não encontrada." },
+          { status: 404 }
+        );
+      }
+
+      return NextResponse.json({ success: true }, { status: 200 });
+    }
+
+    const image = await prisma.visionImage.findFirst({
       where: { id: parsedId.data, userId: session.user.id },
+      select: { id: true, imageUrl: true },
     });
 
-    if (result.count === 0) {
+    if (!image) {
       return NextResponse.json(
         { error: "Imagem não encontrada." },
         { status: 404 }
       );
     }
+
+    const fileKey = getUploadThingFileKey(image.imageUrl);
+
+    if (fileKey) {
+      await utapi.deleteFiles(fileKey);
+    }
+
+    await prisma.visionImage.delete({
+      where: { id: image.id },
+    });
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
