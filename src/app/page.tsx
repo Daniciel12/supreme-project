@@ -11,6 +11,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui";
+import { useLocalDateKey } from "@/lib/local-date";
 import styles from "./dashboard.module.css";
 
 interface DashboardHabit {
@@ -77,14 +78,6 @@ const brlFormatter = new Intl.NumberFormat("pt-BR", {
   currency: "BRL",
 });
 
-function localDateKey() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 function formatDashboardDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR", {
     weekday: "long",
@@ -116,7 +109,7 @@ async function fetchDashboard(date: string): Promise<DashboardData> {
 }
 
 export default function Home() {
-  const [dateKey] = useState(localDateKey);
+  const dateKey = useLocalDateKey();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -124,6 +117,8 @@ export default function Home() {
   const [checkinError, setCheckinError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!dateKey) return;
+
     let active = true;
 
     fetchDashboard(dateKey)
@@ -146,6 +141,8 @@ export default function Home() {
   }, [dateKey]);
 
   async function retryDashboard() {
+    if (!dateKey) return;
+
     setLoading(true);
     setLoadError(false);
 
@@ -160,6 +157,8 @@ export default function Home() {
   }
 
   async function handleCheckIn(habitId: string) {
+    if (!dateKey) return;
+
     setCheckinError(null);
     setCheckingHabitId(habitId);
 
@@ -207,7 +206,11 @@ export default function Home() {
           eyebrow="Dashboard"
           title="Hoje no Supreme"
           description="Uma visão operacional do que pede sua atenção agora, sem misturar planejamento com dados já realizados."
-          actions={<Badge tone="accent">{formatDashboardDate(dateKey)}</Badge>}
+          actions={
+            <Badge tone="accent">
+              {dateKey ? formatDashboardDate(dateKey) : "Data local"}
+            </Badge>
+          }
         />
 
         {loading ? (

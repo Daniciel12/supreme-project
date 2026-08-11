@@ -12,6 +12,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui";
+import { useLocalDateKey } from "@/lib/local-date";
 import styles from "./habits-v3.module.css";
 
 interface Habit {
@@ -36,13 +37,6 @@ interface HabitSummaryResponse {
   summary: HabitSummary;
 }
 
-function localDateKey(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
 async function fetchHabitSummary(date: string) {
   const response = await fetch(`/api/habits/summary?date=${date}`);
   const data = await response.json();
@@ -61,7 +55,7 @@ const emptySummary: HabitSummary = {
 };
 
 export default function HabitosPage() {
-  const todayKey = localDateKey();
+  const todayKey = useLocalDateKey();
   const [habits, setHabits] = useState<Habit[]>([]);
   const [summary, setSummary] = useState<HabitSummary>(emptySummary);
   const [loadingHabits, setLoadingHabits] = useState(true);
@@ -75,6 +69,8 @@ export default function HabitosPage() {
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!todayKey) return;
+
     let cancelled = false;
 
     fetchHabitSummary(todayKey)
@@ -97,6 +93,8 @@ export default function HabitosPage() {
   }, [todayKey]);
 
   async function refreshSummary() {
+    if (!todayKey) return;
+
     const data = await fetchHabitSummary(todayKey);
     setHabits(data.habits);
     setSummary(data.summary);
@@ -104,6 +102,8 @@ export default function HabitosPage() {
   }
 
   async function handleCheckIn(habitId: string) {
+    if (!todayKey) return;
+
     setCheckinError(null);
     setUpdatingHabitId(habitId);
 
