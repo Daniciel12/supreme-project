@@ -12,6 +12,7 @@ import {
   LoadingState,
   PageHeader,
 } from "@/components/ui";
+import styles from "./habits-v3.module.css";
 
 interface Habit {
   id: string;
@@ -165,6 +166,8 @@ export default function HabitosPage() {
     }
   }
 
+  const activeDaysPercent = Math.min(100, Math.max(0, (summary.activeDays7 / 7) * 100));
+
   return (
     <main className="main-content">
       <div className="container">
@@ -179,16 +182,36 @@ export default function HabitosPage() {
           }
         />
 
-        <div className="dashboard-grid">
-          <Card className="streak-card" aria-label="Consistência recente">
-            <span className="streak-number">{summary.activeDays7}/7</span>
-            <span className="streak-label">
+        <div className={`dashboard-grid ${styles.layout}`}>
+          <Card
+            className={`streak-card ${styles.summaryCard}`}
+            aria-label="Consistência recente"
+          >
+            <span className={styles.summaryEyebrow}>Consistência recente</span>
+            <span className={`streak-number ${styles.summaryValue}`}>
+              {summary.activeDays7}/7
+            </span>
+            <span className={`streak-label ${styles.summaryLabel}`}>
               dias com pelo menos um check-in nos últimos 7 dias
             </span>
+            <div className={styles.summaryTrack} aria-hidden="true">
+              <div
+                className={styles.summaryFill}
+                style={{ width: `${activeDaysPercent}%` }}
+              />
+            </div>
           </Card>
 
-          <Card>
-            <h2 className="card-title">Hábitos diários</h2>
+          <Card className={styles.mainCard}>
+            <div className={styles.sectionHeader}>
+              <div>
+                <h2 className={`card-title ${styles.sectionTitle}`}>Hábitos diários</h2>
+                <p className={styles.sectionMeta}>
+                  Conclua o que está ativo hoje e mantenha sua rotina observável.
+                </p>
+              </div>
+              <Badge tone="accent">{summary.totalActive} ativos</Badge>
+            </div>
 
             {loadingHabits ? (
               <LoadingState title="Carregando hábitos..." />
@@ -203,13 +226,17 @@ export default function HabitosPage() {
                 description="Crie seu primeiro hábito no formulário abaixo para começar."
               />
             ) : (
-              <ul className="habit-list">
+              <ul className={`habit-list ${styles.habitList}`}>
                 {habits.map((habit) => (
-                  <li key={habit.id} className="habit-item">
-                    <div>
-                      <div className="habit-item-name">{habit.name}</div>
+                  <li key={habit.id} className={`habit-item ${styles.habitItem}`}>
+                    <div className={styles.habitCopy}>
+                      <div className={`habit-item-name ${styles.habitName}`}>
+                        {habit.name}
+                      </div>
                       {habit.description && (
-                        <div className="habit-item-desc">{habit.description}</div>
+                        <div className={`habit-item-desc ${styles.habitDescription}`}>
+                          {habit.description}
+                        </div>
                       )}
                     </div>
                     <Button
@@ -227,44 +254,60 @@ export default function HabitosPage() {
               </ul>
             )}
 
-            {checkinError && <p className="error-text">{checkinError}</p>}
+            {checkinError && (
+              <p className={`error-text ${styles.errorText}`} role="alert">
+                {checkinError}
+              </p>
+            )}
 
-            <form className="form" onSubmit={handleCreateHabit}>
-              <div className="form-row">
-                <FormField label="Nome do hábito" htmlFor="habit-name">
-                  <Input
-                    id="habit-name"
-                    type="text"
-                    placeholder="Ex: Ler por 20 minutos"
-                    value={newHabitName}
-                    onChange={(event) => setNewHabitName(event.target.value)}
-                    disabled={creatingHabit}
-                  />
-                </FormField>
-                <FormField
-                  label="Descrição"
-                  htmlFor="habit-description"
-                  hint="Opcional"
-                >
-                  <Input
-                    id="habit-description"
-                    type="text"
-                    placeholder="Como você quer praticar?"
-                    value={newHabitDescription}
-                    onChange={(event) => setNewHabitDescription(event.target.value)}
-                    disabled={creatingHabit}
-                  />
-                </FormField>
+            <div className={styles.formPanel}>
+              <div className={styles.formIntro}>
+                <h3 className={styles.formTitle}>Adicionar hábito</h3>
+                <p className={styles.formDescription}>
+                  Crie um compromisso simples e mensurável para aparecer na rotina diária.
+                </p>
               </div>
-              {formError && <p className="error-text">{formError}</p>}
-              <Button
-                type="submit"
-                isLoading={creatingHabit}
-                loadingLabel="Adicionando..."
-              >
-                Adicionar hábito
-              </Button>
-            </form>
+              <form className="form" onSubmit={handleCreateHabit}>
+                <div className="form-row">
+                  <FormField label="Nome do hábito" htmlFor="habit-name">
+                    <Input
+                      id="habit-name"
+                      type="text"
+                      placeholder="Ex: Ler por 20 minutos"
+                      value={newHabitName}
+                      onChange={(event) => setNewHabitName(event.target.value)}
+                      disabled={creatingHabit}
+                    />
+                  </FormField>
+                  <FormField
+                    label="Descrição"
+                    htmlFor="habit-description"
+                    hint="Opcional"
+                  >
+                    <Input
+                      id="habit-description"
+                      type="text"
+                      placeholder="Como você quer praticar?"
+                      value={newHabitDescription}
+                      onChange={(event) => setNewHabitDescription(event.target.value)}
+                      disabled={creatingHabit}
+                    />
+                  </FormField>
+                </div>
+                {formError && (
+                  <p className={`error-text ${styles.errorText}`} role="alert">
+                    {formError}
+                  </p>
+                )}
+                <Button
+                  type="submit"
+                  isLoading={creatingHabit}
+                  loadingLabel="Adicionando..."
+                >
+                  Adicionar hábito
+                </Button>
+              </form>
+            </div>
           </Card>
         </div>
       </div>
