@@ -36,7 +36,26 @@ test("application shell keeps semantic landmarks and accessible mobile controls"
   assert.match(shell, /<header/);
   assert.match(shell, /aria-expanded=\{menuOpen\}/);
   assert.match(shell, /aria-controls="supreme-sidebar"/);
+  assert.match(shell, /event\.key === "Escape"/);
+  assert.match(shell, /closeMenu\(\{ restoreFocus: true \}\)/);
   assert.match(shell, /pathname === "\/login"/);
+});
+
+test("application shell v3 is isolated and preserves legacy contracts", () => {
+  const shell = read("src/components/application-shell.tsx");
+  const styles = read("src/components/application-shell-v3.module.css");
+
+  assert.match(shell, /application-shell-v3\.module\.css/);
+  assert.match(shell, /className=\{`app-shell \$\{styles\.shell\}`\}/);
+  assert.match(shell, /app-sidebar/);
+  assert.match(shell, /app-nav__link/);
+  assert.match(shell, /app-header__context/);
+  assert.match(shell, /Workspace pessoal/);
+  assert.match(shell, /window\.location\.replace\("\/login"\)/);
+  assert.match(styles, /prefers-reduced-motion:\s*reduce/);
+  assert.match(styles, /profileAvatar/);
+  assert.match(styles, /navLinkActive/);
+  assert.doesNotMatch(styles, /!important/);
 });
 
 test("foundation workspaces consume shared components instead of duplicating primitives", () => {
