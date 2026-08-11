@@ -247,7 +247,8 @@ test("login UI handles OAuth redirect errors without exposing provider details",
     "utf8"
   );
 
-  assert.match(loginPage, /URLSearchParams\(window\.location\.search\)/);
+  assert.match(loginPage, /useSearchParams\(\)/);
+  assert.match(loginPage, /searchParams\.get\("error"\)/);
   assert.match(loginPage, /OAuthAccountNotLinked/);
   assert.match(loginPage, /outro método de acesso/);
   assert.match(loginPage, /AccessDenied/);
