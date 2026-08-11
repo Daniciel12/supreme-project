@@ -1,0 +1,172 @@
+.shell {
+  --shell-panel: color-mix(in srgb, var(--surface) 88%, transparent);
+  --shell-panel-strong: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
+  --shell-line: color-mix(in srgb, var(--border) 78%, transparent);
+  --shell-accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
+  background:
+    radial-gradient(circle at 78% -8%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 34rem),
+    var(--background);
+}
+
+.sidebar {
+  background: linear-gradient(180deg, var(--shell-panel-strong), var(--shell-panel));
+  border-right-color: var(--shell-line);
+  box-shadow: 18px 0 48px rgba(0, 0, 0, 0.14);
+}
+
+.brand {
+  position: relative;
+  padding: 0 var(--space-2) var(--space-5);
+}
+
+.brand::after {
+  content: "";
+  position: absolute;
+  left: var(--space-2);
+  right: var(--space-2);
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, var(--shell-line), transparent);
+}
+
+.brandMark {
+  border-radius: 12px;
+  box-shadow:
+    0 10px 30px color-mix(in srgb, var(--accent) 22%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.brandMeta {
+  min-width: 0;
+}
+
+.brandName {
+  letter-spacing: -0.035em;
+}
+
+.brandCaption {
+  margin-top: 1px;
+  letter-spacing: 0.015em;
+}
+
+.nav {
+  gap: 6px;
+}
+
+.navLink {
+  position: relative;
+  overflow: hidden;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.navLink:hover {
+  transform: translateX(2px);
+}
+
+.navLinkActive::before {
+  content: "";
+  position: absolute;
+  inset-block: 8px;
+  left: 0;
+  width: 3px;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.navIcon {
+  border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
+}
+
+.header {
+  min-height: 70px;
+  border-bottom-color: var(--shell-line);
+  background: color-mix(in srgb, var(--background) 82%, transparent);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1);
+}
+
+.profile {
+  margin-left: auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 8px 5px 6px;
+  border: 1px solid var(--shell-line);
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+}
+
+.profileAvatar {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-full);
+  background: var(--shell-accent-soft);
+  color: var(--text-primary);
+  font-size: var(--font-size-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.profileText {
+  min-width: 0;
+  display: grid;
+  line-height: 1.15;
+}
+
+.profileEyebrow {
+  color: var(--color-text-muted);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.profileLabel {
+  max-width: 24ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.content {
+  position: relative;
+}
+
+@media (max-width: 760px) {
+  .header {
+    min-height: 62px;
+  }
+
+  .profile {
+    margin-left: auto;
+    padding: 4px;
+  }
+
+  .profileText {
+    display: none;
+  }
+
+  .profileAvatar {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .navLink {
+    transition: none;
+  }
+
+  .navLink:hover {
+    transform: none;
+  }
+}
