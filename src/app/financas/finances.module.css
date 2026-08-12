@@ -4,63 +4,174 @@
   gap: var(--space-2);
 }
 
-.summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.metricCard {
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.cashOverview {
   position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr);
+  gap: clamp(var(--space-5), 5vw, var(--space-8));
+  align-items: stretch;
+  margin-bottom: var(--space-6);
+  padding: clamp(var(--space-5), 5vw, var(--space-8));
   overflow: hidden;
-  border-color: color-mix(in srgb, var(--ds-border) 84%, transparent);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--ds-surface-elevated) 88%, transparent), color-mix(in srgb, var(--ds-surface) 94%, transparent));
+  border: 1px solid var(--ds-border-accent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--ds-brand-primary) 12%, transparent), transparent 48%),
+    var(--ds-surface-gradient),
+    var(--ds-surface);
   box-shadow: var(--ds-shadow-card);
 }
 
-.metricCard::after {
+.cashOverview::after {
   content: "";
   position: absolute;
-  inset: auto -18% -55% 30%;
-  height: 110px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--ds-accent) 9%, transparent);
-  filter: blur(24px);
+  z-index: -1;
+  inset: -70% auto auto 32%;
+  width: min(44vw, 480px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent) 16%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 72px color-mix(in srgb, var(--ds-brand-accent) 3%, transparent),
+    0 0 0 144px color-mix(in srgb, var(--ds-info) 2%, transparent);
   pointer-events: none;
 }
 
-.metricLabel,
-.metricValue,
-.metricHint {
-  position: relative;
-  z-index: 1;
+.cashPrimary {
+  align-self: center;
+  max-width: 680px;
 }
 
-.metricLabel {
-  color: var(--ds-text-secondary);
-  font-size: var(--font-size-xs);
+.overviewEyebrow,
+.signalLabel {
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.68rem;
   font-weight: 850;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
 }
 
-.metricValue {
+.overviewTitle {
+  margin-top: var(--space-2);
   color: var(--ds-text-primary);
-  font-size: clamp(1.55rem, 3vw, 2.15rem);
-  line-height: 1.05;
+  font-size: clamp(1.35rem, 3vw, 2rem);
   font-weight: 850;
+  line-height: 1.05;
   letter-spacing: -0.05em;
+}
+
+.balanceValue {
+  display: block;
+  margin-top: var(--space-4);
+  color: var(--ds-text-primary);
+  font-size: clamp(2.25rem, 7vw, 4.8rem);
+  line-height: 0.92;
+  font-weight: 850;
+  letter-spacing: -0.075em;
   overflow-wrap: anywhere;
 }
 
-.metricHint {
+.balanceDescription {
+  max-width: 54ch;
+  margin-top: var(--space-4);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+
+.accountCount {
+  display: inline-flex;
+  margin-top: var(--space-5);
+  padding: 6px 10px;
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: var(--radius-full);
   color: var(--ds-text-muted);
   font-size: var(--font-size-xs);
+}
+
+.overviewSignals {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.signalBlock {
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--ds-border) 82%, transparent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--ds-surface-elevated) 68%, transparent);
+}
+
+.signalHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.signalStatus,
+.pendingCount {
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.flowList {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.flowList > div,
+.pendingValues > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.flowList dt,
+.pendingValues dt {
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.flowList dd,
+.pendingValues dd {
+  margin: 0;
+  color: var(--ds-text-primary);
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.flowResult {
+  grid-column: 1 / -1;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--ds-border-subtle);
+}
+
+.flowResult dd {
+  font-size: var(--font-size-lg);
+}
+
+.pendingSignal {
+  background: color-mix(in srgb, var(--ds-warning) 5%, var(--ds-surface-elevated));
+}
+
+.pendingDescription {
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.55;
+}
+
+.pendingValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-4);
 }
 
 .success {
@@ -239,8 +350,8 @@
 }
 
 @media (max-width: 1100px) {
-  .summaryGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .cashOverview {
+    grid-template-columns: 1fr;
   }
 
   .contentGrid {
@@ -257,7 +368,8 @@
     flex-direction: column;
   }
 
-  .summaryGrid,
+  .flowList,
+  .pendingValues,
   .formsGrid,
   .filters {
     grid-template-columns: 1fr;

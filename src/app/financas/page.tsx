@@ -144,6 +144,7 @@ export default function FinancasPage() {
     () => summarizeTransactionsForMonth(transactions, currentMonthKey),
     [currentMonthKey, transactions]
   );
+  const monthlyNet = monthlySummary.income - monthlySummary.expense;
 
   const filteredTransactions = useMemo(
     () =>
@@ -320,47 +321,92 @@ export default function FinancasPage() {
           }
         />
 
-        <section className={styles.summaryGrid} aria-label="Resumo financeiro do mês">
-          <Card className={styles.metricCard}>
-            <span className={styles.metricLabel}>Saldo atual</span>
-            <strong className={styles.metricValue}>
+        <section
+          className={styles.cashOverview}
+          aria-labelledby="cash-overview-title"
+        >
+          <div className={styles.cashPrimary}>
+            <span className={styles.overviewEyebrow}>Caixa realizado</span>
+            <h2 id="cash-overview-title" className={styles.overviewTitle}>
+              O que já aconteceu
+            </h2>
+            <strong className={styles.balanceValue}>
               {loadingAccounts || accountsLoadError ? "—" : formatBRL(totalBalance)}
             </strong>
-            <span className={styles.metricHint}>Somente movimentações pagas</span>
-          </Card>
-          <Card className={styles.metricCard}>
-            <span className={styles.metricLabel}>Receitas realizadas</span>
-            <strong className={`${styles.metricValue} ${styles.success}`}>
-              {loadingTransactions || transactionsLoadError
-                ? "—"
-                : formatBRL(monthlySummary.income)}
-            </strong>
-            <span className={styles.metricHint}>Mês atual</span>
-          </Card>
-          <Card className={styles.metricCard}>
-            <span className={styles.metricLabel}>Despesas realizadas</span>
-            <strong className={`${styles.metricValue} ${styles.danger}`}>
-              {loadingTransactions || transactionsLoadError
-                ? "—"
-                : formatBRL(monthlySummary.expense)}
-            </strong>
-            <span className={styles.metricHint}>Mês atual</span>
-          </Card>
-          <Card className={styles.metricCard}>
-            <span className={styles.metricLabel}>Pendências do mês</span>
-            <strong className={styles.metricValue}>
-              {loadingTransactions || transactionsLoadError
-                ? "—"
-                : monthlySummary.pendingCount}
-            </strong>
-            {!loadingTransactions && !transactionsLoadError && (
-              <span className={styles.metricHint}>
-                {formatBRL(monthlySummary.pendingIncome)} a receber · {formatBRL(
-                  monthlySummary.pendingExpense
-                )} a pagar
+            <p className={styles.balanceDescription}>
+              Saldo somado das suas contas, considerando apenas valores que já
+              entraram ou saíram.
+            </p>
+            {!loadingAccounts && !accountsLoadError && (
+              <span className={styles.accountCount}>
+                {accounts.length} {accounts.length === 1 ? "conta ativa" : "contas ativas"}
               </span>
             )}
-          </Card>
+          </div>
+
+          <div className={styles.overviewSignals}>
+            <div className={styles.signalBlock}>
+              <div className={styles.signalHeading}>
+                <span className={styles.signalLabel}>Fluxo do mês</span>
+                <span className={styles.signalStatus}>Realizado</span>
+              </div>
+              <dl className={styles.flowList}>
+                <div>
+                  <dt>Entradas</dt>
+                  <dd className={styles.success}>
+                    {loadingTransactions || transactionsLoadError
+                      ? "—"
+                      : formatBRL(monthlySummary.income)}
+                  </dd>
+                </div>
+                <div>
+                  <dt>Saídas</dt>
+                  <dd className={styles.danger}>
+                    {loadingTransactions || transactionsLoadError
+                      ? "—"
+                      : formatBRL(monthlySummary.expense)}
+                  </dd>
+                </div>
+                <div className={styles.flowResult}>
+                  <dt>Resultado</dt>
+                  <dd
+                    className={monthlyNet >= 0 ? styles.success : styles.danger}
+                  >
+                    {loadingTransactions || transactionsLoadError
+                      ? "—"
+                      : formatBRL(monthlyNet)}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+
+            <div className={`${styles.signalBlock} ${styles.pendingSignal}`}>
+              <div className={styles.signalHeading}>
+                <span className={styles.signalLabel}>Próximos movimentos</span>
+                <span className={styles.pendingCount}>
+                  {loadingTransactions || transactionsLoadError
+                    ? "—"
+                    : `${monthlySummary.pendingCount} pendentes`}
+                </span>
+              </div>
+              <p className={styles.pendingDescription}>
+                Acompanhamento separado do saldo, para promessa não parecer dinheiro
+                disponível.
+              </p>
+              {!loadingTransactions && !transactionsLoadError && (
+                <dl className={styles.pendingValues}>
+                  <div>
+                    <dt>A receber</dt>
+                    <dd>{formatBRL(monthlySummary.pendingIncome)}</dd>
+                  </div>
+                  <div>
+                    <dt>A pagar</dt>
+                    <dd>{formatBRL(monthlySummary.pendingExpense)}</dd>
+                  </div>
+                </dl>
+              )}
+            </div>
+          </div>
         </section>
 
         {(showAccountForm || showTransactionForm) && (
