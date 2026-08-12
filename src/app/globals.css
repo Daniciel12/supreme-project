@@ -631,7 +631,12 @@ svg {
     font-weight: 800;
   }
 
-  .app-header .ui-button--sm {
+  .ui-button,
+  .ui-button--sm,
+  .btn,
+  .tab-button,
+  .habit-checkin-btn,
+  .ut-dropzone-dark > *[data-ut-element="button"] {
     min-height: 44px;
   }
 
@@ -660,6 +665,11 @@ svg {
 
   .form-row {
     flex-direction: column;
+  }
+
+  .form > .ui-button,
+  .form > .btn {
+    width: 100%;
   }
 }
 
