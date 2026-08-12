@@ -66,3 +66,19 @@ test("legacy auth classes remain present during the v3 migration", () => {
     assert.ok(page.includes(className), `missing legacy class ${className}`);
   }
 });
+
+test("login editorial layer expresses the Momentum Noir entry ritual", () => {
+  assert.match(page, /Da intenção ao ritmo/);
+  assert.match(page, /Construa o dia que constrói você/);
+  assert.match(page, /aria-label="Jornada no Supreme"/);
+  assert.match(page, /Organize/);
+  assert.match(page, /Decida/);
+  assert.match(page, /Evolua/);
+  assert.match(page, /Espaço pessoal protegido/);
+  assert.match(page, /aria-busy=\{loading \|\| undefined\}/);
+  assert.match(styles, /var\(--ds-canvas-gradient\)/);
+  assert.match(styles, /var\(--ds-brand-gradient\)/);
+  assert.match(styles, /\.journey/);
+  assert.match(styles, /\.privacyNote/);
+  assert.match(styles, /@media \(max-height: 780px\) and \(min-width: 901px\)/);
+});

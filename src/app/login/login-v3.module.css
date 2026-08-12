@@ -3,11 +3,8 @@
   display: grid;
   place-items: center;
   padding: clamp(20px, 4vw, 56px);
-  background:
-    radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 28rem),
-    radial-gradient(circle at 88% 88%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent 32rem),
-    var(--background);
-  overflow: hidden;
+  background: var(--ds-canvas-gradient);
+  overflow: auto;
 }
 
 .frame {
@@ -15,10 +12,14 @@
   min-height: min(720px, calc(100dvh - 64px));
   display: grid;
   grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
-  border: 1px solid color-mix(in srgb, var(--border) 84%, transparent);
+  border: 1px solid var(--ds-border-accent);
   border-radius: 28px;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.34);
+  background:
+    var(--ds-surface-gradient),
+    color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.03) inset,
+    0 36px 110px rgba(0, 0, 0, 0.42);
   overflow: hidden;
 }
 
@@ -31,8 +32,18 @@
   padding: clamp(34px, 6vw, 72px);
   border-right: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--surface-elevated) 72%, transparent), transparent 66%),
+    linear-gradient(145deg, color-mix(in srgb, var(--ds-brand-primary) 9%, var(--surface-elevated)), transparent 62%),
+    var(--ds-surface-gradient),
     var(--surface);
+}
+
+.story::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--ds-brand-gradient);
+  box-shadow: 0 0 28px color-mix(in srgb, var(--ds-brand-accent) 45%, transparent);
 }
 
 .storyGlow {
@@ -42,8 +53,22 @@
   right: -160px;
   top: -170px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  background: color-mix(in srgb, var(--ds-brand-accent) 20%, transparent);
   filter: blur(48px);
+  pointer-events: none;
+}
+
+.storyOrbit {
+  position: absolute;
+  width: 430px;
+  aspect-ratio: 1;
+  right: -220px;
+  top: -205px;
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent) 20%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 72px color-mix(in srgb, var(--ds-brand-accent) 3%, transparent),
+    0 0 0 144px color-mix(in srgb, var(--ds-info) 2%, transparent);
   pointer-events: none;
 }
 
@@ -62,10 +87,11 @@
   display: grid;
   place-items: center;
   border-radius: var(--radius-md);
-  background: linear-gradient(145deg, var(--accent), var(--color-red-700));
+  border: 1px solid color-mix(in srgb, var(--ds-brand-primary-soft) 46%, transparent);
+  background: var(--ds-brand-gradient);
   color: var(--color-text-primary);
   font-weight: 900;
-  box-shadow: 0 12px 32px color-mix(in srgb, var(--accent) 24%, transparent);
+  box-shadow: var(--ds-shadow-brand);
 }
 
 .brandText {
@@ -91,7 +117,7 @@
 }
 
 .eyebrow {
-  color: var(--accent);
+  color: var(--ds-brand-primary-soft);
   font-size: var(--font-size-xs);
   font-weight: 800;
   letter-spacing: 0.12em;
@@ -99,11 +125,12 @@
 }
 
 .storyTitle {
-  max-width: 11ch;
+  max-width: 12ch;
   margin-top: 14px;
-  font-size: clamp(2.6rem, 6vw, 5.1rem);
+  font-size: clamp(2.6rem, 5.5vw, 4.6rem);
   line-height: 0.96;
   letter-spacing: -0.065em;
+  text-wrap: balance;
 }
 
 .storyDescription {
@@ -113,40 +140,56 @@
   font-size: clamp(0.95rem, 1.6vw, 1.08rem);
 }
 
-.capabilities {
+.journey {
   position: relative;
   z-index: 1;
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-3);
+  padding: 0;
+  list-style: none;
 }
 
-.capability {
-  display: flex;
-  align-items: center;
-  gap: 11px;
-  color: var(--text-secondary);
+.journeyStep {
+  min-width: 0;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--ds-border-subtle);
+}
+
+.journeyIndex {
+  display: block;
+  margin-bottom: var(--space-3);
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
+}
+
+.journeyStep strong,
+.journeyStep small {
+  display: block;
+}
+
+.journeyStep strong {
+  color: var(--ds-text-primary);
   font-size: var(--font-size-sm);
+  font-weight: 850;
 }
 
-.capabilityMark {
-  width: 24px;
-  height: 24px;
-  flex: 0 0 auto;
-  display: grid;
-  place-items: center;
-  border: 1px solid color-mix(in srgb, var(--accent) 36%, var(--border));
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--accent) 9%, transparent);
-  color: var(--accent);
+.journeyStep small {
+  margin-top: 4px;
+  color: var(--ds-text-muted);
   font-size: 0.7rem;
-  font-weight: 900;
+  line-height: 1.45;
 }
 
 .authPanel {
   display: flex;
   align-items: center;
   padding: clamp(30px, 5vw, 64px);
-  background: color-mix(in srgb, var(--background) 34%, var(--surface));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--ds-info) 2%, transparent), transparent 34%),
+    color-mix(in srgb, var(--background) 34%, var(--surface));
 }
 
 .authCard {
@@ -158,13 +201,46 @@
   box-shadow: none;
 }
 
+.accessStatus {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  color: var(--ds-text-muted);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.accessStatus > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.statusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ds-success);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ds-success) 62%, transparent);
+}
+
+.accessCode {
+  color: color-mix(in srgb, var(--ds-text-muted) 72%, transparent);
+  letter-spacing: 0.16em;
+}
+
 .modePill {
   width: fit-content;
   margin-bottom: 22px;
   padding: 6px 10px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-border-accent);
   border-radius: var(--radius-full);
-  color: var(--text-secondary);
+  background: color-mix(in srgb, var(--ds-brand-primary) 7%, transparent);
+  color: var(--ds-brand-primary-soft);
   font-size: var(--font-size-xs);
   font-weight: 700;
 }
@@ -173,6 +249,7 @@
   font-size: clamp(2rem, 4vw, 2.7rem);
   line-height: 1.05;
   letter-spacing: -0.05em;
+  text-wrap: balance;
 }
 
 .subtitle {
@@ -233,7 +310,8 @@
   min-height: 48px;
   margin-top: 2px;
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 30px color-mix(in srgb, var(--accent) 18%, transparent);
+  background: var(--ds-brand-gradient);
+  box-shadow: var(--ds-shadow-brand);
 }
 
 .oauth {
@@ -263,6 +341,20 @@
   border-radius: var(--radius-md);
 }
 
+.googleMark {
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  margin-right: var(--space-2);
+  border: 1px solid var(--ds-border-subtle);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ds-surface-elevated) 78%, transparent);
+  color: var(--ds-text-primary);
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
 .footer {
   margin-top: 24px;
   color: var(--text-secondary);
@@ -279,9 +371,37 @@
   color: var(--accent);
 }
 
+.privacyNote {
+  max-width: 34ch;
+  margin: var(--space-5) auto 0;
+  color: var(--ds-text-muted);
+  font-size: 0.68rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
 .fallback {
   min-height: 100dvh;
   background: var(--background);
+}
+
+@media (max-height: 780px) and (min-width: 901px) {
+  .frame {
+    min-height: calc(100dvh - 40px);
+  }
+
+  .story {
+    gap: var(--space-6);
+    padding: var(--space-8);
+  }
+
+  .storyTitle {
+    font-size: clamp(2.5rem, 5vw, 3.9rem);
+  }
+
+  .authPanel {
+    padding-block: var(--space-8);
+  }
 }
 
 @media (max-width: 900px) {
@@ -317,7 +437,7 @@
     margin-top: 16px;
   }
 
-  .capabilities {
+  .journey {
     display: none;
   }
 

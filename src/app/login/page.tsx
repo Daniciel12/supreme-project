@@ -141,6 +141,7 @@ function LoginContent() {
       <section className={styles.frame} aria-label="Acesso ao Supreme">
         <div className={styles.story}>
           <span className={styles.storyGlow} aria-hidden="true" />
+          <span className={styles.storyOrbit} aria-hidden="true" />
 
           <div className={styles.brand}>
             <span className={styles.brandMark} aria-hidden="true">
@@ -148,37 +149,55 @@ function LoginContent() {
             </span>
             <span className={styles.brandText}>
               <span className={styles.brandName}>Supreme</span>
-              <span className={styles.brandCaption}>Seu sistema pessoal</span>
+              <span className={styles.brandCaption}>Sistema pessoal de evolução</span>
             </span>
           </div>
 
           <div className={styles.storyContent}>
-            <p className={styles.eyebrow}>Evolução pessoal, organizada</p>
-            <h2 className={styles.storyTitle}>Sua vida, em um sistema.</h2>
+            <p className={styles.eyebrow}>Da intenção ao ritmo</p>
+            <h2 className={styles.storyTitle}>
+              Construa o dia que constrói você.
+            </h2>
             <p className={styles.storyDescription}>
-              Reúna finanças, metas, hábitos, treinos, livros e visão pessoal em
-              uma experiência construída para acompanhar sua evolução.
+              O Supreme transforma prioridades dispersas em um sistema pessoal
+              para decidir, agir e acompanhar sua evolução com clareza.
             </p>
           </div>
 
-          <div className={styles.capabilities} aria-label="Recursos do Supreme">
-            <p className={styles.capability}>
-              <span className={styles.capabilityMark} aria-hidden="true">✓</span>
-              Finanças, metas e hábitos no mesmo lugar
-            </p>
-            <p className={styles.capability}>
-              <span className={styles.capabilityMark} aria-hidden="true">✓</span>
-              Treinos, livros e evolução acompanhados no tempo
-            </p>
-            <p className={styles.capability}>
-              <span className={styles.capabilityMark} aria-hidden="true">✓</span>
-              Experiência pessoal com dados isolados por conta
-            </p>
-          </div>
+          <ol className={styles.journey} aria-label="Jornada no Supreme">
+            <li className={styles.journeyStep}>
+              <span className={styles.journeyIndex} aria-hidden="true">01</span>
+              <span>
+                <strong>Organize</strong>
+                <small>Veja a realidade inteira.</small>
+              </span>
+            </li>
+            <li className={styles.journeyStep}>
+              <span className={styles.journeyIndex} aria-hidden="true">02</span>
+              <span>
+                <strong>Decida</strong>
+                <small>Escolha o próximo passo.</small>
+              </span>
+            </li>
+            <li className={styles.journeyStep}>
+              <span className={styles.journeyIndex} aria-hidden="true">03</span>
+              <span>
+                <strong>Evolua</strong>
+                <small>Transforme ação em ritmo.</small>
+              </span>
+            </li>
+          </ol>
         </div>
 
         <div className={styles.authPanel}>
           <div className={`${styles.authCard} card auth-wrapper`}>
+            <div className={styles.accessStatus}>
+              <span>
+                <span className={styles.statusDot} aria-hidden="true" />
+                Espaço pessoal protegido
+              </span>
+              <span className={styles.accessCode}>SUPREME ID</span>
+            </div>
             <p className={styles.modePill}>
               {mode === "login" ? "Acesso seguro" : "Comece sua jornada"}
             </p>
@@ -261,6 +280,7 @@ function LoginContent() {
                 type="submit"
                 className={`${styles.submit} btn btn-primary`}
                 disabled={loading}
+                aria-busy={loading || undefined}
               >
                 {loading
                   ? "Aguarde..."
@@ -280,7 +300,9 @@ function LoginContent() {
                   className={`${styles.googleButton} btn btn-outline oauth-button`}
                   disabled={loading}
                   onClick={handleGoogleLogin}
+                  aria-busy={loading || undefined}
                 >
+                  <span className={styles.googleMark} aria-hidden="true">G</span>
                   Continuar com Google
                 </button>
               </div>
@@ -310,6 +332,10 @@ function LoginContent() {
                   </button>
                 </>
               )}
+            </p>
+
+            <p className={styles.privacyNote}>
+              Autenticação protegida. Seus dados permanecem isolados por conta.
             </p>
           </div>
         </div>
