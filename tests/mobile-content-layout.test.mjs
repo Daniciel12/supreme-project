@@ -25,8 +25,9 @@ test("mobile forms and finance header actions use the available width", () => {
   );
   assert.match(
     finances,
-    /@media \(max-width: 760px\)[\s\S]*\.headerActions :global\(\.ui-button\)\s*\{[^}]*width:\s*100%[^}]*flex:\s*1 0 100%/s
+    /@media \(max-width: 760px\)[\s\S]*\.headerActions\s*\{[^}]*width:\s*100%[^}]*\}[\s\S]*\.headerActions :global\(\.ui-button\)\s*\{[^}]*width:\s*100%/s
   );
+  assert.doesNotMatch(finances, /flex:\s*1 0 100%/);
 });
 
 test("roadmap records the completed mobile-first milestone", () => {
