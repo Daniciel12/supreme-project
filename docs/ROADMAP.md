@@ -1,6 +1,7 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 12/08/2026  
+**Atualizado em:** 12/08/2026
+
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
 ## 📍 Estado atual
