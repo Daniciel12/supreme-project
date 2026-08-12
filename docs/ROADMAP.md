@@ -1,6 +1,6 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 11/08/2026  
+**Atualizado em:** 12/08/2026  
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
 ## 📍 Estado atual
@@ -9,12 +9,14 @@ O Supreme já possui backend multiusuário, módulos principais, CI, Docker e am
 
 O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard e todos os módulos principais de produto**. Restam a consolidação visual transversal, experiência mobile-first global, motion/microinterações e a revisão final de acessibilidade/performance.
 
-O único gate restante das integrações de produção é ativar e validar Google OAuth no ambiente real da VPS, operação que depende de secrets configurados somente no servidor.
+As integrações previstas para esta etapa estão operacionais. Google OAuth foi
+validado no ambiente real, coexistindo com Credentials sem vinculação implícita
+de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 
 **Próximos passos:**
-1. ativar e validar Google OAuth em produção;
-2. consolidar identidade visual definitiva do Frontend v3;
-3. concluir revisão mobile-first, motion, acessibilidade e performance;
+1. consolidar a identidade visual definitiva do Frontend v3;
+2. concluir a experiência mobile-first global;
+3. revisar motion, acessibilidade e performance;
 4. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
 
 ## ✅ 1. Fundação técnica — concluída
@@ -95,14 +97,16 @@ O restore de produção continua deliberadamente manual e nunca é automatizado.
 - [x] revisão final de HSTS/CSP;
 - [x] smoke visual desktop/mobile.
 
-## 🔵 8. Integrações de produção — etapa atual
+## ✅ 8. Integrações de produção — concluída
 
-- [ ] Google OAuth em produção;
+- [x] Google OAuth em produção;
 - [x] UploadThing validado pela URL pública;
 - [x] política de limpeza de arquivos órfãos;
 - [x] revisão final de callbacks e erros externos.
 
-O código e o runbook do Google OAuth estão preparados. A conclusão deste item exige configuração das credenciais no ambiente da VPS e smoke real, sem registrar secrets no GitHub.
+Google OAuth passou por health check, login real, conflito seguro com conta
+Credentials existente e smoke autenticado de leitura. Os secrets permanecem
+somente no servidor e o account linking implícito está bloqueado.
 
 ## 🎨 9. Frontend v3 — em andamento
 
