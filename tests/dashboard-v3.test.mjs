@@ -64,3 +64,18 @@ test("dashboard v3 preserves loading, error, retry and check-in feedback", () =>
   assert.match(page, /isLoading=\{checkingHabitId === habit\.id\}/);
   assert.match(page, /loadingLabel="Registrando\.\.\."/);
 });
+
+test("dashboard editorial layer turns existing data into an accessible daily pulse", () => {
+  const page = read("src/app/page.tsx");
+  const css = read("src/app/dashboard.module.css");
+
+  assert.match(page, /getDayNarrative/);
+  assert.match(page, /totalFocusCount === 0/);
+  assert.match(page, /Pulso do dia/);
+  assert.match(page, /role="progressbar"/);
+  assert.match(page, /aria-valuenow=\{habitProgress\}/);
+  assert.match(page, /openHabits \+ openWorkouts \+ dashboard\.today\.pendingTasks\.length/);
+  assert.match(css, /\.pulseCard/);
+  assert.match(css, /var\(--ds-brand-gradient\)/);
+  assert.match(css, /\.sectionEyebrow/);
+});

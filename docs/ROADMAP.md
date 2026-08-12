@@ -114,6 +114,8 @@ somente no servidor e o account linking implícito está bloqueado.
   - [x] direção visual e tokens de marca;
   - [x] assinatura compartilhada de shell, cabeçalhos e cards;
   - [ ] refinamento editorial de login, Dashboard e módulos;
+    - [x] Dashboard;
+    - [ ] login e módulos;
 - [x] Design System v2;
 - [x] novo Application Shell;
 - [x] sidebar/header/perfil redesenhados;

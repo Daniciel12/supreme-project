@@ -95,6 +95,42 @@ function formatRecordDate(date: string) {
   return new Intl.DateTimeFormat("pt-BR").format(new Date(date));
 }
 
+function getDayNarrative(
+  openFocusCount: number,
+  totalFocusCount: number,
+  habitProgress: number
+) {
+  if (totalFocusCount === 0) {
+    return {
+      title: "Seu espaço está pronto para começar.",
+      description:
+        "Adicione um hábito, treino ou tarefa para transformar intenção em um próximo passo visível.",
+    };
+  }
+
+  if (openFocusCount === 0) {
+    return {
+      title: "Dia em ordem. Espaço para avançar.",
+      description:
+        "As prioridades visíveis estão resolvidas. Use o restante do dia para consolidar uma meta importante.",
+    };
+  }
+
+  if (habitProgress >= 75) {
+    return {
+      title: "Bom ritmo. Feche o que importa.",
+      description:
+        "Sua consistência já aparece no dia. Agora, concentre energia nas poucas frentes que ainda estão abertas.",
+    };
+  }
+
+  return {
+    title: "Clareza primeiro. Movimento depois.",
+    description:
+      "Comece por uma ação curta, ganhe tração e deixe o restante do dia mais leve.",
+  };
+}
+
 async function fetchDashboard(date: string): Promise<DashboardData> {
   const response = await fetch(`/api/dashboard?date=${date}`, {
     cache: "no-store",
@@ -115,6 +151,31 @@ export default function Home() {
   const [loadError, setLoadError] = useState(false);
   const [checkingHabitId, setCheckingHabitId] = useState<string | null>(null);
   const [checkinError, setCheckinError] = useState<string | null>(null);
+
+  const habitProgress = dashboard?.today.habitsTotal
+    ? Math.round(
+        (dashboard.today.habitsCompleted / dashboard.today.habitsTotal) * 100
+      )
+    : 0;
+  const openHabits = dashboard
+    ? dashboard.today.habits.filter((habit) => !habit.checkedToday).length
+    : 0;
+  const openWorkouts = dashboard
+    ? dashboard.today.workouts.filter((workout) => !workout.completed).length
+    : 0;
+  const openFocusCount = dashboard
+    ? openHabits + openWorkouts + dashboard.today.pendingTasks.length
+    : 0;
+  const totalFocusCount = dashboard
+    ? dashboard.today.habits.length +
+      dashboard.today.workouts.length +
+      dashboard.today.pendingTasks.length
+    : 0;
+  const dayNarrative = getDayNarrative(
+    openFocusCount,
+    totalFocusCount,
+    habitProgress
+  );
 
   useEffect(() => {
     if (!dateKey) return;
@@ -204,8 +265,8 @@ export default function Home() {
       <div className="container">
         <PageHeader
           eyebrow="Dashboard"
-          title="Hoje no Supreme"
-          description="Uma visão operacional do que pede sua atenção agora, sem misturar planejamento com dados já realizados."
+          title="Seu dia, em movimento"
+          description="Prioridades, progresso e decisões reunidos em uma leitura clara do que importa agora."
           actions={
             <Badge tone="accent">
               {dateKey ? formatDashboardDate(dateKey) : "Data local"}
@@ -226,8 +287,52 @@ export default function Home() {
           />
         ) : (
           <>
+            <section className={styles.pulseCard} aria-labelledby="day-pulse-title">
+              <div className={styles.pulseCopy}>
+                <span className={styles.pulseEyebrow}>Pulso do dia</span>
+                <h2 id="day-pulse-title" className={styles.pulseTitle}>
+                  {dayNarrative.title}
+                </h2>
+                <p className={styles.pulseDescription}>
+                  {dayNarrative.description}
+                </p>
+                <div className={styles.pulseMeta} aria-label="Frentes do dia">
+                  <span>
+                    <strong>{openFocusCount}</strong> frentes abertas
+                  </span>
+                  <span>
+                    <strong>{dashboard.today.pendingTasks.length}</strong> tarefas
+                  </span>
+                  <span>
+                    <strong>{openWorkouts}</strong> treinos
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.pulseProgress}>
+                <span className={styles.pulseValue}>
+                  {habitProgress}<small>%</small>
+                </span>
+                <span className={styles.pulseLabel}>ritmo dos hábitos</span>
+                <div
+                  className={styles.pulseTrack}
+                  role="progressbar"
+                  aria-label="Hábitos concluídos hoje"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={habitProgress}
+                >
+                  <span
+                    className={styles.pulseFill}
+                    style={{ width: `${habitProgress}%` }}
+                  />
+                </div>
+              </div>
+            </section>
+
             <section className={styles.metricGrid} aria-label="Resumo do dia">
-              <Card className={styles.metricCard}>
+              <Card className={`${styles.metricCard} ${styles.metricCardAccent}`}>
+                <span className={styles.metricIndex} aria-hidden="true">01</span>
                 <span className={styles.metricLabel}>Hábitos hoje</span>
                 <strong className={styles.metricValue}>
                   {dashboard.today.habitsCompleted}/{dashboard.today.habitsTotal}
@@ -235,6 +340,7 @@ export default function Home() {
                 <span className={styles.metricHint}>concluídos no dia</span>
               </Card>
               <Card className={styles.metricCard}>
+                <span className={styles.metricIndex} aria-hidden="true">02</span>
                 <span className={styles.metricLabel}>Saldo atual</span>
                 <strong className={styles.metricValue}>
                   {brlFormatter.format(dashboard.finances.balance)}
@@ -242,6 +348,7 @@ export default function Home() {
                 <span className={styles.metricHint}>somente movimentos pagos</span>
               </Card>
               <Card className={styles.metricCard}>
+                <span className={styles.metricIndex} aria-hidden="true">03</span>
                 <span className={styles.metricLabel}>Receitas pagas</span>
                 <strong className={styles.metricValue}>
                   {brlFormatter.format(dashboard.finances.monthlyIncome)}
@@ -249,6 +356,7 @@ export default function Home() {
                 <span className={styles.metricHint}>neste mês</span>
               </Card>
               <Card className={styles.metricCard}>
+                <span className={styles.metricIndex} aria-hidden="true">04</span>
                 <span className={styles.metricLabel}>Despesas pagas</span>
                 <strong className={styles.metricValue}>
                   {brlFormatter.format(dashboard.finances.monthlyExpense)}
@@ -260,7 +368,10 @@ export default function Home() {
             <div className={styles.contentGrid}>
               <Card>
                 <div className={styles.sectionHeader}>
-                  <h2 className={styles.sectionTitle}>Prioridades</h2>
+                  <div>
+                    <span className={styles.sectionEyebrow}>Agora</span>
+                    <h2 className={styles.sectionTitle}>Prioridades</h2>
+                  </div>
                   <span className={styles.itemMeta}>Seu foco de hoje</span>
                 </div>
 
@@ -376,7 +487,10 @@ export default function Home() {
               <div className={styles.stack}>
                 <Card>
                   <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Metas em movimento</h2>
+                    <div>
+                      <span className={styles.sectionEyebrow}>Horizonte</span>
+                      <h2 className={styles.sectionTitle}>Metas em movimento</h2>
+                    </div>
                     <Link href="/metas" className={styles.sectionLink}>
                       Ver todas
                     </Link>
@@ -442,7 +556,10 @@ export default function Home() {
 
                 <Card>
                   <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Financeiro</h2>
+                    <div>
+                      <span className={styles.sectionEyebrow}>Recursos</span>
+                      <h2 className={styles.sectionTitle}>Financeiro</h2>
+                    </div>
                     <Link href="/financas" className={styles.sectionLink}>
                       Abrir finanças
                     </Link>
@@ -470,7 +587,10 @@ export default function Home() {
 
                 <Card>
                   <div className={styles.sectionHeader}>
-                    <h2 className={styles.sectionTitle}>Evolução recente</h2>
+                    <div>
+                      <span className={styles.sectionEyebrow}>Corpo</span>
+                      <h2 className={styles.sectionTitle}>Evolução recente</h2>
+                    </div>
                     <Link href="/treinos" className={styles.sectionLink}>
                       Ver evolução
                     </Link>
