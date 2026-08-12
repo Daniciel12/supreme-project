@@ -23,7 +23,35 @@ test("books v3 preserves progress and summary calculations", () => {
   assert.match(page, /Math\.min\(100, Math\.round\(\(book\.readPages \/ book\.totalPages\) \* 100\)\)/);
   assert.match(page, /result\.completed \+ \(book\.totalPages > 0 && book\.readPages === book\.totalPages \? 1 : 0\)/);
   assert.match(page, /pagesRead: result\.pagesRead \+ book\.readPages/);
+  assert.match(page, /totalPages: result\.totalPages \+ book\.totalPages/);
   assert.match(page, /readPages > book\.totalPages/);
+});
+
+test("books editorial refinement turns reading progress into a library map", () => {
+  const page = read("src/app/livros/page.tsx");
+
+  assert.match(page, /Biblioteca em ação/);
+  assert.match(page, /const libraryUnavailable =/);
+  assert.match(page, /const remainingPages = Math\.max/);
+  assert.match(page, /const libraryProgress =/);
+  assert.match(page, /const libraryNarrative =/);
+  assert.match(page, /A próxima leitura ainda espera um título/);
+  assert.match(page, /A estante já virou repertório/);
+  assert.match(page, /A leitura já está em movimento/);
+  assert.match(page, /Próximos capítulos/);
+});
+
+test("books exposes portfolio and per-book progress accessibly", () => {
+  const page = read("src/app/livros/page.tsx");
+
+  assert.match(page, /aria-labelledby="reading-map-title"/);
+  assert.match(page, /aria-label="Progresso total da biblioteca"/);
+  assert.match(
+    page,
+    /aria-valuenow=\{libraryUnavailable \? undefined : libraryProgress\}/
+  );
+  assert.match(page, /aria-label=\{`Progresso de \$\{book\.title\}`\}/);
+  assert.match(page, /aria-valuenow=\{progress\}/);
 });
 
 test("books v3 keeps explicit confirmation before removal", () => {
@@ -46,6 +74,9 @@ test("books v3 consumes canonical Design System v2 tokens", () => {
     "--ds-danger",
     "--ds-motion-fast",
     "--ds-shadow-card",
+    "--ds-brand-gradient",
+    "--ds-border-accent",
+    "--ds-motion-base",
   ]) {
     assert.match(css, new RegExp(token));
   }
