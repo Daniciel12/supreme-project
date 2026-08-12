@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { getSession, signOut } from "next-auth/react";
-import { useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent as ReactKeyboardEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   applicationNavigation,
   isActivePath,
@@ -21,10 +26,30 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
+  const sidebarCloseButtonRef = useRef<HTMLButtonElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    if (menuOpen) sidebarRef.current?.querySelector<HTMLAnchorElement>("a")?.focus();
+    if (!menuOpen) return;
+
+    const mobileViewport = window.matchMedia("(max-width: 800px)");
+    const previousOverflow = document.body.style.overflow;
+
+    if (mobileViewport.matches) {
+      document.body.style.overflow = "hidden";
+      sidebarCloseButtonRef.current?.focus();
+    }
+
+    function handleViewportChange(event: MediaQueryListEvent) {
+      if (!event.matches) setMenuOpen(false);
+    }
+
+    mobileViewport.addEventListener("change", handleViewportChange);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      mobileViewport.removeEventListener("change", handleViewportChange);
+    };
   }, [menuOpen]);
 
   useEffect(() => {
@@ -47,7 +72,29 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
 
   function closeMenu({ restoreFocus = false } = {}) {
     setMenuOpen(false);
-    if (restoreFocus) menuButtonRef.current?.focus();
+    if (restoreFocus) {
+      window.requestAnimationFrame(() => menuButtonRef.current?.focus());
+    }
+  }
+
+  function handleSidebarKeyDown(event: ReactKeyboardEvent<HTMLElement>) {
+    if (event.key !== "Tab" || !menuOpen) return;
+
+    const focusableElements = sidebarRef.current?.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled])'
+    );
+    if (!focusableElements?.length) return;
+
+    const firstElement = focusableElements[0];
+    const lastElement = focusableElements[focusableElements.length - 1];
+
+    if (event.shiftKey && document.activeElement === firstElement) {
+      event.preventDefault();
+      lastElement.focus();
+    } else if (!event.shiftKey && document.activeElement === lastElement) {
+      event.preventDefault();
+      firstElement.focus();
+    }
   }
 
   async function handleSignOut() {
@@ -73,7 +120,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
           active ? ` app-nav__link--active ${styles.navLinkActive}` : ""
         }`}
         aria-current={active ? "page" : undefined}
-        onClick={() => closeMenu()}
+        onClick={() => closeMenu({ restoreFocus: menuOpen })}
       >
         <span className={`app-nav__icon ${styles.navIcon}`} aria-hidden="true">
           {item.shortLabel}
@@ -98,6 +145,10 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
       <aside
         id="supreme-sidebar"
         ref={sidebarRef}
+        role={menuOpen ? "dialog" : undefined}
+        aria-modal={menuOpen ? true : undefined}
+        aria-label="Menu principal"
+        onKeyDown={handleSidebarKeyDown}
         className={`app-sidebar ${styles.sidebar}${
           menuOpen ? " app-sidebar--open" : ""
         }`}
@@ -115,6 +166,15 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
               Seu sistema pessoal
             </span>
           </div>
+          <button
+            type="button"
+            ref={sidebarCloseButtonRef}
+            className={styles.sidebarCloseButton}
+            aria-label="Fechar menu"
+            onClick={() => closeMenu({ restoreFocus: true })}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
         </div>
         <nav className={`app-nav ${styles.nav}`} aria-label="Navegação principal">
           {navigationLinks}
@@ -126,7 +186,8 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
         <button
           type="button"
           className="app-shell__backdrop"
-          aria-label="Fechar menu"
+          aria-hidden="true"
+          tabIndex={-1}
           onClick={() => closeMenu({ restoreFocus: true })}
         />
       )}

@@ -37,8 +37,32 @@ test("application shell keeps semantic landmarks and accessible mobile controls"
   assert.match(shell, /aria-expanded=\{menuOpen\}/);
   assert.match(shell, /aria-controls="supreme-sidebar"/);
   assert.match(shell, /event\.key === "Escape"/);
+  assert.match(shell, /event\.key !== "Tab"/);
+  assert.match(shell, /sidebarCloseButtonRef/);
+  assert.match(shell, /document\.body\.style\.overflow = "hidden"/);
+  assert.match(shell, /window\.matchMedia\("\(max-width: 800px\)"\)/);
+  assert.match(shell, /role=\{menuOpen \? "dialog" : undefined\}/);
+  assert.match(shell, /aria-modal=\{menuOpen \? true : undefined\}/);
+  assert.match(shell, /aria-label="Menu principal"/);
+  assert.match(shell, /aria-label="Fechar menu"/);
   assert.match(shell, /closeMenu\(\{ restoreFocus: true \}\)/);
+  assert.match(shell, /closeMenu\(\{ restoreFocus: menuOpen \}\)/);
   assert.match(shell, /pathname === "\/login"/);
+});
+
+test("mobile shell keeps navigation reachable on short and notched screens", () => {
+  const globals = read("src/app/globals.css");
+  const styles = read("src/components/application-shell-v3.module.css");
+
+  assert.match(globals, /overflow-y:\s*auto/);
+  assert.match(globals, /overscroll-behavior:\s*contain/);
+  assert.match(globals, /env\(safe-area-inset-top\)/);
+  assert.match(globals, /env\(safe-area-inset-bottom\)/);
+  assert.match(globals, /\.app-header__menu\s*\{[^}]*width:\s*44px/s);
+  assert.match(globals, /\.app-nav__link\s*\{[^}]*min-height:\s*48px/s);
+  assert.match(styles, /\.sidebarCloseButton/);
+  assert.match(styles, /width:\s*44px/);
+  assert.match(styles, /height:\s*44px/);
 });
 
 test("application shell v3 is isolated and preserves legacy contracts", () => {
