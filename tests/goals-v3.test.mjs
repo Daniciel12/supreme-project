@@ -25,6 +25,27 @@ test("goals v3 keeps optimistic task update and rollback", () => {
   assert.match(page, /isCompleted: task\.isCompleted/);
 });
 
+test("goals editorial refinement turns existing data into a portfolio view", () => {
+  assert.match(page, /const portfolio = useMemo/);
+  assert.match(page, /Horizonte em ação/);
+  assert.match(page, /const portfolioNarrative =/);
+  assert.match(page, /Alguns prazos pedem uma decisão hoje/);
+  assert.match(page, /Tarefas em aberto/);
+  assert.match(page, /portfolio\.overdueGoals/);
+  assert.match(page, /portfolio\.dueTodayGoals/);
+  assert.match(page, /tasks\.length > 0 \? Math\.round/);
+});
+
+test("goals editorial progress is task-based and accessible", () => {
+  assert.match(page, /aria-labelledby="goals-portfolio-title"/);
+  assert.match(page, /aria-label="Tarefas concluídas nas metas abertas"/);
+  assert.match(page, /aria-valuenow=\{/);
+  assert.match(page, /aria-label=\{`Progresso das tarefas de \$\{goal\.title\}`\}/);
+  assert.match(page, /aria-valuenow=\{progress \?\? undefined\}/);
+  assert.match(page, /Sem tarefas cadastradas/);
+  assert.match(page, /<h2[\s\S]*goal-category-title/);
+});
+
 test("goals v3 preserves legacy goal classes while adding isolated styles", () => {
   assert.match(page, /goal-category-block \$\{styles\.categoryBlock\}/);
   assert.match(page, /goal-card \$\{styles\.goalCard\}/);

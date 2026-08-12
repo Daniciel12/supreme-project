@@ -102,6 +102,63 @@ export default function MetasPage() {
     return [...known, ...extras];
   }, [goalsByCategory]);
 
+  const portfolio = useMemo(() => {
+    const activeGoals = goals.filter((goal) => !goal.isCompleted);
+    const tasks = activeGoals.flatMap((goal) => goal.tasks);
+    const completedTasks = tasks.filter((task) => task.isCompleted).length;
+    const overdueGoals = activeGoals.filter((goal) => {
+      const deadlineKey = goal.deadline?.slice(0, 10) ?? null;
+      return todayKey !== null && deadlineKey !== null && deadlineKey < todayKey;
+    }).length;
+    const dueTodayGoals = activeGoals.filter(
+      (goal) =>
+        todayKey !== null && goal.deadline?.slice(0, 10) === todayKey
+    ).length;
+
+    return {
+      activeGoals: activeGoals.length,
+      completedGoals: goals.length - activeGoals.length,
+      openTasks: tasks.length - completedTasks,
+      totalTasks: tasks.length,
+      completedTasks,
+      overdueGoals,
+      dueTodayGoals,
+      executionPercent:
+        tasks.length > 0 ? Math.round((completedTasks / tasks.length) * 100) : null,
+    };
+  }, [goals, todayKey]);
+
+  const portfolioUnavailable = !todayKey || loadingGoals || goalsLoadError;
+  const portfolioNarrative = portfolioUnavailable
+    ? {
+        title: "Lendo o horizonte das suas metas.",
+        description:
+          "A visão geral aparece assim que seus objetivos estiverem disponíveis.",
+      }
+    : portfolio.activeGoals === 0
+      ? {
+          title: "O próximo horizonte ainda está aberto.",
+          description:
+            "Defina uma direção que caiba em ações concretas; o primeiro passo pode ser pequeno.",
+        }
+      : portfolio.overdueGoals + portfolio.dueTodayGoals > 0
+        ? {
+            title: "Alguns prazos pedem uma decisão hoje.",
+            description:
+              "Revise o que venceu ou chega ao prazo agora e escolha a próxima ação possível.",
+          }
+        : portfolio.openTasks === 0
+          ? {
+              title: "Direções claras precisam de próximos passos.",
+              description:
+                "Suas metas estão abertas; adicione tarefas para transformar intenção em execução observável.",
+            }
+          : {
+              title: "Seu horizonte já tem movimento.",
+              description:
+                "Use as tarefas em aberto para decidir o próximo passo sem perder a direção maior.",
+            };
+
   async function handleCreateGoal(event: FormEvent) {
     event.preventDefault();
     setGoalError(null);
@@ -251,6 +308,86 @@ export default function MetasPage() {
           actions={<Badge tone="accent">{goals.length} metas</Badge>}
         />
 
+        <section
+          className={styles.portfolioOverview}
+          aria-labelledby="goals-portfolio-title"
+          aria-busy={loadingGoals}
+        >
+          <div className={styles.portfolioCopy}>
+            <span className={styles.portfolioEyebrow}>Horizonte em ação</span>
+            <h2 id="goals-portfolio-title" className={styles.portfolioTitle}>
+              {portfolioNarrative.title}
+            </h2>
+            <p className={styles.portfolioDescription}>
+              {portfolioNarrative.description}
+            </p>
+            <div className={styles.portfolioMeta} aria-label="Resumo das metas">
+              <span>
+                <strong>{portfolioUnavailable ? "—" : portfolio.activeGoals}</strong>{" "}
+                {portfolio.activeGoals === 1 ? "meta aberta" : "metas abertas"}
+              </span>
+              <span>
+                <strong>{portfolioUnavailable ? "—" : portfolio.completedGoals}</strong>{" "}
+                concluídas
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.executionSignal}>
+            <span className={styles.signalLabel}>Execução mapeada</span>
+            <strong className={styles.executionValue}>
+              {portfolioUnavailable || portfolio.executionPercent === null
+                ? "—"
+                : portfolio.executionPercent}
+              {!portfolioUnavailable && portfolio.executionPercent !== null && (
+                <small>%</small>
+              )}
+            </strong>
+            <span className={styles.executionHint}>
+              {portfolioUnavailable
+                ? "carregando tarefas"
+                : portfolio.totalTasks === 0
+                  ? "adicione tarefas às metas abertas"
+                  : `${portfolio.completedTasks}/${portfolio.totalTasks} tarefas concluídas`}
+            </span>
+            <div
+              className={styles.portfolioTrack}
+              role="progressbar"
+              aria-label="Tarefas concluídas nas metas abertas"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={
+                portfolioUnavailable || portfolio.executionPercent === null
+                  ? undefined
+                  : portfolio.executionPercent
+              }
+            >
+              <span
+                className={styles.portfolioFill}
+                style={{ width: `${portfolio.executionPercent ?? 0}%` }}
+              />
+            </div>
+          </div>
+
+          <div className={styles.attentionSignal}>
+            <span className={styles.signalLabel}>Próximas decisões</span>
+            <dl className={styles.attentionList}>
+              <div>
+                <dt>Tarefas em aberto</dt>
+                <dd>{portfolioUnavailable ? "—" : portfolio.openTasks}</dd>
+              </div>
+              <div>
+                <dt>Vencidas</dt>
+                <dd>{portfolioUnavailable ? "—" : portfolio.overdueGoals}</dd>
+              </div>
+              <div>
+                <dt>Vencem hoje</dt>
+                <dd>{portfolioUnavailable ? "—" : portfolio.dueTodayGoals}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
         <Card className={styles.workspace}>
           <section className={styles.creationPanel} aria-labelledby="goals-create-title">
             <div className={styles.creationHeader}>
@@ -336,12 +473,12 @@ export default function MetasPage() {
                   aria-labelledby={`goal-category-${category}`}
                 >
                   <div className={styles.categoryHeader}>
-                    <div
+                    <h2
                       id={`goal-category-${category}`}
                       className={`goal-category-title ${styles.categoryTitle}`}
                     >
                       {category}
-                    </div>
+                    </h2>
                     <Badge>{goalsByCategory.get(category)?.length ?? 0} metas</Badge>
                   </div>
 
@@ -402,7 +539,19 @@ export default function MetasPage() {
                             </span>
                           </div>
 
-                          <div className={`progress-bar-track ${styles.progressTrack}`}>
+                          <div
+                            className={`progress-bar-track ${styles.progressTrack}`}
+                            role="progressbar"
+                            aria-label={`Progresso das tarefas de ${goal.title}`}
+                            aria-valuemin={0}
+                            aria-valuemax={100}
+                            aria-valuenow={progress ?? undefined}
+                            aria-valuetext={
+                              progress === null
+                                ? "Sem tarefas cadastradas"
+                                : `${progress}% concluído`
+                            }
+                          >
                             <div
                               className={`progress-bar-fill ${styles.progressFill}`}
                               style={{ width: `${progress ?? 0}%` }}
