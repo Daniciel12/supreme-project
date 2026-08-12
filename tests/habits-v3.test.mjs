@@ -20,6 +20,34 @@ test("habits v3 preserves summary and refresh behavior", () => {
   assert.match(page, /Math\.min\(100, Math\.max\(0,/);
 });
 
+test("habits editorial refinement prioritizes today's real rhythm", () => {
+  assert.match(page, /Ritmo de hoje/);
+  assert.match(page, /const todayPercent =/);
+  assert.match(page, /const remainingToday = Math\.max/);
+  assert.match(page, /const summaryUnavailable =/);
+  assert.match(page, /Lendo o ritmo de hoje/);
+  assert.match(page, /const todayNarrative =/);
+  assert.match(page, /O combinado de hoje está em dia/);
+  assert.match(page, /A rotina já ganhou movimento/);
+  assert.match(page, /Presença recente/);
+  assert.match(page, /dias com pelo menos um check-in/);
+  assert.doesNotMatch(page, /sequência|streak atual/i);
+});
+
+test("habits editorial overview exposes both progress measures accessibly", () => {
+  assert.match(page, /aria-labelledby="habit-rhythm-title"/);
+  assert.match(page, /aria-label="Hábitos concluídos hoje"/);
+  assert.match(
+    page,
+    /aria-valuenow=\{summaryUnavailable \? undefined : todayPercent\}/
+  );
+  assert.match(page, /aria-label="Dias com check-in nos últimos sete dias"/);
+  assert.match(
+    page,
+    /aria-valuenow=\{summaryUnavailable \? undefined : summary\.activeDays7\}/
+  );
+});
+
 test("habits v3 keeps legacy classes while adding isolated styles", () => {
   assert.match(page, /dashboard-grid \$\{styles\.layout\}/);
   assert.match(page, /streak-card \$\{styles\.summaryCard\}/);

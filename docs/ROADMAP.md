@@ -118,7 +118,8 @@ somente no servidor e o account linking implícito está bloqueado.
     - [x] login;
     - [ ] módulos;
       - [x] Finanças;
-      - [ ] Hábitos, Metas, Treinos, Livros e Visão;
+      - [x] Hábitos;
+      - [ ] Metas, Treinos, Livros e Visão;
 - [x] Design System v2;
 - [x] novo Application Shell;
 - [x] sidebar/header/perfil redesenhados;
