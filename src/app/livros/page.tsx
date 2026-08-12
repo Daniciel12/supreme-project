@@ -78,11 +78,54 @@ export default function LivrosPage() {
         total: result.total + 1,
         completed:
           result.completed + (book.totalPages > 0 && book.readPages === book.totalPages ? 1 : 0),
+        reading:
+          result.reading + (book.readPages > 0 && book.readPages < book.totalPages ? 1 : 0),
         pagesRead: result.pagesRead + book.readPages,
+        totalPages: result.totalPages + book.totalPages,
       }),
-      { total: 0, completed: 0, pagesRead: 0 }
+      { total: 0, completed: 0, reading: 0, pagesRead: 0, totalPages: 0 }
     );
   }, [books]);
+
+  const libraryUnavailable = loadingBooks || loadError;
+  const remainingPages = Math.max(0, summary.totalPages - summary.pagesRead);
+  const libraryProgress =
+    summary.totalPages === 0
+      ? 0
+      : Math.min(
+          100,
+          Math.max(0, Math.round((summary.pagesRead / summary.totalPages) * 100))
+        );
+  const libraryNarrative =
+    libraryUnavailable
+      ? {
+          title: "Lendo o mapa da biblioteca.",
+          description:
+            "O panorama aparece assim que suas leituras estiverem disponíveis.",
+        }
+      : summary.total === 0
+        ? {
+            title: "A próxima leitura ainda espera um título.",
+            description:
+              "Escolha uma obra que dialogue com o momento e transforme curiosidade em repertório construído.",
+          }
+        : summary.completed === summary.total
+          ? {
+              title: "A estante já virou repertório.",
+              description:
+                "Todas as leituras cadastradas foram concluídas. Um novo título pode abrir a próxima perspectiva.",
+            }
+          : summary.reading === 0
+            ? {
+                title: "O próximo capítulo pede movimento.",
+                description:
+                  "A biblioteca já tem direção; registre as primeiras páginas para colocar o conhecimento em curso.",
+              }
+            : {
+                title: "A leitura já está em movimento.",
+                description:
+                  "Continue pelas obras em curso e deixe o progresso revelar o repertório que está sendo construído.",
+              };
 
   async function handleCreateBook(event: FormEvent) {
     event.preventDefault();
@@ -206,26 +249,72 @@ export default function LivrosPage() {
           eyebrow="Livros"
           title="Biblioteca de conhecimento"
           description="Cadastre suas leituras e mantenha o progresso em páginas como uma medida objetiva de execução."
-          actions={<Badge tone="accent">{summary.total} livros</Badge>}
+          actions={
+            <Badge tone="accent">
+              {libraryUnavailable ? "— livros" : `${summary.total} livros`}
+            </Badge>
+          }
         />
 
-        <div className={styles.summaryGrid}>
-          <Card>
-            <span className={styles.statLabel}>Na biblioteca</span>
-            <strong className={styles.statValue}>{summary.total}</strong>
-            <span className={styles.statHint}>livros cadastrados</span>
-          </Card>
-          <Card>
-            <span className={styles.statLabel}>Concluídos</span>
-            <strong className={styles.statValue}>{summary.completed}</strong>
-            <span className={styles.statHint}>100% das páginas lidas</span>
-          </Card>
-          <Card>
-            <span className={styles.statLabel}>Páginas lidas</span>
-            <strong className={styles.statValue}>{summary.pagesRead}</strong>
-            <span className={styles.statHint}>somadas entre todos os livros</span>
-          </Card>
-        </div>
+        <Card
+          className={styles.readingMap}
+          aria-labelledby="reading-map-title"
+          aria-busy={loadingBooks}
+        >
+          <div className={styles.mapCopy}>
+            <span className={styles.mapEyebrow}>Biblioteca em ação</span>
+            <h2 id="reading-map-title" className={styles.mapTitle}>
+              {libraryNarrative.title}
+            </h2>
+            <p className={styles.mapDescription}>{libraryNarrative.description}</p>
+            <div className={styles.mapMeta} aria-label="Resumo da biblioteca">
+              <span>
+                <strong>{libraryUnavailable ? "—" : summary.total}</strong> na estante
+              </span>
+              <span>
+                <strong>{libraryUnavailable ? "—" : summary.reading}</strong> em leitura
+              </span>
+              <span>
+                <strong>{libraryUnavailable ? "—" : summary.completed}</strong> concluídos
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.libraryProgress}>
+            <span className={styles.metricEyebrow}>Repertório percorrido</span>
+            <strong className={styles.progressValue}>
+              {libraryUnavailable ? "—" : libraryProgress}
+              {!libraryUnavailable && <small>%</small>}
+            </strong>
+            <span className={styles.metricLabel}>
+              {libraryUnavailable ? "páginas registradas" : `${summary.pagesRead} páginas lidas`}
+            </span>
+            <div
+              className={styles.metricTrack}
+              role="progressbar"
+              aria-label="Progresso total da biblioteca"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={libraryUnavailable ? undefined : libraryProgress}
+            >
+              <div
+                className={styles.libraryFill}
+                style={{ width: `${libraryProgress}%` }}
+              />
+            </div>
+          </div>
+
+          <div className={styles.nextChapters}>
+            <span className={styles.metricEyebrow}>Próximos capítulos</span>
+            <strong className={styles.remainingValue}>
+              {libraryUnavailable ? "—" : remainingPages}
+            </strong>
+            <span className={styles.metricLabel}>páginas até concluir a estante atual</span>
+            <span className={styles.secondaryMetric}>
+              <strong>{libraryUnavailable ? "—" : summary.totalPages}</strong> páginas mapeadas
+            </span>
+          </div>
+        </Card>
 
         {actionError && (
           <div className={styles.actionError} role="alert">
@@ -305,7 +394,14 @@ export default function LivrosPage() {
                         </Badge>
                       </div>
 
-                      <div className="progress-bar-track" aria-label={`${progress}% lido`}>
+                      <div
+                        className="progress-bar-track"
+                        role="progressbar"
+                        aria-label={`Progresso de ${book.title}`}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-valuenow={progress}
+                      >
                         <div
                           className="progress-bar-fill"
                           style={{ width: `${progress}%` }}

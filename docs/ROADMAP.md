@@ -121,7 +121,7 @@ somente no servidor e o account linking implícito está bloqueado.
       - [x] Hábitos;
       - [x] Metas;
       - [x] Treinos;
-      - [ ] Livros;
+      - [x] Livros;
       - [ ] Visão;
 - [x] Design System v2;
 - [x] novo Application Shell;
