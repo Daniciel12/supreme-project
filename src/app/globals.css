@@ -328,15 +328,21 @@ svg {
    ============================================================ */
 
 .ui-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  position: relative;
+  background:
+    var(--ds-surface-gradient),
+    var(--surface);
+  border: 1px solid var(--ds-border-subtle);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   box-shadow: var(--shadow-card);
 }
 
 .ui-card--elevated {
-  background: var(--surface-elevated);
+  background:
+    var(--ds-surface-gradient),
+    var(--surface-elevated);
+  border-color: var(--ds-border-accent);
 }
 
 .ui-button {
@@ -350,7 +356,7 @@ svg {
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
   font-weight: 700;
-  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast), filter var(--transition-fast), transform var(--transition-fast);
 }
 
 .ui-button:hover:not(:disabled) {
@@ -358,22 +364,23 @@ svg {
 }
 
 .ui-button--primary {
-  background: var(--accent);
+  background: var(--ds-brand-gradient);
   color: white;
+  box-shadow: var(--ds-shadow-brand);
 }
 
 .ui-button--primary:hover:not(:disabled) {
-  background: var(--color-primary-hover);
+  filter: brightness(1.06);
 }
 
 .ui-button--secondary {
-  background: var(--color-accent);
+  background: linear-gradient(135deg, var(--ds-info-soft), var(--ds-info-strong));
   color: white;
 }
 
 .ui-button--outline {
-  border-color: var(--border);
-  background: transparent;
+  border-color: var(--ds-border-subtle);
+  background: color-mix(in srgb, var(--surface-elevated) 48%, transparent);
   color: var(--text-primary);
 }
 
@@ -403,10 +410,10 @@ svg {
 .ui-select {
   width: 100%;
   min-height: 44px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--ds-border-subtle);
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
-  background: var(--color-bg-input);
+  background: color-mix(in srgb, var(--color-bg-input) 90%, var(--surface));
   color: var(--text-primary);
 }
 
@@ -443,11 +450,23 @@ svg {
 .ui-badge--danger { border-color: var(--danger); color: var(--danger); }
 
 .ui-page-header {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: var(--space-6);
+  padding-left: var(--space-5);
   margin-bottom: var(--space-6);
+}
+
+.ui-page-header::before {
+  content: "";
+  position: absolute;
+  inset: 2px auto 2px 0;
+  width: 3px;
+  border-radius: var(--radius-full);
+  background: var(--ds-brand-gradient);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .ui-page-header__eyebrow {
@@ -461,8 +480,10 @@ svg {
 
 .ui-page-header__title {
   font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 850;
   line-height: 1.1;
   letter-spacing: -0.04em;
+  text-wrap: balance;
 }
 
 .ui-page-header__description {
@@ -470,6 +491,7 @@ svg {
   margin-top: var(--space-2);
   color: var(--text-secondary);
   font-size: var(--font-size-sm);
+  line-height: 1.65;
 }
 
 .ui-page-header__actions {

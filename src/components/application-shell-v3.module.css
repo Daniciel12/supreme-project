@@ -3,15 +3,15 @@
   --shell-panel-strong: color-mix(in srgb, var(--surface-elevated) 92%, transparent);
   --shell-line: color-mix(in srgb, var(--border) 78%, transparent);
   --shell-accent-soft: color-mix(in srgb, var(--accent) 14%, transparent);
-  background:
-    radial-gradient(circle at 78% -8%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 34rem),
-    var(--background);
+  background: var(--ds-canvas-gradient);
 }
 
 .sidebar {
-  background: linear-gradient(180deg, var(--shell-panel-strong), var(--shell-panel));
+  background:
+    radial-gradient(circle at 16% 4%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 16rem),
+    linear-gradient(180deg, var(--shell-panel-strong), var(--shell-panel));
   border-right-color: var(--shell-line);
-  box-shadow: 18px 0 48px rgba(0, 0, 0, 0.14);
+  box-shadow: 18px 0 56px rgba(0, 0, 0, 0.2);
 }
 
 .brand {
@@ -30,9 +30,11 @@
 }
 
 .brandMark {
-  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ds-brand-primary-soft) 48%, transparent);
+  border-radius: var(--radius-md);
+  background: var(--ds-brand-gradient);
   box-shadow:
-    0 10px 30px color-mix(in srgb, var(--accent) 22%, transparent),
+    var(--ds-shadow-brand),
     inset 0 1px 0 rgba(255, 255, 255, 0.18);
 }
 
@@ -78,7 +80,7 @@
   left: 0;
   width: 3px;
   border-radius: var(--radius-full);
-  background: var(--accent);
+  background: var(--ds-brand-gradient);
   box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
 }
 
@@ -87,10 +89,19 @@
   background: color-mix(in srgb, var(--surface-elevated) 76%, transparent);
 }
 
+.navLinkActive .navIcon {
+  border-color: var(--ds-border-accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface-elevated));
+  color: var(--text-primary);
+}
+
 .header {
   min-height: 70px;
   border-bottom-color: var(--shell-line);
-  background: color-mix(in srgb, var(--background) 82%, transparent);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--accent) 3%, transparent), transparent 34%),
+    color-mix(in srgb, var(--background) 84%, transparent);
+  backdrop-filter: blur(20px) saturate(130%);
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.1);
 }
 
@@ -103,7 +114,9 @@
   padding: 5px 8px 5px 6px;
   border: 1px solid var(--shell-line);
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  background:
+    var(--ds-surface-gradient),
+    color-mix(in srgb, var(--surface) 74%, transparent);
 }
 
 .profileAvatar {
@@ -113,7 +126,7 @@
   display: grid;
   place-items: center;
   border-radius: var(--radius-full);
-  background: var(--shell-accent-soft);
+  background: var(--ds-brand-gradient);
   color: var(--text-primary);
   font-size: var(--font-size-xs);
   font-weight: 800;
