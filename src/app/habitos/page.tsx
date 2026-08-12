@@ -166,7 +166,52 @@ export default function HabitosPage() {
     }
   }
 
+  const summaryUnavailable = !todayKey || loadingHabits || habitsLoadError;
   const activeDaysPercent = Math.min(100, Math.max(0, (summary.activeDays7 / 7) * 100));
+  const todayPercent =
+    summary.totalActive === 0
+      ? 0
+      : Math.min(
+          100,
+          Math.max(
+            0,
+            Math.round((summary.completedToday / summary.totalActive) * 100)
+          )
+        );
+  const remainingToday = Math.max(
+    0,
+    summary.totalActive - summary.completedToday
+  );
+  const todayNarrative =
+    summaryUnavailable
+      ? {
+          title: "Lendo o ritmo de hoje.",
+          description:
+            "O resumo aparece assim que os hábitos do dia estiverem disponíveis.",
+        }
+      : summary.totalActive === 0
+      ? {
+          title: "O ritmo começa quando cabe no dia.",
+          description:
+            "Crie um compromisso simples para transformar intenção em presença observável.",
+        }
+      : remainingToday === 0
+        ? {
+            title: "O combinado de hoje está em dia.",
+            description:
+              "Todos os hábitos ativos receberam presença hoje. Amanhã, o ritmo recomeça sem dívida acumulada.",
+          }
+        : summary.completedToday === 0
+          ? {
+              title: "Um gesto coloca a rotina em movimento.",
+              description:
+                "Escolha um hábito possível e registre a prática quando ela realmente acontecer.",
+            }
+          : {
+              title: "A rotina já ganhou movimento.",
+              description:
+                "Continue no que ainda faz sentido hoje; progresso real não precisa parecer perfeito.",
+            };
 
   return (
     <main className="main-content">
@@ -177,7 +222,9 @@ export default function HabitosPage() {
           description="Faça o check-in do dia e acompanhe sua presença real na rotina, sem métricas artificiais."
           actions={
             <Badge tone="success">
-              {summary.completedToday}/{summary.totalActive} hoje
+              {summaryUnavailable
+                ? "— hoje"
+                : `${summary.completedToday}/${summary.totalActive} hoje`}
             </Badge>
           }
         />
@@ -185,20 +232,71 @@ export default function HabitosPage() {
         <div className={`dashboard-grid ${styles.layout}`}>
           <Card
             className={`streak-card ${styles.summaryCard}`}
-            aria-label="Consistência recente"
+            aria-labelledby="habit-rhythm-title"
+            aria-busy={loadingHabits}
           >
-            <span className={styles.summaryEyebrow}>Consistência recente</span>
-            <span className={`streak-number ${styles.summaryValue}`}>
-              {summary.activeDays7}/7
-            </span>
-            <span className={`streak-label ${styles.summaryLabel}`}>
-              dias com pelo menos um check-in nos últimos 7 dias
-            </span>
-            <div className={styles.summaryTrack} aria-hidden="true">
+            <div className={styles.rhythmCopy}>
+              <span className={styles.summaryEyebrow}>Ritmo de hoje</span>
+              <h2 id="habit-rhythm-title" className={styles.rhythmTitle}>
+                {todayNarrative.title}
+              </h2>
+              <p className={styles.rhythmDescription}>
+                {todayNarrative.description}
+              </p>
+              <div className={styles.rhythmMeta} aria-label="Resumo dos hábitos de hoje">
+                <span>
+                  <strong>{summaryUnavailable ? "—" : remainingToday}</strong>{" "}
+                  {remainingToday === 1 ? "hábito em aberto" : "hábitos em aberto"}
+                </span>
+                <span>
+                  <strong>{summaryUnavailable ? "—" : summary.totalActive}</strong> ativos
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.todayProgress}>
+              <span className={styles.todayValue}>
+                {summaryUnavailable ? "—" : todayPercent}
+                {!summaryUnavailable && <small>%</small>}
+              </span>
+              <span className={styles.todayLabel}>concluído hoje</span>
               <div
-                className={styles.summaryFill}
-                style={{ width: `${activeDaysPercent}%` }}
-              />
+                className={styles.summaryTrack}
+                role="progressbar"
+                aria-label="Hábitos concluídos hoje"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={summaryUnavailable ? undefined : todayPercent}
+              >
+                <div
+                  className={styles.summaryFill}
+                  style={{ width: `${todayPercent}%` }}
+                />
+              </div>
+            </div>
+
+            <div className={styles.recentPresence}>
+              <span className={styles.presenceLabel}>Presença recente</span>
+              <span className={`streak-number ${styles.summaryValue}`}>
+                {summaryUnavailable ? "—" : summary.activeDays7}
+                {!summaryUnavailable && <small>/7</small>}
+              </span>
+              <span className={`streak-label ${styles.summaryLabel}`}>
+                dias com pelo menos um check-in
+              </span>
+              <div
+                className={styles.presenceTrack}
+                role="progressbar"
+                aria-label="Dias com check-in nos últimos sete dias"
+                aria-valuemin={0}
+                aria-valuemax={7}
+                aria-valuenow={summaryUnavailable ? undefined : summary.activeDays7}
+              >
+                <div
+                  className={styles.presenceFill}
+                  style={{ width: `${activeDaysPercent}%` }}
+                />
+              </div>
             </div>
           </Card>
 
@@ -227,17 +325,27 @@ export default function HabitosPage() {
               />
             ) : (
               <ul className={`habit-list ${styles.habitList}`}>
-                {habits.map((habit) => (
-                  <li key={habit.id} className={`habit-item ${styles.habitItem}`}>
-                    <div className={styles.habitCopy}>
-                      <div className={`habit-item-name ${styles.habitName}`}>
-                        {habit.name}
-                      </div>
-                      {habit.description && (
-                        <div className={`habit-item-desc ${styles.habitDescription}`}>
-                          {habit.description}
+                {habits.map((habit, index) => (
+                  <li
+                    key={habit.id}
+                    className={`habit-item ${styles.habitItem} ${
+                      habit.checkedToday ? styles.habitItemDone : ""
+                    }`}
+                  >
+                    <div className={styles.habitIdentity}>
+                      <span className={styles.habitIndex} aria-hidden="true">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <div className={styles.habitCopy}>
+                        <div className={`habit-item-name ${styles.habitName}`}>
+                          {habit.name}
                         </div>
-                      )}
+                        {habit.description && (
+                          <div className={`habit-item-desc ${styles.habitDescription}`}>
+                            {habit.description}
+                          </div>
+                        )}
+                      </div>
                     </div>
                     <Button
                       variant={habit.checkedToday ? "secondary" : "outline"}
