@@ -8,7 +8,7 @@
 
 O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público, limpeza de arquivos remotos, HSTS/CSP e tratamento controlado de erros OAuth já foram validados em repositório.
 
-O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard e todos os módulos principais de produto**. Restam a consolidação visual transversal, experiência mobile-first global, motion/microinterações e a revisão final de acessibilidade/performance.
+O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard, todos os módulos principais de produto e a experiência mobile-first global**. Restam a consolidação visual transversal, motion/microinterações e a revisão final de acessibilidade/performance.
 
 As integrações previstas para esta etapa estão operacionais. Google OAuth foi
 validado no ambiente real, coexistindo com Credentials sem vinculação implícita
@@ -16,9 +16,8 @@ de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 
 **Próximos passos:**
 1. consolidar a identidade visual definitiva do Frontend v3;
-2. concluir a experiência mobile-first global;
-3. revisar motion, acessibilidade e performance;
-4. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
+2. revisar motion, acessibilidade e performance;
+3. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -123,7 +122,7 @@ somente no servidor e o account linking implícito está bloqueado.
 - [x] Treinos v3;
 - [x] Livros v3;
 - [x] Vision Board v3;
-- [ ] experiência mobile-first;
+- [x] experiência mobile-first;
 - [ ] motion e microinterações;
 - [ ] revisão de acessibilidade e performance.
 
