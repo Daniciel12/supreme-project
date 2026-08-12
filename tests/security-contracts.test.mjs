@@ -55,12 +55,25 @@ test("Next.js 16 proxy entrypoint is explicit and only deliberate public routes 
   assert.equal(existsSync(new URL("../src/middleware.ts", import.meta.url)), false);
 
   const source = read("src/proxy.ts");
-  assert.match(source, /export function proxy/);
+  assert.match(source, /export async function proxy/);
   assert.match(source, /api\/auth/);
   assert.match(source, /api\/health/);
   assert.match(source, /api\/uploadthing/);
-  assert.match(source, /login/);
   assert.match(source, /withAuth/);
+  assert.match(source, /getToken/);
+  assert.match(source, /request\.nextUrl\.pathname === "\/login"/);
+  assert.match(source, /NextResponse\.redirect\(new URL\("\/", request\.url\)\)/);
+});
+
+test("authenticated sessions cannot reopen login to link an OAuth account", () => {
+  const source = read("src/proxy.ts");
+  const matcherSource = source.match(/matcher:\s*\[\s*"([^"]+)"/u)?.[1];
+
+  assert.ok(matcherSource, "expected a static proxy matcher");
+
+  const matcher = new RegExp(`^${matcherSource}$`, "u");
+  assert.equal(matcher.test("/login"), true);
+  assert.doesNotMatch(matcherSource, /login/);
 });
 
 test("UploadThing reaches its signed route without weakening other auth boundaries", () => {

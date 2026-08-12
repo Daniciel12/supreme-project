@@ -33,6 +33,7 @@ function createAsyncStub() {
 
 const userFindUnique = createAsyncStub();
 const bcryptCompare = createAsyncStub();
+const adapterLinkAccount = createAsyncStub();
 const prisma = { user: { findUnique: userFindUnique } };
 const credentialsProviderModule = await import(
   "next-auth/providers/credentials"
@@ -43,7 +44,7 @@ mock.module(new URL("../src/lib/prisma.ts", import.meta.url), {
   namedExports: { prisma },
 });
 mock.module("@auth/prisma-adapter", {
-  namedExports: { PrismaAdapter: () => ({}) },
+  namedExports: { PrismaAdapter: () => ({ linkAccount: adapterLinkAccount }) },
 });
 mock.module("bcrypt", {
   defaultExport: { compare: bcryptCompare },
@@ -68,6 +69,7 @@ const publicProviders = publicProvidersModule.default.default;
 beforeEach(() => {
   userFindUnique.reset();
   bcryptCompare.reset();
+  adapterLinkAccount.reset();
 });
 
 function provider(options, id) {
@@ -174,6 +176,69 @@ test("Google is registered without exposing its secret to provider data", () => 
   const google = provider(options, "google");
   assert.equal("allowDangerousEmailAccountLinking" in google, false);
   assert.equal("allowDangerousEmailAccountLinking" in google.options, false);
+});
+
+test("OAuth adapter links the first account for a new OAuth-only user", async () => {
+  const account = {
+    userId: "new-oauth-user",
+    type: "oauth",
+    provider: "google",
+    providerAccountId: "google-account",
+  };
+  userFindUnique.implementation = async () => ({
+    password: null,
+    accounts: [],
+  });
+  adapterLinkAccount.implementation = async () => account;
+  const options = createAuthOptions({});
+
+  assert.deepEqual(await options.adapter.linkAccount(account), account);
+  assert.equal(adapterLinkAccount.calls.length, 1);
+  assert.deepEqual(userFindUnique.calls[0][0], {
+    where: { id: account.userId },
+    select: {
+      password: true,
+      accounts: { select: { id: true }, take: 1 },
+    },
+  });
+});
+
+test("OAuth adapter refuses linking to a Credentials identity", async () => {
+  userFindUnique.implementation = async () => ({
+    password: "stored-hash",
+    accounts: [],
+  });
+  const options = createAuthOptions({});
+
+  await assert.rejects(
+    options.adapter.linkAccount({
+      userId: "credentials-user",
+      type: "oauth",
+      provider: "google",
+      providerAccountId: "google-account",
+    }),
+    /account linking is disabled/i
+  );
+  assert.equal(adapterLinkAccount.calls.length, 0);
+});
+
+test("OAuth adapter refuses adding another account to an OAuth identity", async () => {
+  userFindUnique.implementation = async () => ({
+    password: null,
+    accounts: [{ id: "existing-account" }],
+  });
+  const options = createAuthOptions({});
+
+  await assert.rejects(
+    options.adapter.linkAccount({
+      userId: "oauth-user",
+      type: "oauth",
+      provider: "google",
+      providerAccountId: "second-google-account",
+    }),
+    /account linking is disabled/i
+  );
+  assert.equal(adapterLinkAccount.calls.length, 0);
 });
 
 test("auth errors return to the Supreme login page", () => {

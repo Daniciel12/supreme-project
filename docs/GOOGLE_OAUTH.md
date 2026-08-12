@@ -317,7 +317,10 @@ o bcrypt não é executado para ela.
 O Supreme preserva o comportamento seguro padrão `OAuthAccountNotLinked`. Esta
 implementação não usa `allowDangerousEmailAccountLinking` e não vincula
 silenciosamente uma conta Google a uma conta Credentials existente com o mesmo
-e-mail. Account linking manual permanece como follow-up separado.
+e-mail. O adaptador também recusa criar um vínculo OAuth para qualquer identidade
+já existente; somente o primeiro vínculo de um novo usuário OAuth-only é aceito.
+Como defesa adicional, uma sessão autenticada é redirecionada para o dashboard ao
+tentar reabrir `/login`. Account linking manual permanece como follow-up separado.
 
 Erros do fluxo OAuth são redirecionados para `/login`. A interface traduz casos
 esperados, como `OAuthAccountNotLinked` e `AccessDenied`; demais códigos recebem

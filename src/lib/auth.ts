@@ -10,6 +10,43 @@ interface AuthEnvironment {
   GOOGLE_CLIENT_SECRET?: string;
 }
 
+function createAuthAdapter() {
+  // Prisma 7 uses a custom generated client whose runtime delegates are
+  // compatible with the adapter, despite the distinct generated type.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adapter = PrismaAdapter(prisma as any);
+  const linkAccount = adapter.linkAccount;
+
+  if (!linkAccount) {
+    throw new Error("The authentication adapter cannot link OAuth accounts.");
+  }
+
+  return {
+    ...adapter,
+    async linkAccount(account: Parameters<typeof linkAccount>[0]) {
+      const targetUser = await prisma.user.findUnique({
+        where: { id: account.userId },
+        select: {
+          password: true,
+          accounts: {
+            select: { id: true },
+            take: 1,
+          },
+        },
+      });
+
+      const isInitialOAuthAccount =
+        targetUser?.password === null && targetUser.accounts.length === 0;
+
+      if (!isInitialOAuthAccount) {
+        throw new Error("OAuth account linking is disabled for existing users.");
+      }
+
+      return linkAccount(account);
+    },
+  };
+}
+
 export function createAuthOptions(
   environment: AuthEnvironment = {
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
@@ -64,10 +101,7 @@ export function createAuthOptions(
   }
 
   return {
-    // Prisma 7 uses a custom generated client whose runtime delegates are
-    // compatible with the adapter, despite the distinct generated type.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    adapter: PrismaAdapter(prisma as any),
+    adapter: createAuthAdapter(),
 
     session: {
       strategy: "jwt",
