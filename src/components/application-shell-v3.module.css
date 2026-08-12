@@ -40,6 +40,10 @@
   min-width: 0;
 }
 
+.sidebarCloseButton {
+  display: none;
+}
+
 .brandName {
   letter-spacing: -0.035em;
 }
@@ -141,6 +145,30 @@
   position: relative;
 }
 
+@media (max-width: 800px) {
+  .sidebarCloseButton {
+    width: 44px;
+    height: 44px;
+    margin-left: auto;
+    flex: 0 0 auto;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--shell-line);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--surface-elevated) 78%, transparent);
+    color: var(--text-primary);
+    font-size: var(--font-size-xl);
+    transition:
+      border-color var(--transition-fast),
+      color var(--transition-fast);
+  }
+
+  .sidebarCloseButton:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+}
+
 @media (max-width: 760px) {
   .header {
     min-height: 62px;
@@ -162,7 +190,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .navLink {
+  .navLink,
+  .sidebarCloseButton {
     transition: none;
   }
 

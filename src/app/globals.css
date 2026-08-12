@@ -585,6 +585,10 @@ svg {
     position: fixed;
     inset: 0 auto 0 0;
     width: min(84vw, 300px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-top: max(var(--space-6), env(safe-area-inset-top));
+    padding-bottom: max(var(--space-6), env(safe-area-inset-bottom));
     transform: translateX(-105%);
     visibility: hidden;
     transition: transform var(--transition-base);
@@ -607,12 +611,13 @@ svg {
 
   .app-header {
     min-height: 58px;
-    padding-inline: var(--space-4);
+    padding-left: max(var(--space-4), env(safe-area-inset-left));
+    padding-right: max(var(--space-4), env(safe-area-inset-right));
   }
 
   .app-header__menu {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: grid;
     place-items: center;
     border: 1px solid var(--border);
@@ -624,6 +629,14 @@ svg {
   .app-header__brand {
     display: inline;
     font-weight: 800;
+  }
+
+  .app-header .ui-button--sm {
+    min-height: 44px;
+  }
+
+  .app-nav__link {
+    min-height: 48px;
   }
 
   .main-content {
