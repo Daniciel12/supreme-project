@@ -1,3 +1,136 @@
+.pulseCard {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 0.34fr);
+  gap: clamp(var(--space-6), 5vw, var(--space-8));
+  align-items: end;
+  margin-bottom: var(--space-5);
+  padding: clamp(var(--space-5), 5vw, var(--space-8));
+  overflow: hidden;
+  border: 1px solid var(--ds-border-accent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--ds-brand-primary) 12%, transparent), transparent 46%),
+    var(--ds-surface-gradient),
+    var(--ds-surface);
+  box-shadow: var(--ds-shadow-card);
+}
+
+.pulseCard::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -60% -8% auto auto;
+  width: min(42vw, 460px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent) 18%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 64px color-mix(in srgb, var(--ds-brand-accent) 3%, transparent),
+    0 0 0 128px color-mix(in srgb, var(--ds-info) 2%, transparent);
+  pointer-events: none;
+}
+
+.pulseCopy {
+  max-width: 700px;
+}
+
+.pulseEyebrow,
+.sectionEyebrow {
+  display: block;
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pulseTitle {
+  max-width: 650px;
+  margin-top: var(--space-2);
+  color: var(--ds-text-primary);
+  font-size: clamp(1.65rem, 4vw, 3.2rem);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.pulseDescription {
+  max-width: 620px;
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+
+.pulseMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-5);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.pulseMeta span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.pulseMeta strong {
+  color: var(--ds-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.pulseProgress {
+  min-width: 0;
+  padding-left: var(--space-5);
+  border-left: 1px solid var(--ds-border-subtle);
+}
+
+.pulseValue {
+  display: block;
+  color: var(--ds-text-primary);
+  font-size: clamp(2.8rem, 7vw, 5.2rem);
+  font-weight: 850;
+  line-height: 0.85;
+  letter-spacing: -0.075em;
+}
+
+.pulseValue small {
+  margin-left: 4px;
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.34em;
+  letter-spacing: -0.03em;
+}
+
+.pulseLabel {
+  display: block;
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.pulseTrack {
+  height: 6px;
+  margin-top: var(--space-4);
+  overflow: hidden;
+  border-radius: var(--radius-full);
+  background: var(--ds-border-subtle);
+}
+
+.pulseFill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ds-brand-gradient);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--ds-brand-accent) 45%, transparent);
+  transition: width var(--ds-motion-base);
+}
+
 .metricGrid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -24,6 +157,21 @@
   background: color-mix(in srgb, var(--ds-accent) 10%, transparent);
   filter: blur(24px);
   pointer-events: none;
+}
+
+.metricCardAccent {
+  border-color: var(--ds-border-accent);
+}
+
+.metricIndex {
+  position: absolute;
+  z-index: 1;
+  top: var(--space-4);
+  right: var(--space-4);
+  color: color-mix(in srgb, var(--ds-text-muted) 62%, transparent);
+  font-size: 0.64rem;
+  font-weight: 850;
+  letter-spacing: 0.14em;
 }
 
 .metricLabel {
@@ -79,6 +227,7 @@
 }
 
 .sectionTitle {
+  margin-top: 3px;
   color: var(--ds-text-primary);
   font-size: clamp(1rem, 1.8vw, 1.2rem);
   font-weight: 850;
@@ -274,6 +423,10 @@
 }
 
 @media (max-width: 1080px) {
+  .pulseCard {
+    grid-template-columns: minmax(0, 1fr) minmax(190px, 0.35fr);
+  }
+
   .metricGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -284,6 +437,23 @@
 }
 
 @media (max-width: 640px) {
+  .pulseCard {
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+
+  .pulseCard::after {
+    inset: -24% -42% auto auto;
+    width: 320px;
+  }
+
+  .pulseProgress {
+    padding-top: var(--space-5);
+    padding-left: 0;
+    border-top: 1px solid var(--ds-border-subtle);
+    border-left: 0;
+  }
+
   .metricGrid,
   .financeGrid,
   .evolutionGrid {
@@ -313,7 +483,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .listItem {
+  .listItem,
+  .pulseFill {
     transition: none;
   }
 
