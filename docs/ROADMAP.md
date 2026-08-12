@@ -120,7 +120,9 @@ somente no servidor e o account linking implícito está bloqueado.
       - [x] Finanças;
       - [x] Hábitos;
       - [x] Metas;
-      - [ ] Treinos, Livros e Visão;
+      - [x] Treinos;
+      - [ ] Livros;
+      - [ ] Visão;
 - [x] Design System v2;
 - [x] novo Application Shell;
 - [x] sidebar/header/perfil redesenhados;

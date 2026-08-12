@@ -36,6 +36,36 @@ test("workouts v3 preserves physical evolution calculations", () => {
   assert.match(page, /latestRecord\.bodyFat/);
 });
 
+test("workouts editorial refinement prioritizes the selected session", () => {
+  const page = read("src/app/treinos/page.tsx");
+
+  assert.match(page, /Sessão em foco/);
+  assert.match(page, /const sessionUnavailable =/);
+  assert.match(page, /const sessionPercent =/);
+  assert.match(page, /const remainingOnDate = Math\.max/);
+  assert.match(page, /const sessionNarrative =/);
+  assert.match(page, /O próximo movimento ainda está em aberto/);
+  assert.match(page, /A sessão planejada foi cumprida/);
+  assert.match(page, /O treino já ganhou movimento/);
+  assert.match(page, /Cadência recente/);
+});
+
+test("workouts editorial overview exposes execution and cadence accessibly", () => {
+  const page = read("src/app/treinos/page.tsx");
+
+  assert.match(page, /aria-labelledby="training-pulse-title"/);
+  assert.match(page, /aria-label="Treinos concluídos na data selecionada"/);
+  assert.match(
+    page,
+    /aria-valuenow=\{sessionUnavailable \? undefined : sessionPercent\}/
+  );
+  assert.match(page, /aria-label="Dias ativos nos últimos sete dias"/);
+  assert.match(
+    page,
+    /aria-valuenow=\{sessionUnavailable \? undefined : summary\.activeDaysLast7\}/
+  );
+});
+
 test("workouts v3 consumes canonical Design System v2 tokens", () => {
   const css = read("src/app/treinos/treinos.module.css");
 
@@ -48,6 +78,9 @@ test("workouts v3 consumes canonical Design System v2 tokens", () => {
     "--ds-accent",
     "--ds-motion-fast",
     "--ds-shadow-card",
+    "--ds-brand-gradient",
+    "--ds-border-accent",
+    "--ds-motion-base",
   ]) {
     assert.match(css, new RegExp(token));
   }

@@ -1,37 +1,158 @@
-.summaryGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-4);
-  margin-bottom: var(--space-6);
-}
-
-.summaryGrid :global(.ui-card) {
+.trainingPulse {
   position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.3fr) minmax(180px, 0.32fr);
+  gap: clamp(var(--space-5), 4vw, var(--space-8));
+  align-items: end;
   overflow: hidden;
-  min-width: 0;
-  border-color: var(--ds-border);
+  margin-bottom: var(--space-6);
+  padding: clamp(var(--space-5), 5vw, var(--space-8));
+  border-color: var(--ds-border-accent);
   background:
-    linear-gradient(145deg, color-mix(in srgb, var(--ds-accent) 7%, transparent), transparent 52%),
+    linear-gradient(112deg, color-mix(in srgb, var(--ds-brand-primary) 12%, transparent), transparent 48%),
+    var(--ds-surface-gradient),
     var(--ds-surface);
   box-shadow: var(--ds-shadow-card);
-  transition:
-    transform var(--ds-motion-fast) ease,
-    border-color var(--ds-motion-fast) ease,
-    box-shadow var(--ds-motion-fast) ease;
 }
 
-.summaryGrid :global(.ui-card)::before {
+.trainingPulse::after {
   content: "";
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 3px;
-  background: var(--ds-accent);
-  opacity: 0.72;
+  z-index: -1;
+  inset: -82% auto auto 34%;
+  width: min(44vw, 470px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent) 16%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 68px color-mix(in srgb, var(--ds-brand-accent) 3%, transparent),
+    0 0 0 136px color-mix(in srgb, var(--ds-info) 2%, transparent);
+  pointer-events: none;
 }
 
-.summaryGrid :global(.ui-card):hover {
-  transform: translateY(-2px);
-  border-color: color-mix(in srgb, var(--ds-accent) 35%, var(--ds-border));
+.pulseCopy {
+  max-width: 660px;
+}
+
+.pulseEyebrow,
+.metricEyebrow {
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.pulseTitle {
+  max-width: 630px;
+  margin-top: var(--space-2);
+  color: var(--ds-text-primary);
+  font-size: clamp(1.65rem, 4vw, 3.15rem);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.pulseDescription {
+  max-width: 60ch;
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+
+.pulseMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  margin-top: var(--space-5);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.pulseMeta span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.pulseMeta strong {
+  color: var(--ds-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.sessionProgress,
+.recentCadence {
+  min-width: 0;
+  padding-left: var(--space-5);
+  border-left: 1px solid var(--ds-border-subtle);
+}
+
+.metricEyebrow,
+.metricLabel {
+  display: block;
+}
+
+.metricEyebrow {
+  margin-bottom: var(--space-3);
+}
+
+.sessionValue,
+.cadenceValue {
+  display: block;
+  color: var(--ds-text-primary);
+  font-weight: 850;
+  line-height: 0.88;
+  letter-spacing: -0.075em;
+}
+
+.sessionValue {
+  font-size: clamp(2.7rem, 6vw, 4.5rem);
+}
+
+.cadenceValue {
+  font-size: clamp(2.35rem, 5vw, 3.75rem);
+}
+
+.sessionValue small,
+.cadenceValue small {
+  margin-left: 4px;
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.34em;
+  letter-spacing: -0.03em;
+}
+
+.metricLabel {
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.metricTrack {
+  height: 7px;
+  margin-top: var(--space-5);
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-border) 72%, transparent);
+}
+
+.sessionFill,
+.cadenceFill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width var(--ds-motion-base);
+}
+
+.sessionFill {
+  background: linear-gradient(90deg, var(--ds-accent), var(--ds-success));
+}
+
+.cadenceFill {
+  background: var(--ds-brand-gradient);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--ds-brand-accent) 35%, transparent);
 }
 
 .workspaceGrid {
@@ -243,8 +364,17 @@
 }
 
 @media (max-width: 1080px) {
-  .summaryGrid {
+  .trainingPulse {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pulseCopy {
+    grid-column: 1 / -1;
+  }
+
+  .sessionProgress {
+    padding-left: 0;
+    border-left: 0;
   }
 
   .workspaceGrid {
@@ -253,10 +383,18 @@
 }
 
 @media (max-width: 640px) {
-  .summaryGrid,
+  .trainingPulse,
   .formGrid,
   .currentRecord {
     grid-template-columns: 1fr;
+  }
+
+  .sessionProgress,
+  .recentCadence {
+    padding-top: var(--space-5);
+    padding-left: 0;
+    border-top: 1px solid var(--ds-border-subtle);
+    border-left: 0;
   }
 
   .sectionHeader,
@@ -285,13 +423,13 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .summaryGrid :global(.ui-card),
+  .sessionFill,
+  .cadenceFill,
   .workoutItem,
   .historyItem {
     transition: none;
   }
 
-  .summaryGrid :global(.ui-card):hover,
   .workoutItem:hover {
     transform: none;
   }

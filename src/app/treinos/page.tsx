@@ -165,6 +165,51 @@ export default function TreinosPage() {
 
   const dayWorkouts = workouts.filter((workout) => workout.dayOfWeek === selectedDay);
   const completedOnDate = dayWorkouts.filter((workout) => workout.completed).length;
+  const sessionUnavailable = !selectedDate || loadingWorkouts || workoutsLoadError;
+  const physicalRecordUnavailable = loadingRecords || recordsLoadError;
+  const sessionPercent =
+    dayWorkouts.length === 0
+      ? 0
+      : Math.min(
+          100,
+          Math.max(0, Math.round((completedOnDate / dayWorkouts.length) * 100))
+        );
+  const activeDaysPercent = Math.min(
+    100,
+    Math.max(0, (summary.activeDaysLast7 / 7) * 100)
+  );
+  const remainingOnDate = Math.max(0, dayWorkouts.length - completedOnDate);
+  const selectedDateLabel = selectedDate ? formatDate(selectedDate) : "data selecionada";
+  const sessionNarrative =
+    sessionUnavailable
+      ? {
+          title: "Lendo o pulso da sessão.",
+          description:
+            "A visão do treino aparece assim que a rotina da data estiver disponível.",
+        }
+      : dayWorkouts.length === 0
+        ? {
+            title: "O próximo movimento ainda está em aberto.",
+            description:
+              "Defina uma sessão possível para transformar intenção física em presença registrada.",
+          }
+        : remainingOnDate === 0
+          ? {
+              title: "A sessão planejada foi cumprida.",
+              description:
+                "Todo o treino previsto para a data recebeu execução. O corpo evolui no acúmulo dessas presenças.",
+            }
+          : completedOnDate === 0
+            ? {
+                title: "A sessão começa no primeiro bloco.",
+                description:
+                  "Escolha o treino que cabe agora e registre somente o que realmente foi executado.",
+              }
+            : {
+                title: "O treino já ganhou movimento.",
+                description:
+                  "A sessão está em curso; conclua o que ainda faz sentido sem perder a qualidade da execução.",
+              };
 
   function handleDateChange(value: string) {
     setLoadingWorkouts(true);
@@ -311,32 +356,98 @@ export default function TreinosPage() {
           eyebrow="Treinos + evolução"
           title="Forja do Templo"
           description="Organize sua rotina semanal, registre cada execução por data e acompanhe sua evolução física com dados reais."
-          actions={<Badge tone="accent">{summary.activeDaysLast7}/7 dias ativos</Badge>}
+          actions={
+            <Badge tone="accent">
+              {sessionUnavailable ? "—/7 dias ativos" : `${summary.activeDaysLast7}/7 dias ativos`}
+            </Badge>
+          }
         />
 
-        <div className={styles.summaryGrid}>
-          <Card>
-            <span className={styles.statLabel}>Treinos na data</span>
-            <strong className={styles.statValue}>{completedOnDate}/{dayWorkouts.length}</strong>
-            <span className={styles.statHint}>{DAY_LABELS[selectedDay]}</span>
-          </Card>
-          <Card>
-            <span className={styles.statLabel}>Execuções em 7 dias</span>
-            <strong className={styles.statValue}>{summary.completionsLast7}</strong>
-            <span className={styles.statHint}>registros reais de treino</span>
-          </Card>
-          <Card>
-            <span className={styles.statLabel}>Peso atual</span>
-            <strong className={styles.statValue}>
-              {latestRecord?.weight != null ? `${formatNumber(latestRecord.weight)} kg` : "—"}
+        <Card
+          className={styles.trainingPulse}
+          aria-labelledby="training-pulse-title"
+          aria-busy={loadingWorkouts}
+        >
+          <div className={styles.pulseCopy}>
+            <span className={styles.pulseEyebrow}>Sessão em foco</span>
+            <h2 id="training-pulse-title" className={styles.pulseTitle}>
+              {sessionNarrative.title}
+            </h2>
+            <p className={styles.pulseDescription}>{sessionNarrative.description}</p>
+            <div className={styles.pulseMeta} aria-label="Resumo da sessão selecionada">
+              <span>
+                <strong>{sessionUnavailable ? "—" : dayWorkouts.length}</strong> planejados
+              </span>
+              <span>
+                <strong>{sessionUnavailable ? "—" : remainingOnDate}</strong> em aberto
+              </span>
+              <span>
+                <strong>
+                  {physicalRecordUnavailable || latestRecord?.weight == null
+                    ? "—"
+                    : `${formatNumber(latestRecord.weight)} kg`}
+                </strong>{" "}
+                peso atual
+              </span>
+              <span>
+                <strong>
+                  {physicalRecordUnavailable || weightDelta == null
+                    ? "—"
+                    : `${weightDelta > 0 ? "+" : ""}${formatNumber(weightDelta)} kg`}
+                </strong>{" "}
+                vs. medição anterior
+              </span>
+            </div>
+          </div>
+
+          <div className={styles.sessionProgress}>
+            <span className={styles.metricEyebrow}>{selectedDateLabel}</span>
+            <strong className={styles.sessionValue}>
+              {sessionUnavailable ? "—" : sessionPercent}
+              {!sessionUnavailable && <small>%</small>}
             </strong>
-            <span className={styles.statHint}>
-              {weightDelta == null
-                ? "sem comparação anterior"
-                : `${weightDelta > 0 ? "+" : ""}${formatNumber(weightDelta)} kg vs. anterior`}
+            <span className={styles.metricLabel}>da sessão concluída</span>
+            <div
+              className={styles.metricTrack}
+              role="progressbar"
+              aria-label="Treinos concluídos na data selecionada"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={sessionUnavailable ? undefined : sessionPercent}
+            >
+              <div
+                className={styles.sessionFill}
+                style={{ width: `${sessionPercent}%` }}
+              />
+            </div>
+          </div>
+
+          <div className={styles.recentCadence}>
+            <span className={styles.metricEyebrow}>Cadência recente</span>
+            <strong className={styles.cadenceValue}>
+              {sessionUnavailable ? "—" : summary.activeDaysLast7}
+              {!sessionUnavailable && <small>/7</small>}
+            </strong>
+            <span className={styles.metricLabel}>
+              {sessionUnavailable
+                ? "dias ativos"
+                : `${summary.completionsLast7} execuções registradas`}
             </span>
-          </Card>
-        </div>
+            <div
+              className={styles.metricTrack}
+              role="progressbar"
+              aria-label="Dias ativos nos últimos sete dias"
+              aria-valuemin={0}
+              aria-valuemax={7}
+              aria-valuenow={sessionUnavailable ? undefined : summary.activeDaysLast7}
+            >
+              <div
+                className={styles.cadenceFill}
+                style={{ width: `${activeDaysPercent}%` }}
+              />
+            </div>
+          </div>
+        </Card>
 
         <div className={styles.workspaceGrid}>
           <Card>
