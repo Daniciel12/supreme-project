@@ -273,9 +273,12 @@
     width: 100%;
   }
 
+  .headerActions {
+    width: 100%;
+  }
+
   .headerActions :global(.ui-button) {
     width: 100%;
-    flex: 1 0 100%;
   }
 }
 
