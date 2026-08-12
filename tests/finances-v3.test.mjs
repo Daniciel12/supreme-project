@@ -26,6 +26,28 @@ test("finances v3 keeps existing create flows", () => {
   assert.match(page, /isPaid: transactionStatus === "PAID"/);
 });
 
+test("finances editorial refinement separates realized cash from pending values", () => {
+  const page = read("src/app/financas/page.tsx");
+
+  assert.match(page, /Caixa realizado/);
+  assert.match(page, /O que já aconteceu/);
+  assert.match(page, /const monthlyNet = monthlySummary\.income - monthlySummary\.expense/);
+  assert.match(page, /Fluxo do mês/);
+  assert.match(page, /Próximos movimentos/);
+  assert.match(page, /Acompanhamento separado do saldo/);
+  assert.match(page, /formatBRL\(monthlySummary\.pendingIncome\)/);
+  assert.match(page, /formatBRL\(monthlySummary\.pendingExpense\)/);
+});
+
+test("finances editorial overview uses semantic headings and description lists", () => {
+  const page = read("src/app/financas/page.tsx");
+
+  assert.match(page, /aria-labelledby="cash-overview-title"/);
+  assert.match(page, /id="cash-overview-title"/);
+  assert.match(page, /<dl className=\{styles\.flowList\}>/);
+  assert.match(page, /<dl className=\{styles\.pendingValues\}>/);
+});
+
 test("finances v3 consumes canonical design tokens and remains responsive", () => {
   const css = read("src/app/financas/finances.module.css");
 
@@ -36,6 +58,9 @@ test("finances v3 consumes canonical design tokens and remains responsive", () =
     "--ds-text-primary",
     "--ds-text-secondary",
     "--ds-accent",
+    "--ds-brand-primary",
+    "--ds-brand-accent",
+    "--ds-warning",
     "--ds-success",
     "--ds-danger",
     "--ds-motion-fast",
