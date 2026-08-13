@@ -134,7 +134,7 @@ somente no servidor e o account linking implícito está bloqueado.
 - [x] Livros v3;
 - [x] Vision Board v3;
 - [x] experiência mobile-first;
-- [ ] motion e microinterações;
+- [x] motion e microinterações;
 - [ ] revisão de acessibilidade e performance.
 
 ## ⏳ 10. Conta e lifecycle

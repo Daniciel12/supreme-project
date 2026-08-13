@@ -142,6 +142,10 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
         if (event.key === "Escape" && menuOpen) closeMenu({ restoreFocus: true });
       }}
     >
+      <a className="app-skip-link" href="#supreme-main-content">
+        Pular para o conteúdo
+      </a>
+
       <aside
         id="supreme-sidebar"
         ref={sidebarRef}
@@ -230,7 +234,15 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
             {signingOut ? "Saindo..." : "Sair"}
           </button>
         </header>
-        <div className={`app-shell__content ${styles.content}`}>{children}</div>
+        <div
+          id="supreme-main-content"
+          className={`app-shell__content ${styles.content}`}
+          tabIndex={-1}
+        >
+          <div key={pathname} className="app-route-transition">
+            {children}
+          </div>
+        </div>
       </div>
     </div>
   );

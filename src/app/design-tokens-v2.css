@@ -50,8 +50,14 @@
     0 1px 0 rgba(255, 255, 255, 0.025) inset,
     0 18px 48px rgba(0, 0, 0, 0.28);
   --ds-shadow-brand: 0 16px 40px rgba(232, 57, 76, 0.2);
-  --ds-motion-fast: 120ms ease;
-  --ds-motion-base: 200ms ease;
+  --ds-duration-fast: 120ms;
+  --ds-duration-base: 200ms;
+  --ds-duration-slow: 320ms;
+  --ds-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ds-ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ds-motion-fast: var(--ds-duration-fast) var(--ds-ease-standard);
+  --ds-motion-base: var(--ds-duration-base) var(--ds-ease-standard);
+  --ds-motion-slow: var(--ds-duration-slow) var(--ds-ease-emphasized);
 
   /* Foundation aliases: novos componentes podem migrar sem alterar o visual. */
   --background: var(--ds-bg-canvas);
