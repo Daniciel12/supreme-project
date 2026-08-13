@@ -30,13 +30,27 @@ Os valores canônicos vivem em `src/app/design-tokens-v2.css`. Componentes devem
 - navegação ativa com sinal lateral e ícone tonal;
 - tipografia Geist com títulos compactos e descrições arejadas.
 
+## Motion
+
+Motion comunica continuidade e resposta, nunca decoração autônoma. O shell usa
+uma entrada curta de conteúdo e controles respondem a hover, toque e clique com
+deslocamentos mínimos. As durações e curvas canônicas vivem em
+`src/app/design-tokens-v2.css`.
+
+- `fast` responde a hover e foco;
+- `base` acompanha controles e painéis;
+- `slow` introduz conteúdo novo sem atrasar a interação;
+- animações de entrada usam somente `opacity` e `transform`, evitando custo de
+  layout;
+- `prefers-reduced-motion` remove entradas e transformações de controles.
+
 ## Restrições
 
 - não usar gradientes em textos longos;
 - não introduzir uma cor de destaque por módulo;
 - não depender de hover para comunicar estado;
 - não reduzir contraste em nome de sutileza;
-- respeitar `prefers-reduced-motion` em toda microinteração futura.
+- respeitar `prefers-reduced-motion` em toda microinteração.
 
 ## Evolução
 

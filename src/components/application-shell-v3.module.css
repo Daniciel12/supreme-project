@@ -73,6 +73,10 @@
   transform: translateX(2px);
 }
 
+.navLink:active {
+  transform: translateX(1px) scale(0.99);
+}
+
 .navLinkActive::before {
   content: "";
   position: absolute;
@@ -208,7 +212,8 @@
     transition: none;
   }
 
-  .navLink:hover {
+  .navLink:hover,
+  .navLink:active {
     transform: none;
   }
 }

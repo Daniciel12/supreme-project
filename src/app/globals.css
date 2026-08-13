@@ -170,6 +170,52 @@ svg {
   padding: var(--space-8) var(--space-6);
 }
 
+.app-skip-link {
+  position: fixed;
+  z-index: 100;
+  top: max(var(--space-3), env(safe-area-inset-top));
+  left: max(var(--space-3), env(safe-area-inset-left));
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--ds-border-accent);
+  border-radius: var(--radius-md);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--ds-shadow-card);
+  font-size: var(--font-size-sm);
+  font-weight: 800;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-100% - var(--space-4)));
+  transition:
+    opacity var(--ds-motion-fast),
+    transform var(--ds-motion-base);
+}
+
+.app-skip-link:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.app-route-transition {
+  animation: app-route-enter var(--ds-motion-slow) both;
+}
+
+@keyframes app-route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* ============================================================
    Frontend Foundation — Application Shell
    ============================================================ */
@@ -361,6 +407,10 @@ svg {
 
 .ui-button:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.ui-button:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .ui-button--primary {
@@ -575,6 +625,15 @@ svg {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .app-route-transition {
+    animation: none;
+  }
+
+  .ui-button:hover:not(:disabled),
+  .ui-button:active:not(:disabled) {
+    transform: none;
   }
 }
 
