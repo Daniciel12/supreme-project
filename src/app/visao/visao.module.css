@@ -1,7 +1,115 @@
+.visionHorizon {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(170px, 0.28fr) minmax(190px, 0.34fr);
+  gap: clamp(var(--space-5), 4vw, var(--space-8));
+  align-items: end;
+  overflow: hidden;
+  margin-bottom: var(--space-6);
+  padding: clamp(var(--space-5), 5vw, var(--space-8));
+  border-color: var(--ds-border-accent);
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--ds-brand-primary) 12%, transparent), transparent 48%),
+    var(--ds-surface-gradient),
+    var(--ds-surface);
+  box-shadow: var(--ds-shadow-card);
+}
+
+.visionHorizon::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -82% auto auto 34%;
+  width: min(44vw, 470px);
+  aspect-ratio: 1;
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent) 16%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 68px color-mix(in srgb, var(--ds-brand-accent) 3%, transparent),
+    0 0 0 136px color-mix(in srgb, var(--ds-info) 2%, transparent);
+  pointer-events: none;
+}
+
+.horizonCopy {
+  max-width: 660px;
+}
+
+.horizonEyebrow,
+.metricEyebrow,
+.uploadEyebrow {
+  color: var(--ds-brand-primary-soft);
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.horizonTitle {
+  max-width: 630px;
+  margin-top: var(--space-2);
+  color: var(--ds-text-primary);
+  font-size: clamp(1.65rem, 4vw, 3.15rem);
+  font-weight: 850;
+  line-height: 0.98;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.horizonDescription {
+  max-width: 60ch;
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.65;
+}
+
+.referenceCount,
+.latestReference {
+  min-width: 0;
+  padding-left: var(--space-5);
+  border-left: 1px solid var(--ds-border-subtle);
+}
+
+.metricEyebrow,
+.metricLabel {
+  display: block;
+}
+
+.metricEyebrow {
+  margin-bottom: var(--space-3);
+}
+
+.referenceValue,
+.latestValue {
+  display: block;
+  color: var(--ds-text-primary);
+  font-weight: 850;
+  line-height: 0.94;
+  letter-spacing: -0.065em;
+}
+
+.referenceValue {
+  font-size: clamp(2.7rem, 6vw, 4.5rem);
+}
+
+.latestValue {
+  font-size: clamp(1.55rem, 3vw, 2.4rem);
+  overflow-wrap: anywhere;
+}
+
+.metricLabel {
+  margin-top: var(--space-3);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
 .uploadCard {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(260px, 0.7fr) minmax(0, 1.3fr);
   gap: var(--space-5);
+  align-items: center;
   position: relative;
   overflow: hidden;
   border-color: color-mix(in srgb, var(--ds-accent) 22%, var(--ds-border));
@@ -17,7 +125,7 @@
   inset: 0 auto auto 0;
   width: min(18rem, 55%);
   height: 2px;
-  background: linear-gradient(90deg, var(--ds-accent), transparent);
+  background: var(--ds-brand-gradient);
   pointer-events: none;
 }
 
@@ -27,11 +135,27 @@
   z-index: 1;
 }
 
+.uploadCopy {
+  padding-right: var(--space-4);
+}
+
+.uploadEyebrow {
+  display: block;
+  margin-bottom: var(--space-2);
+}
+
 .description {
   color: var(--ds-text-secondary);
   margin-top: var(--space-2);
   max-width: 64ch;
   line-height: 1.65;
+}
+
+.securityNote {
+  margin-top: var(--space-4);
+  color: var(--ds-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.55;
 }
 
 .actionError {
@@ -107,13 +231,72 @@
   justify-self: stretch;
 }
 
+.visionMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.visionMeta > div {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.referenceIndex {
+  color: var(--ds-brand-primary-soft);
+  font-weight: 850;
+  letter-spacing: 0.1em;
+}
+
+.visionMeta time {
+  overflow-wrap: anywhere;
+}
+
 @media (max-width: 1040px) {
+  .visionHorizon {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .horizonCopy {
+    grid-column: 1 / -1;
+  }
+
+  .referenceCount {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .uploadCard {
+    grid-template-columns: 1fr;
+  }
+
+  .uploadCopy {
+    padding-right: 0;
+  }
+
   .visionGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 640px) {
+  .visionHorizon {
+    grid-template-columns: 1fr;
+  }
+
+  .referenceCount,
+  .latestReference {
+    padding-top: var(--space-5);
+    padding-left: 0;
+    border-top: 1px solid var(--ds-border-subtle);
+    border-left: 0;
+  }
+
   .uploadCard {
     gap: var(--space-4);
   }
@@ -126,6 +309,15 @@
 
   .visionGrid {
     grid-template-columns: 1fr;
+  }
+
+  .visionMeta {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .visionMeta :global(.ui-button) {
+    width: 100%;
   }
 
   .visionItem:hover,

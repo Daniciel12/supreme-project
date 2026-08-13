@@ -29,6 +29,30 @@ test("vision v3 keeps confirmation, errors and upload feedback", () => {
   assert.match(page, /<EmptyState/);
 });
 
+test("vision editorial refinement turns references into a visual horizon", () => {
+  const page = read("src/app/visao/page.tsx");
+
+  assert.match(page, /Horizonte em composição/);
+  assert.match(page, /const visionUnavailable =/);
+  assert.match(page, /const latestImage = images\[0\] \?\? null/);
+  assert.match(page, /const visionNarrative =/);
+  assert.match(page, /O horizonte ainda está em branco/);
+  assert.match(page, /Uma imagem já aponta a direção/);
+  assert.match(page, /O futuro já ganhou forma visual/);
+  assert.match(page, /Última direção/);
+  assert.match(page, /formatVisionDate\(latestImage\.createdAt\)/);
+});
+
+test("vision editorial layer exposes gallery order and dates semantically", () => {
+  const page = read("src/app/visao/page.tsx");
+
+  assert.match(page, /aria-labelledby="vision-horizon-title"/);
+  assert.match(page, /images\.map\(\(image, index\) =>/);
+  assert.match(page, /alt=\{`Referência \$\{index \+ 1\} do quadro de visão`\}/);
+  assert.match(page, /<time dateTime=\{image\.createdAt\}>/);
+  assert.match(page, /String\(index \+ 1\)\.padStart\(2, "0"\)/);
+});
+
 test("vision v3 consumes canonical Design System v2 tokens", () => {
   const css = read("src/app/visao/visao.module.css");
 
@@ -41,6 +65,9 @@ test("vision v3 consumes canonical Design System v2 tokens", () => {
     "--ds-danger",
     "--ds-motion-fast",
     "--ds-shadow-card",
+    "--ds-brand-gradient",
+    "--ds-border-accent",
+    "--ds-border-subtle",
   ]) {
     assert.match(css, new RegExp(token));
   }
@@ -59,8 +86,8 @@ test("vision v3 remains responsive and respects reduced motion", () => {
 test("vision v3 preserves image accessibility and lazy loading", () => {
   const page = read("src/app/visao/page.tsx");
 
-  assert.match(page, /alt="Referência do quadro de visão"/);
+  assert.match(page, /alt=\{`Referência \$\{index \+ 1\} do quadro de visão`\}/);
   assert.match(page, /loading="lazy"/);
-  assert.match(page, /aria-label="Remover referência do quadro de visão"/);
+  assert.match(page, /aria-label=\{`Remover referência \$\{index \+ 1\} do quadro de visão`\}/);
   assert.match(page, /aria-labelledby="vision-gallery-title"/);
 });
