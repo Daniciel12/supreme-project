@@ -1,6 +1,6 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 12/08/2026
+**Atualizado em:** 13/08/2026
 
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
@@ -8,16 +8,15 @@
 
 O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público, limpeza de arquivos remotos, HSTS/CSP e tratamento controlado de erros OAuth já foram validados em repositório.
 
-O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard, todos os módulos principais de produto e a experiência mobile-first global**. Restam a consolidação visual transversal, motion/microinterações e a revisão final de acessibilidade/performance.
+O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard, todos os módulos principais de produto, a experiência mobile-first global e a identidade visual definitiva Momentum Noir**. Restam motion/microinterações e a revisão final de acessibilidade/performance.
 
 As integrações previstas para esta etapa estão operacionais. Google OAuth foi
 validado no ambiente real, coexistindo com Credentials sem vinculação implícita
 de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 
 **Próximos passos:**
-1. consolidar a identidade visual definitiva do Frontend v3;
-2. revisar motion, acessibilidade e performance;
-3. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
+1. revisar motion, acessibilidade e performance;
+2. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -110,19 +109,19 @@ somente no servidor e o account linking implícito está bloqueado.
 
 ## 🎨 9. Frontend v3 — em andamento
 
-- [ ] identidade visual definitiva;
+- [x] identidade visual definitiva;
   - [x] direção visual e tokens de marca;
   - [x] assinatura compartilhada de shell, cabeçalhos e cards;
-  - [ ] refinamento editorial de login, Dashboard e módulos;
+  - [x] refinamento editorial de login, Dashboard e módulos;
     - [x] Dashboard;
     - [x] login;
-    - [ ] módulos;
+    - [x] módulos;
       - [x] Finanças;
       - [x] Hábitos;
       - [x] Metas;
       - [x] Treinos;
       - [x] Livros;
-      - [ ] Visão;
+      - [x] Visão;
 - [x] Design System v2;
 - [x] novo Application Shell;
 - [x] sidebar/header/perfil redesenhados;

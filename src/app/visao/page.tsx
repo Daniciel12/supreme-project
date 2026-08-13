@@ -21,6 +21,14 @@ interface VisionImage {
   createdAt: string;
 }
 
+function formatVisionDate(value: string) {
+  return new Intl.DateTimeFormat("pt-BR", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
 export default function VisaoPage() {
   const [images, setImages] = useState<VisionImage[]>([]);
   const [loadingImages, setLoadingImages] = useState(true);
@@ -76,6 +84,33 @@ export default function VisaoPage() {
     }
   }
 
+  const visionUnavailable = loadingImages || loadError;
+  const latestImage = images[0] ?? null;
+  const visionNarrative =
+    visionUnavailable
+      ? {
+          title: "Revelando o horizonte visual.",
+          description:
+            "A composição aparece assim que suas referências estiverem disponíveis.",
+        }
+      : images.length === 0
+        ? {
+            title: "O horizonte ainda está em branco.",
+            description:
+              "Escolha uma imagem que torne o futuro mais concreto e dê ao quadro seu primeiro ponto de direção.",
+          }
+        : images.length === 1
+          ? {
+              title: "Uma imagem já aponta a direção.",
+              description:
+                "A primeira referência abriu o horizonte. Continue apenas com imagens que expressem algo que vale construir.",
+            }
+          : {
+              title: "O futuro já ganhou forma visual.",
+              description:
+                "Seu quadro reúne sinais do que importa. Observe as conexões antes de adicionar a próxima referência.",
+            };
+
   return (
     <main className="main-content">
       <div className="container">
@@ -83,14 +118,58 @@ export default function VisaoPage() {
           eyebrow="Visão"
           title="Quadro de Visão"
           description="Reúna referências visuais que representem objetivos, ambientes e experiências que você quer construir."
-          actions={<Badge tone="accent">{images.length} referências</Badge>}
+          actions={
+            <Badge tone="accent">
+              {visionUnavailable ? "— referências" : `${images.length} referências`}
+            </Badge>
+          }
         />
 
+        <Card
+          className={styles.visionHorizon}
+          aria-labelledby="vision-horizon-title"
+          aria-busy={loadingImages}
+        >
+          <div className={styles.horizonCopy}>
+            <span className={styles.horizonEyebrow}>Horizonte em composição</span>
+            <h2 id="vision-horizon-title" className={styles.horizonTitle}>
+              {visionNarrative.title}
+            </h2>
+            <p className={styles.horizonDescription}>{visionNarrative.description}</p>
+          </div>
+
+          <div className={styles.referenceCount}>
+            <span className={styles.metricEyebrow}>Sinais reunidos</span>
+            <strong className={styles.referenceValue}>
+              {visionUnavailable ? "—" : images.length}
+            </strong>
+            <span className={styles.metricLabel}>
+              {images.length === 1 ? "referência no quadro" : "referências no quadro"}
+            </span>
+          </div>
+
+          <div className={styles.latestReference}>
+            <span className={styles.metricEyebrow}>Última direção</span>
+            <strong className={styles.latestValue}>
+              {visionUnavailable || !latestImage
+                ? "—"
+                : formatVisionDate(latestImage.createdAt)}
+            </strong>
+            <span className={styles.metricLabel}>
+              {latestImage ? "referência mais recente" : "aguardando a primeira imagem"}
+            </span>
+          </div>
+        </Card>
+
         <Card className={styles.uploadCard}>
-          <div>
+          <div className={styles.uploadCopy}>
+            <span className={styles.uploadEyebrow}>Novo ponto de direção</span>
             <h2 className="card-title">Adicionar referência</h2>
             <p className={styles.description}>
-              O upload exige uma sessão autenticada e a imagem é vinculada diretamente à sua conta no servidor.
+              Envie uma imagem que represente um objetivo, ambiente ou experiência que você quer tornar real.
+            </p>
+            <p className={styles.securityNote}>
+              O arquivo é vinculado à sua conta por uma rota autenticada.
             </p>
           </div>
 
@@ -155,25 +234,35 @@ export default function VisaoPage() {
             />
           ) : (
             <div className={styles.visionGrid}>
-              {images.map((image) => (
+              {images.map((image, index) => (
                 <Card key={image.id} className={styles.visionItem}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={image.imageUrl}
-                    alt="Referência do quadro de visão"
+                    alt={`Referência ${index + 1} do quadro de visão`}
                     className={styles.visionImage}
                     loading="lazy"
                   />
-                  <Button
-                    size="sm"
-                    variant="danger"
-                    isLoading={deletingId === image.id}
-                    loadingLabel="Removendo..."
-                    onClick={() => handleDelete(image)}
-                    aria-label="Remover referência do quadro de visão"
-                  >
-                    Remover
-                  </Button>
+                  <div className={styles.visionMeta}>
+                    <div>
+                      <span className={styles.referenceIndex} aria-hidden="true">
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <time dateTime={image.createdAt}>
+                        Adicionada em {formatVisionDate(image.createdAt)}
+                      </time>
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="danger"
+                      isLoading={deletingId === image.id}
+                      loadingLabel="Removendo..."
+                      onClick={() => handleDelete(image)}
+                      aria-label={`Remover referência ${index + 1} do quadro de visão`}
+                    >
+                      Remover
+                    </Button>
+                  </div>
                 </Card>
               ))}
             </div>

@@ -42,10 +42,11 @@ test("shared shell, cards and page headers consume the brand tokens", () => {
   assert.match(shell, /var\(--ds-shadow-brand\)/);
 });
 
-test("roadmap keeps the broader identity milestone open while tracking its foundation", () => {
+test("roadmap records the completed visual identity milestone", () => {
   const roadmap = read("docs/ROADMAP.md");
 
-  assert.match(roadmap, /- \[ \] identidade visual definitiva;/);
+  assert.match(roadmap, /- \[x\] identidade visual definitiva;/);
   assert.match(roadmap, /- \[x\] direção visual e tokens de marca;/);
-  assert.match(roadmap, /- \[ \] refinamento editorial de login, Dashboard e módulos;/);
+  assert.match(roadmap, /- \[x\] refinamento editorial de login, Dashboard e módulos;/);
+  assert.match(roadmap, /- \[x\] Visão;/);
 });
