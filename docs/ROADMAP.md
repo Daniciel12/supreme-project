@@ -8,15 +8,17 @@
 
 O Supreme já possui backend multiusuário, módulos principais, CI, Docker e ambiente real em VPS. Backup externo, restore descartável, observabilidade, alertas, UploadThing público, limpeza de arquivos remotos, HSTS/CSP e tratamento controlado de erros OAuth já foram validados em repositório.
 
-O **Frontend v3 já cobre o Application Shell, Design System v2, login, Dashboard, todos os módulos principais de produto, a experiência mobile-first global e a identidade visual definitiva Momentum Noir**. Restam motion/microinterações e a revisão final de acessibilidade/performance.
+O **Frontend v3 está concluído** com Application Shell, Design System v2, login,
+Dashboard, módulos principais, experiência mobile-first, identidade Momentum
+Noir, motion reduzível e revisão transversal de acessibilidade/performance.
 
 As integrações previstas para esta etapa estão operacionais. Google OAuth foi
 validado no ambiente real, coexistindo com Credentials sem vinculação implícita
 de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 
 **Próximos passos:**
-1. revisar motion, acessibilidade e performance;
-2. avançar para conta/lifecycle e integrações futuras conforme prioridade do produto.
+1. avançar para conta/lifecycle;
+2. priorizar integrações futuras conforme a estratégia do produto.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -107,7 +109,7 @@ Google OAuth passou por health check, login real, conflito seguro com conta
 Credentials existente e smoke autenticado de leitura. Os secrets permanecem
 somente no servidor e o account linking implícito está bloqueado.
 
-## 🎨 9. Frontend v3 — em andamento
+## ✅ 9. Frontend v3 — concluído
 
 - [x] identidade visual definitiva;
   - [x] direção visual e tokens de marca;
@@ -135,7 +137,7 @@ somente no servidor e o account linking implícito está bloqueado.
 - [x] Vision Board v3;
 - [x] experiência mobile-first;
 - [x] motion e microinterações;
-- [ ] revisão de acessibilidade e performance.
+- [x] revisão de acessibilidade e performance.
 
 ## ⏳ 10. Conta e lifecycle
 

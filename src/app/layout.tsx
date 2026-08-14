@@ -15,7 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Supreme",
+  title: {
+    default: "Dashboard | Supreme",
+    template: "%s | Supreme",
+  },
   description: "Seu sistema pessoal de evolução, organização e finanças.",
 };
 

@@ -67,5 +67,5 @@ test("roadmap records the completed motion milestone", () => {
   const roadmap = read("docs/ROADMAP.md");
 
   assert.match(roadmap, /- \[x\] motion e microinterações;/);
-  assert.match(roadmap, /- \[ \] revisão de acessibilidade e performance\./);
+  assert.match(roadmap, /- \[x\] revisão de acessibilidade e performance\./);
 });
