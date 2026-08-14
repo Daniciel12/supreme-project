@@ -20,6 +20,7 @@ Supreme é um sistema pessoal multiusuário para organização diária, finança
 - Treinos e evolução física (`/treinos`)
 - Livros (`/livros`)
 - Vision Board (`/visao`)
+- Conta e configurações (`/configuracoes`)
 
 ## Requisitos locais
 
@@ -97,6 +98,7 @@ O CI também executa PostgreSQL limpo, `prisma generate`, `prisma migrate deploy
 - Dados financeiros são sensíveis; valores monetários usam aritmética decimal-safe no backend.
 - Uploads do Vision Board são autenticados na file route do UploadThing e persistidos com identidade derivada do token server-side.
 - O proxy protege as rotas da aplicação; endpoints sensíveis mantêm validação de sessão própria.
+- O perfil da conta é derivado da sessão e expõe somente um DTO mínimo; e-mail, senha e vínculos OAuth não podem ser escolhidos pelo navegador.
 
 ## Docker / VPS
 
@@ -195,7 +197,7 @@ O harness usa o fluxo real de Credentials do NextAuth (CSRF, callback e cookie d
 
 - `/api/health`;
 - sessão autenticada;
-- Dashboard, Finanças, Hábitos, Metas, Treinos, Livros e Vision Board;
+- Dashboard, Finanças, Hábitos, Metas, Treinos, Livros, Vision Board e Conta;
 - APIs de leitura principais desses módulos.
 
 A senha de smoke não é impressa pelo script e nunca deve ser commitada.
@@ -238,7 +240,7 @@ Antes de qualquer deploy real:
 - [ ] `npx prisma migrate deploy` foi validado contra o ambiente alvo antes de liberar tráfego.
 - [ ] `/api/health` retorna `200` após subir a versão candidata.
 - [ ] `npm run smoke` passa contra a URL HTTPS candidata.
-- [ ] Smoke test visual autenticado em desktop e mobile cobre login, Dashboard, Finanças, Hábitos, Metas, Treinos, Livros e Vision Board.
+- [ ] Smoke test visual autenticado em desktop e mobile cobre login, Dashboard, Finanças, Hábitos, Metas, Treinos, Livros, Vision Board e Conta.
 - [ ] Isolamento multiusuário foi testado com ao menos duas contas.
 - [ ] Rate limiting/anti-abuse de cadastro, login e uploads foi ativado e validado conforme `docs/PRODUCTION_RATE_LIMITING.md`.
 - [ ] Logs, captura de erros e alertas operacionais estão configurados sem registrar secrets ou dados sensíveis desnecessários.

@@ -27,6 +27,9 @@ test("isolation smoke uses independent sessions and verifies cross-account owner
   assert.match(source, /const clientA = createClient\(\)/);
   assert.match(source, /const clientB = createClient\(\)/);
   assert.match(source, /sessionA\.user\.id === sessionB\.user\.id/);
+  assert.match(source, /Account profile identity isolation passed/);
+  assert.match(source, /profileA\.body\?\.email !== process\.env\.ISOLATION_A_EMAIL/);
+  assert.match(source, /Account profile exposed credential material/);
   assert.match(source, /ISOLATION FAILURE: Account B can list Account A marker/);
   assert.match(source, /expectStatus\(clientB, `\/api\/books\/\$\{bookId\}`, 404/);
   assert.match(source, /\[isolation\] PASS/);

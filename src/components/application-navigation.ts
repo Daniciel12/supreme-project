@@ -6,6 +6,7 @@ export const applicationNavigation = [
   { href: "/livros", label: "Livros", shortLabel: "LI" },
   { href: "/treinos", label: "Treinos", shortLabel: "TR" },
   { href: "/visao", label: "Visão", shortLabel: "VI" },
+  { href: "/configuracoes", label: "Conta", shortLabel: "CO" },
 ] as const;
 
 export function isActivePath(pathname: string, href: string) {

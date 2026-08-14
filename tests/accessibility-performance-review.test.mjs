@@ -14,6 +14,7 @@ const routeMetadata = [
   ["livros", "Livros"],
   ["treinos", "Treinos"],
   ["visao", "Visão"],
+  ["configuracoes", "Conta"],
 ];
 
 test("every product route exposes a unique descriptive title", () => {
@@ -60,5 +61,6 @@ test("roadmap records Frontend v3 and its final review as complete", () => {
   assert.match(roadmap, /## ✅ 9\. Frontend v3 — concluído/);
   assert.match(roadmap, /- \[x\] motion e microinterações;/);
   assert.match(roadmap, /- \[x\] revisão de acessibilidade e performance\./);
-  assert.match(roadmap, /1\. avançar para conta\/lifecycle;/);
+  assert.match(roadmap, /Conta e lifecycle foi iniciada/);
+  assert.match(roadmap, /1\. implementar recuperação de senha e verificação de e-mail;/);
 });

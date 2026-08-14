@@ -141,8 +141,8 @@ test("authenticated smoke harness exercises the real session shape without leaki
   assert.equal(result.code, 0, result.stderr || result.stdout);
   assert.match(result.stdout, /Health check passed/);
   assert.match(result.stdout, /Credentials authentication passed/);
-  assert.match(result.stdout, /7 authenticated pages passed/);
-  assert.match(result.stdout, /11 authenticated API checks passed/);
+  assert.match(result.stdout, /8 authenticated pages passed/);
+  assert.match(result.stdout, /12 authenticated API checks passed/);
   assert.match(result.stdout, /\[smoke\] PASS/);
   assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, new RegExp(secret));
 });

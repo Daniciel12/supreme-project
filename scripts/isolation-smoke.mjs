@@ -143,6 +143,31 @@ async function run() {
   }
   console.log("[isolation] Independent sessions established");
 
+  const profileA = await clientA.json("/api/account/profile");
+  const profileB = await clientB.json("/api/account/profile");
+
+  if (
+    profileA.response.status !== 200 ||
+    profileA.body?.email !== process.env.ISOLATION_A_EMAIL
+  ) {
+    throw new Error("Account A profile did not resolve to its own identity");
+  }
+  if (
+    profileB.response.status !== 200 ||
+    profileB.body?.email !== process.env.ISOLATION_B_EMAIL
+  ) {
+    throw new Error("Account B profile did not resolve to its own identity");
+  }
+  if (
+    "password" in profileA.body ||
+    "password" in profileB.body ||
+    "accounts" in profileA.body ||
+    "accounts" in profileB.body
+  ) {
+    throw new Error("Account profile exposed credential material");
+  }
+  console.log("[isolation] Account profile identity isolation passed");
+
   const marker = `Isolation ${Date.now()}`;
   let bookId = null;
 

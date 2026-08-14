@@ -213,7 +213,12 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
             Supreme
           </Link>
 
-          <div className={styles.profile} title={sessionLabel}>
+          <Link
+            href="/configuracoes"
+            className={styles.profile}
+            title={sessionLabel}
+            aria-label={`Abrir configurações da conta de ${sessionLabel}`}
+          >
             <span className={styles.profileAvatar} aria-hidden="true">
               {sessionInitial}
             </span>
@@ -223,7 +228,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
                 {sessionLabel}
               </span>
             </span>
-          </div>
+          </Link>
 
           <button
             type="button"

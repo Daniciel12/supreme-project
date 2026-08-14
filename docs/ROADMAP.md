@@ -1,6 +1,6 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 13/08/2026
+**Atualizado em:** 14/08/2026
 
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
@@ -16,9 +16,13 @@ As integrações previstas para esta etapa estão operacionais. Google OAuth foi
 validado no ambiente real, coexistindo com Credentials sem vinculação implícita
 de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 
+Conta e lifecycle foi iniciada com uma área autenticada de perfil e métodos de
+acesso. Alteração de e-mail, recuperação, exportação e exclusão continuam
+separadas para receber confirmação de identidade e políticas próprias.
+
 **Próximos passos:**
-1. avançar para conta/lifecycle;
-2. priorizar integrações futuras conforme a estratégia do produto.
+1. implementar recuperação de senha e verificação de e-mail;
+2. definir exportação, exclusão e retenção antes das integrações futuras.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -143,7 +147,7 @@ somente no servidor e o account linking implícito está bloqueado.
 
 - [ ] recuperação de senha;
 - [ ] verificação de e-mail;
-- [ ] perfil/configurações;
+- [x] perfil/configurações;
 - [ ] exportação de dados;
 - [ ] exclusão de conta;
 - [ ] políticas de retenção e privacidade.
