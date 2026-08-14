@@ -124,6 +124,7 @@ async function run() {
     "/treinos",
     "/livros",
     "/visao",
+    "/configuracoes",
   ];
 
   for (const page of pages) {
@@ -143,6 +144,7 @@ async function run() {
     "/api/physical-records",
     "/api/books",
     "/api/vision",
+    "/api/account/profile",
   ];
 
   for (const endpoint of apiChecks) {

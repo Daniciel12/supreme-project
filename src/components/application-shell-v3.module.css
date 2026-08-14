@@ -121,6 +121,21 @@
   background:
     var(--ds-surface-gradient),
     color-mix(in srgb, var(--surface) 74%, transparent);
+  text-decoration: none;
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.profile:hover {
+  transform: translateY(-1px);
+  border-color: var(--ds-border-accent);
+}
+
+.profile:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .profileAvatar {
@@ -208,12 +223,14 @@
 
 @media (prefers-reduced-motion: reduce) {
   .navLink,
-  .sidebarCloseButton {
+  .sidebarCloseButton,
+  .profile {
     transition: none;
   }
 
   .navLink:hover,
-  .navLink:active {
+  .navLink:active,
+  .profile:hover {
     transform: none;
   }
 }

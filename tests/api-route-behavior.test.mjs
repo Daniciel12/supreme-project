@@ -39,6 +39,7 @@ const getServerSession = createAsyncStub();
 const bcryptHash = createAsyncStub();
 const userFindUnique = createAsyncStub();
 const userCreate = createAsyncStub();
+const userUpdate = createAsyncStub();
 const habitFindFirst = createAsyncStub();
 const checkInCreate = createAsyncStub();
 const goalFindFirst = createAsyncStub();
@@ -49,7 +50,7 @@ const financialAccountFindFirst = createAsyncStub();
 const transactionCreate = createAsyncStub();
 
 const prisma = {
-  user: { findUnique: userFindUnique, create: userCreate },
+  user: { findUnique: userFindUnique, create: userCreate, update: userUpdate },
   habit: { findFirst: habitFindFirst },
   checkIn: { create: checkInCreate },
   goal: { findFirst: goalFindFirst },
@@ -81,6 +82,9 @@ const { PATCH: updateTask } = await import(
 const { POST: createTransaction } = await import(
   "../src/app/api/finances/transactions/route.ts"
 );
+const { GET: getAccountProfile, PATCH: updateAccountProfile } = await import(
+  "../src/app/api/account/profile/route.ts"
+);
 
 const USER_ID = "user-1";
 const HABIT_ID = "cm12345678901234567890123";
@@ -92,6 +96,7 @@ const stubs = [
   bcryptHash,
   userFindUnique,
   userCreate,
+  userUpdate,
   habitFindFirst,
   checkInCreate,
   goalFindFirst,
@@ -216,6 +221,146 @@ test("registration hides internal Prisma errors", async (t) => {
   );
   await assertGenericError(response, 500);
   assert.equal(userCreate.calls.length, 0);
+});
+
+function accountRecord(overrides = {}) {
+  return {
+    name: "Daniel",
+    email: "daniel@example.com",
+    emailVerified: new Date("2026-08-14T00:00:00.000Z"),
+    password: "stored-hash",
+    accounts: [{ provider: "google" }],
+    ...overrides,
+  };
+}
+
+test("account profile read requires an authenticated session", async () => {
+  const response = await getAccountProfile();
+
+  assert.equal(response.status, 401);
+  assert.equal(userFindUnique.calls.length, 0);
+});
+
+test("account profile returns a minimal DTO without credential material", async () => {
+  authenticate();
+  userFindUnique.implementation = async () => accountRecord();
+
+  const response = await getAccountProfile();
+  const body = await responseBody(response, 200);
+
+  assert.deepEqual(userFindUnique.calls[0][0], {
+    where: { id: USER_ID },
+    select: {
+      name: true,
+      email: true,
+      emailVerified: true,
+      password: true,
+      accounts: { select: { provider: true } },
+    },
+  });
+  assert.deepEqual(body, {
+    name: "Daniel",
+    email: "daniel@example.com",
+    emailVerified: true,
+    accessMethods: { credentials: true, google: true },
+  });
+  assert.equal("password" in body, false);
+  assert.equal("accounts" in body, false);
+  assert.equal("id" in body, false);
+});
+
+test("account profile update requires an authenticated session", async () => {
+  const response = await updateAccountProfile(
+    jsonRequest("/api/account/profile", "PATCH", { name: "Daniel" })
+  );
+
+  assert.equal(response.status, 401);
+  assert.equal(userFindUnique.calls.length, 0);
+  assert.equal(userUpdate.calls.length, 0);
+});
+
+test("account profile rejects client-selected identity fields", async () => {
+  authenticate();
+
+  const response = await updateAccountProfile(
+    jsonRequest("/api/account/profile", "PATCH", {
+      name: "Daniel",
+      email: "attacker@example.com",
+      userId: "another-user",
+    })
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal(userFindUnique.calls.length, 0);
+  assert.equal(userUpdate.calls.length, 0);
+});
+
+test("account profile rejects an invalid name before Prisma", async () => {
+  authenticate();
+
+  const response = await updateAccountProfile(
+    jsonRequest("/api/account/profile", "PATCH", { name: "  D  " })
+  );
+
+  assert.equal(response.status, 400);
+  assert.equal(userFindUnique.calls.length, 0);
+  assert.equal(userUpdate.calls.length, 0);
+});
+
+test("account profile update scopes the write to the authenticated user", async () => {
+  authenticate();
+  userFindUnique.implementation = async () => ({ id: USER_ID });
+  userUpdate.implementation = async () => accountRecord({ name: "Daniel Abreu" });
+
+  const response = await updateAccountProfile(
+    jsonRequest("/api/account/profile", "PATCH", { name: "  Daniel Abreu  " })
+  );
+  const body = await responseBody(response, 200);
+
+  assert.deepEqual(userFindUnique.calls[0][0], {
+    where: { id: USER_ID },
+    select: { id: true },
+  });
+  assert.deepEqual(userUpdate.calls[0][0], {
+    where: { id: USER_ID },
+    data: { name: "Daniel Abreu" },
+    select: {
+      name: true,
+      email: true,
+      emailVerified: true,
+      password: true,
+      accounts: { select: { provider: true } },
+    },
+  });
+  assert.equal(body.name, "Daniel Abreu");
+});
+
+test("account profile update returns 404 when the session user is gone", async () => {
+  authenticate();
+
+  const response = await updateAccountProfile(
+    jsonRequest("/api/account/profile", "PATCH", { name: "Daniel" })
+  );
+
+  assert.equal(response.status, 404);
+  assert.equal(userUpdate.calls.length, 0);
+});
+
+test("account profile update hides internal errors", async (t) => {
+  t.mock.method(console, "error", () => {});
+  authenticate();
+  userFindUnique.implementation = async () => ({ id: USER_ID });
+  userUpdate.implementation = async () => {
+    throw new Error("database password leaked");
+  };
+
+  const response = await updateAccountProfile(
+    jsonRequest("/api/account/profile", "PATCH", { name: "Daniel" })
+  );
+  const body = await responseBody(response, 500);
+
+  assert.equal(typeof body.error, "string");
+  assert.doesNotMatch(JSON.stringify(body), /database|password|stack/i);
 });
 
 test("check-in returns 401 without a session", async () => {

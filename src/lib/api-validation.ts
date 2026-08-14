@@ -160,3 +160,7 @@ export const registerPayloadSchema = z.strictObject({
   password: passwordSchema,
   name: z.string().trim().max(100).optional(),
 });
+
+export const updateAccountProfilePayloadSchema = z.strictObject({
+  name: requiredText(100).refine((value) => value.length >= 2),
+});
