@@ -241,7 +241,10 @@ export default function VisaoPage() {
                     src={image.imageUrl}
                     alt={`Referência ${index + 1} do quadro de visão`}
                     className={styles.visionImage}
+                    width={1200}
+                    height={900}
                     loading="lazy"
+                    decoding="async"
                   />
                   <div className={styles.visionMeta}>
                     <div>
