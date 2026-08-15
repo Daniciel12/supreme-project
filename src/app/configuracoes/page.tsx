@@ -44,6 +44,7 @@ export default function ConfiguracoesPage() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sendingVerification, setSendingVerification] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
@@ -125,6 +126,46 @@ export default function ConfiguracoesPage() {
       });
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function requestEmailVerification() {
+    if (!profile || profile.emailVerified || sendingVerification) return;
+
+    setFeedback(null);
+    setSendingVerification(true);
+
+    try {
+      const response = await fetch("/api/auth/email-verification/request", {
+        method: "POST",
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        setFeedback({
+          tone: "error",
+          message: data.error ?? "Não foi possível enviar a verificação.",
+        });
+        return;
+      }
+
+      if (data.status === "already-verified") {
+        setProfile({ ...profile, emailVerified: true });
+        setFeedback({ tone: "success", message: "Seu e-mail já está verificado." });
+        return;
+      }
+
+      setFeedback({
+        tone: "success",
+        message: "Enviamos um link de verificação. Ele expira em 24 horas.",
+      });
+    } catch {
+      setFeedback({
+        tone: "error",
+        message: "Não foi possível enviar a verificação.",
+      });
+    } finally {
+      setSendingVerification(false);
     }
   }
 
@@ -246,6 +287,24 @@ export default function ConfiguracoesPage() {
                     />
                   </FormField>
 
+                  {!profile.emailVerified && (
+                    <div className={styles.verificationAction}>
+                      <div>
+                        <strong>Verificação pendente</strong>
+                        <span>O link é enviado somente para o e-mail desta conta.</span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        isLoading={sendingVerification}
+                        loadingLabel="Enviando..."
+                        onClick={requestEmailVerification}
+                      >
+                        Enviar verificação
+                      </Button>
+                    </div>
+                  )}
+
                   <Button
                     type="submit"
                     isLoading={saving}
@@ -294,11 +353,11 @@ export default function ConfiguracoesPage() {
                   Próximas proteções
                 </h2>
                 <p className={styles.sectionDescription}>
-                  Recuperação de senha, verificação de e-mail, exportação e exclusão de conta serão entregues em fluxos separados, com confirmação explícita e trilha de segurança.
+                  Verificação de e-mail já possui confirmação explícita. Recuperação de senha, exportação e exclusão de conta continuam em fluxos separados, com políticas próprias.
                 </p>
                 <ul className={styles.lifecycleList}>
                   <li>nenhuma exclusão é executada nesta página;</li>
-                  <li>o e-mail não pode ser trocado sem nova verificação;</li>
+                  <li>tokens de verificação expiram e funcionam uma única vez;</li>
                   <li>métodos Google e Credentials continuam independentes.</li>
                 </ul>
               </Card>

@@ -12,7 +12,9 @@ A primeira etapa permite:
 - consultar nome, e-mail e estado de verificação da própria conta;
 - identificar se Credentials e Google já estão configurados;
 - alterar somente o nome de exibição;
-- acessar a área pelo menu lateral ou pela identidade no cabeçalho.
+- acessar a área pelo menu lateral ou pela identidade no cabeçalho;
+- solicitar a verificação do e-mail autenticado e confirmá-la por link de uso
+  único quando o SMTP estiver habilitado.
 
 `GET /api/account/profile` e `PATCH /api/account/profile` derivam o usuário
 exclusivamente da sessão autenticada. O navegador não envia `userId`, e o
@@ -36,9 +38,37 @@ O e-mail permanece somente leitura. Google e Credentials continuam
 independentes, preservando o bloqueio de vinculação implícita já aplicado no
 NextAuth.
 
+## Verificação de e-mail
+
+`POST /api/auth/email-verification/request` exige sessão e sempre deriva o
+destinatário do banco. O navegador não escolhe e-mail nem `userId`. O endpoint
+possui cota própria por cliente + usuário e nunca devolve o token.
+
+O token usa 256 bits aleatórios. Somente seu SHA-256 é salvo em
+`verification_tokens`; o identificador vincula o token ao usuário e a um hash
+do e-mail atual. Um novo pedido revoga tokens anteriores, a validade é de 24
+horas e uma confirmação bem-sucedida remove os tokens equivalentes.
+
+`GET /verificar-email` não altera dados. Isso evita confirmação acidental por
+scanners de links de provedores de e-mail. O usuário precisa acionar o botão,
+que envia o token a `POST /api/auth/email-verification/confirm`. Token inválido,
+expirado, já usado ou associado a um e-mail que mudou recebe a mesma resposta
+genérica. O link mantém o token no fragmento `#token=...`, que não é enviado no
+`GET` nem aparece nos access logs do Caddy/Next.js; a página remove o fragmento
+da barra antes da confirmação.
+
+O transporte é SMTP neutro e configurado somente por variáveis server-side.
+TLS é obrigatório: conexões não implícitas exigem STARTTLS, com TLS 1.2 ou
+superior. A ativação operacional está em
+[EMAIL_VERIFICATION.md](EMAIL_VERIFICATION.md).
+
+Enquanto SMTP não estiver configurado, login e cadastro continuam funcionando,
+mas o envio retorna indisponibilidade genérica. Esta entrega não bloqueia contas
+antigas nem transforma `emailVerified` em requisito de login.
+
 ## Requisitos para as próximas entregas
 
-### Recuperação de senha e verificação de e-mail
+### Recuperação de senha
 
 - tokens aleatórios de uso único, armazenados de forma não reversível;
 - validade curta, revogação após uso e limitação de tentativas;

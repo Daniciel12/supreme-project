@@ -177,6 +177,16 @@ test("public abuse surfaces use their dedicated policies", () => {
       "uploadRateLimiter",
       'clientRateLimitKey(request, "upload")',
     ],
+    [
+      "src/app/api/auth/email-verification/request/route.ts",
+      "emailVerificationRequestRateLimiter",
+      'clientRateLimitKey(request, "email-verification-request")',
+    ],
+    [
+      "src/app/api/auth/email-verification/confirm/route.ts",
+      "emailVerificationConfirmRateLimiter",
+      'clientRateLimitKey(request, "email-verification-confirm")',
+    ],
   ];
 
   for (const [path, limiter, routeContract] of contracts) {

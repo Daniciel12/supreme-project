@@ -164,3 +164,7 @@ export const registerPayloadSchema = z.strictObject({
 export const updateAccountProfilePayloadSchema = z.strictObject({
   name: requiredText(100).refine((value) => value.length >= 2),
 });
+
+export const confirmEmailVerificationPayloadSchema = z.strictObject({
+  token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+});

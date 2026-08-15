@@ -23,6 +23,6 @@ export async function proxy(...args: Parameters<typeof authProxy>) {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|api/health|api/uploadthing|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth|api/health|api/uploadthing|verificar-email|_next/static|_next/image|favicon.ico).*)",
   ],
 };
