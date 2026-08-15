@@ -5,9 +5,9 @@ const createTransport = mock.fn();
 const sendMail = mock.fn(async () => ({ messageId: "test-message" }));
 createTransport.mock.mockImplementation(() => ({ sendMail }));
 
-mock.module("server-only", { exports: { default: {} } });
+mock.module("server-only", { defaultExport: {} });
 mock.module("secure-nodemailer", {
-  exports: { default: { createTransport } },
+  defaultExport: { createTransport },
 });
 
 const {

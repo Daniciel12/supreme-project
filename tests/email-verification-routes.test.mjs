@@ -31,26 +31,26 @@ const consumeEmailVerificationToken = mock.fn();
 class EmailConfigurationError extends Error {}
 
 mock.module(new URL("../src/lib/auth.ts", import.meta.url), {
-  exports: { authOptions: {} },
+  namedExports: { authOptions: {} },
 });
 mock.module(new URL("../src/lib/prisma.ts", import.meta.url), {
-  exports: { prisma: { user: { findUnique: userFindUnique } } },
+  namedExports: { prisma: { user: { findUnique: userFindUnique } } },
 });
 mock.module(new URL("../src/lib/email.ts", import.meta.url), {
-  exports: {
+  namedExports: {
     EmailConfigurationError,
     readEmailTransportConfiguration,
     sendEmailVerification,
   },
 });
 mock.module(new URL("../src/lib/email-verification.ts", import.meta.url), {
-  exports: {
+  namedExports: {
     issueEmailVerificationToken,
     revokeEmailVerificationToken,
     consumeEmailVerificationToken,
   },
 });
-mock.module("next-auth/next", { exports: { getServerSession } });
+mock.module("next-auth/next", { namedExports: { getServerSession } });
 
 const { NextRequest } = await import("next/server");
 const { POST: requestVerification } = await import(

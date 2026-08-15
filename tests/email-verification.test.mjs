@@ -40,9 +40,9 @@ const prisma = {
   $transaction: async (operation) => operation(transaction),
 };
 
-mock.module("server-only", { exports: { default: {} } });
+mock.module("server-only", { defaultExport: {} });
 mock.module(new URL("../src/lib/prisma.ts", import.meta.url), {
-  exports: { prisma },
+  namedExports: { prisma },
 });
 
 const {
