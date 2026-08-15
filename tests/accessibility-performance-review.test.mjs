@@ -62,5 +62,6 @@ test("roadmap records Frontend v3 and its final review as complete", () => {
   assert.match(roadmap, /- \[x\] motion e microinterações;/);
   assert.match(roadmap, /- \[x\] revisão de acessibilidade e performance\./);
   assert.match(roadmap, /Conta e lifecycle foi iniciada/);
-  assert.match(roadmap, /1\. implementar recuperação de senha e verificação de e-mail;/);
+  assert.match(roadmap, /1\. ativar e validar o SMTP de verificação de e-mail em produção;/);
+  assert.match(roadmap, /2\. implementar recuperação de senha com invalidação segura de sessões;/);
 });

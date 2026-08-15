@@ -21,8 +21,9 @@ acesso. Alteração de e-mail, recuperação, exportação e exclusão continuam
 separadas para receber confirmação de identidade e políticas próprias.
 
 **Próximos passos:**
-1. implementar recuperação de senha e verificação de e-mail;
-2. definir exportação, exclusão e retenção antes das integrações futuras.
+1. ativar e validar o SMTP de verificação de e-mail em produção;
+2. implementar recuperação de senha com invalidação segura de sessões;
+3. definir exportação, exclusão e retenção antes das integrações futuras.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -147,6 +148,8 @@ somente no servidor e o account linking implícito está bloqueado.
 
 - [ ] recuperação de senha;
 - [ ] verificação de e-mail;
+  - [x] fluxo seguro, tokens não reversíveis, UI e runbook versionados;
+  - [ ] SMTP de produção e confirmação real validados;
 - [x] perfil/configurações;
 - [ ] exportação de dados;
 - [ ] exclusão de conta;

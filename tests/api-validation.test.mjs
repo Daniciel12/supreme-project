@@ -3,11 +3,32 @@ import test from "node:test";
 
 import {
   checkInPayloadSchema,
+  confirmEmailVerificationPayloadSchema,
   createTaskPayloadSchema,
   createTransactionPayloadSchema,
   registerPayloadSchema,
   taskIdSchema,
 } from "../src/lib/api-validation.ts";
+
+test("email verification accepts only an exact 256-bit base64url token", () => {
+  assert.equal(
+    confirmEmailVerificationPayloadSchema.safeParse({
+      token: "a".repeat(43),
+    }).success,
+    true
+  );
+  assert.equal(
+    confirmEmailVerificationPayloadSchema.safeParse({ token: "short" }).success,
+    false
+  );
+  assert.equal(
+    confirmEmailVerificationPayloadSchema.safeParse({
+      token: "a".repeat(43),
+      email: "attacker@example.test",
+    }).success,
+    false
+  );
+});
 
 test("check-in rejects a missing habitId", () => {
   assert.equal(checkInPayloadSchema.safeParse({}).success, false);

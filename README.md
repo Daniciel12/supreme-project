@@ -52,6 +52,12 @@ cp .env.example .env
 | `RATE_LIMIT_TRUST_PROXY` | Não | Use `true` somente atrás do primeiro proxy público confiável |
 | `GOOGLE_CLIENT_ID` | Não | Google OAuth; só habilitado quando ID e secret existem |
 | `GOOGLE_CLIENT_SECRET` | Não | Google OAuth |
+| `SMTP_HOST` | Para verificação de e-mail | Host do servidor SMTP |
+| `SMTP_PORT` | Para verificação de e-mail | Porta SMTP; normalmente 465 ou 587 |
+| `SMTP_SECURE` | Para verificação de e-mail | `true` para TLS implícito ou `false` para STARTTLS obrigatório |
+| `SMTP_USER` | Para verificação de e-mail | Usuário SMTP mantido somente no servidor |
+| `SMTP_PASSWORD` | Para verificação de e-mail | Senha/token SMTP mantido somente no servidor |
+| `EMAIL_FROM` | Para verificação de e-mail | Remetente autorizado pelo provedor SMTP |
 | `UPLOADTHING_TOKEN` | Para Vision Board | Autorização server-side do UploadThing |
 
 Nunca versione `.env`, secrets, tokens ou credenciais reais.
@@ -119,6 +125,7 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `scripts/app-health-monitor.sh`: verifica disponibilidade pública e sinaliza o monitor externo.
 - `deploy/systemd/supreme-app-health.*`: serviço e timer para monitoramento da aplicação.
 - `docs/APP_MONITORING.md`: ativação, alertas de falha/ausência e desativação segura.
+- `docs/EMAIL_VERIFICATION.md`: configuração SMTP, ativação e validação controlada do fluxo de verificação.
 
 ### Preparar o ambiente
 
@@ -236,6 +243,7 @@ Antes de qualquer deploy real:
 - [ ] `NEXTAUTH_SECRET` é forte, exclusivo do ambiente e armazenado como secret da plataforma.
 - [ ] `NEXTAUTH_URL` corresponde exatamente à URL HTTPS de produção.
 - [ ] Google OAuth, se habilitado, possui redirect URI de produção correta.
+- [ ] SMTP, se habilitado, usa TLS, remetente autorizado e secret exclusivo; envio e confirmação real foram testados.
 - [ ] `UPLOADTHING_TOKEN` está configurado como secret e o fluxo de upload autenticado foi testado.
 - [ ] `npx prisma migrate deploy` foi validado contra o ambiente alvo antes de liberar tráfego.
 - [ ] `/api/health` retorna `200` após subir a versão candidata.

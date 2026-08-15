@@ -22,6 +22,8 @@ type SessionUser = {
 
 export function ApplicationShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isPublicAuthPage =
+    pathname === "/login" || pathname === "/verificar-email";
   const [menuOpen, setMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -53,7 +55,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
   }, [menuOpen]);
 
   useEffect(() => {
-    if (pathname === "/login") return;
+    if (isPublicAuthPage) return;
 
     let active = true;
 
@@ -68,7 +70,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, [pathname]);
+  }, [isPublicAuthPage, pathname]);
 
   function closeMenu({ restoreFocus = false } = {}) {
     setMenuOpen(false);
@@ -108,7 +110,7 @@ export function ApplicationShell({ children }: { children: React.ReactNode }) {
     }
   }
 
-  if (pathname === "/login") return children;
+  if (isPublicAuthPage) return children;
 
   const navigationLinks = applicationNavigation.map((item) => {
     const active = isActivePath(pathname, item.href);

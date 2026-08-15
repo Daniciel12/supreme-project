@@ -210,3 +210,13 @@ export const uploadRateLimiter = new FixedWindowRateLimiter({
   limit: 30,
   windowMs: 15 * 60 * 1000,
 });
+
+export const emailVerificationRequestRateLimiter = new FixedWindowRateLimiter({
+  limit: 3,
+  windowMs: 60 * 60 * 1000,
+});
+
+export const emailVerificationConfirmRateLimiter = new FixedWindowRateLimiter({
+  limit: 10,
+  windowMs: 15 * 60 * 1000,
+});
