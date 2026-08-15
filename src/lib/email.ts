@@ -104,12 +104,16 @@ function escapeHtml(value: string) {
   );
 }
 
-export async function sendEmailVerification({
+async function sendTransactionalEmail({
   to,
-  verificationUrl,
+  subject,
+  text,
+  html,
 }: {
   to: string;
-  verificationUrl: string;
+  subject: string;
+  text: string;
+  html: string;
 }) {
   const configuration = readEmailTransportConfiguration();
   const transporter = nodemailer.createTransport({
@@ -130,10 +134,26 @@ export async function sendEmailVerification({
       minVersion: "TLSv1.2",
     },
   });
-  const safeUrl = escapeHtml(verificationUrl);
 
   await transporter.sendMail({
     from: configuration.from,
+    to,
+    subject,
+    text,
+    html,
+  });
+}
+
+export async function sendEmailVerification({
+  to,
+  verificationUrl,
+}: {
+  to: string;
+  verificationUrl: string;
+}) {
+  const safeUrl = escapeHtml(verificationUrl);
+
+  await sendTransactionalEmail({
     to,
     subject: "Confirme seu e-mail no Supreme",
     text: [
@@ -151,6 +171,38 @@ export async function sendEmailVerification({
         <p><a href="${safeUrl}">Confirmar e-mail</a></p>
         <p>O link expira em 24 horas e só funciona uma vez.</p>
         <p>Se você não solicitou esta verificação, ignore esta mensagem.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendPasswordResetEmail({
+  to,
+  resetUrl,
+}: {
+  to: string;
+  resetUrl: string;
+}) {
+  const safeUrl = escapeHtml(resetUrl);
+
+  await sendTransactionalEmail({
+    to,
+    subject: "Redefina sua senha do Supreme",
+    text: [
+      "Recebemos uma solicitação para redefinir a senha da sua conta Supreme.",
+      "",
+      resetUrl,
+      "",
+      "O link expira em 60 minutos e só funciona uma vez.",
+      "Se você não solicitou a alteração, ignore esta mensagem.",
+    ].join("\n"),
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#171717">
+        <h1 style="font-size:22px">Redefina sua senha</h1>
+        <p>Recebemos uma solicitação para redefinir a senha da sua conta Supreme.</p>
+        <p><a href="${safeUrl}">Criar nova senha</a></p>
+        <p>O link expira em 60 minutos e só funciona uma vez.</p>
+        <p>Se você não solicitou a alteração, ignore esta mensagem.</p>
       </div>
     `,
   });

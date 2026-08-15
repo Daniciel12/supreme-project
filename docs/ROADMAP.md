@@ -22,7 +22,7 @@ separadas para receber confirmação de identidade e políticas próprias.
 
 **Próximos passos:**
 1. ativar e validar o SMTP de verificação de e-mail em produção;
-2. implementar recuperação de senha com invalidação segura de sessões;
+2. validar em produção a recuperação de senha e a invalidação segura de sessões;
 3. definir exportação, exclusão e retenção antes das integrações futuras.
 
 ## ✅ 1. Fundação técnica — concluída
@@ -147,6 +147,8 @@ somente no servidor e o account linking implícito está bloqueado.
 ## ⏳ 10. Conta e lifecycle
 
 - [ ] recuperação de senha;
+  - [x] fluxo seguro, sessão revogável, UI e runbook versionados;
+  - [ ] SMTP, reset real e invalidação de sessão validados em produção;
 - [ ] verificação de e-mail;
   - [x] fluxo seguro, tokens não reversíveis, UI e runbook versionados;
   - [ ] SMTP de produção e confirmação real validados;

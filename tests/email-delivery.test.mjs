@@ -14,6 +14,7 @@ const {
   EmailConfigurationError,
   readEmailTransportConfiguration,
   sendEmailVerification,
+  sendPasswordResetEmail,
 } = await import("../src/lib/email.ts");
 
 const validEnvironment = {
@@ -86,6 +87,33 @@ test("SMTP delivery requires STARTTLS and disables file and URL access", async (
 
   const message = sendMail.mock.calls[0].arguments[0];
   assert.equal(message.to, "owner@example.test");
+  assert.match(message.text, /token=test&next=<unsafe>/);
+  assert.match(message.html, /token=test&amp;next=&lt;unsafe&gt;/);
+  assert.doesNotMatch(message.html, /token=test&next=<unsafe>/);
+});
+
+test("password recovery email escapes the link and documents its short lifetime", async () => {
+  const previousEnvironment = Object.fromEntries(
+    Object.keys(validEnvironment).map((key) => [key, process.env[key]])
+  );
+  Object.assign(process.env, validEnvironment);
+
+  try {
+    await sendPasswordResetEmail({
+      to: "owner@example.test",
+      resetUrl: "https://supreme.example/redefinir-senha#token=test&next=<unsafe>",
+    });
+  } finally {
+    for (const [key, value] of Object.entries(previousEnvironment)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+
+  const message = sendMail.mock.calls.at(-1).arguments[0];
+  assert.equal(message.to, "owner@example.test");
+  assert.match(message.subject, /Redefina sua senha/);
+  assert.match(message.text, /60 minutos/);
   assert.match(message.text, /token=test&next=<unsafe>/);
   assert.match(message.html, /token=test&amp;next=&lt;unsafe&gt;/);
   assert.doesNotMatch(message.html, /token=test&next=<unsafe>/);

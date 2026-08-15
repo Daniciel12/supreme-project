@@ -75,7 +75,10 @@ test("finance schema and migration keep money decimal-safe and reject ambiguous 
     "utf8"
   );
 
-  assert.match(schema, /initialBalance\s+Decimal\s+@db\.Decimal\(19, 2\)/);
+  assert.match(
+    schema,
+    /initialBalance\s+Decimal\s+(?:@map\("balance"\)\s+)?@db\.Decimal\(19, 2\)/
+  );
   assert.match(schema, /amount\s+Decimal\s+@db\.Decimal\(19, 2\)/);
   assert.doesNotMatch(
     schema.slice(schema.indexOf("model FinancialAccount")),
