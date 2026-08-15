@@ -220,3 +220,19 @@ export const emailVerificationConfirmRateLimiter = new FixedWindowRateLimiter({
   limit: 10,
   windowMs: 15 * 60 * 1000,
 });
+
+export const passwordRecoveryRequestIpRateLimiter = new FixedWindowRateLimiter({
+  limit: 5,
+  windowMs: 15 * 60 * 1000,
+});
+
+export const passwordRecoveryRequestEmailRateLimiter =
+  new FixedWindowRateLimiter({
+    limit: 3,
+    windowMs: 60 * 60 * 1000,
+  });
+
+export const passwordRecoveryConfirmRateLimiter = new FixedWindowRateLimiter({
+  limit: 10,
+  windowMs: 15 * 60 * 1000,
+});

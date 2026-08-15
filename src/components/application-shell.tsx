@@ -22,8 +22,12 @@ type SessionUser = {
 
 export function ApplicationShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isPublicAuthPage =
-    pathname === "/login" || pathname === "/verificar-email";
+  const isPublicAuthPage = [
+    "/login",
+    "/verificar-email",
+    "/recuperar-senha",
+    "/redefinir-senha",
+  ].includes(pathname);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sessionUser, setSessionUser] = useState<SessionUser | null>(null);
   const [signingOut, setSigningOut] = useState(false);

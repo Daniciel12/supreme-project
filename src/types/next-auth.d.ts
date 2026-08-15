@@ -1,4 +1,5 @@
 import { DefaultSession } from "next-auth";
+import "next-auth/jwt";
 
 // Estende o tipo padrão de Session do NextAuth para incluir o 'id' do
 // usuário em session.user (necessário porque usamos CredentialsProvider
@@ -11,5 +12,11 @@ declare module "next-auth" {
     user: {
       id: string;
     } & DefaultSession["user"];
+  }
+}
+
+declare module "next-auth/jwt" {
+  interface JWT {
+    sessionIssuedAt?: number;
   }
 }

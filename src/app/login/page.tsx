@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState, FormEvent } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { getProviders, signIn } from "next-auth/react";
 import styles from "./login-v3.module.css";
@@ -265,6 +266,12 @@ function LoginContent() {
                   required
                 />
               </div>
+
+              {mode === "login" && (
+                <Link href="/recuperar-senha" className={styles.recoveryLink}>
+                  Esqueci minha senha
+                </Link>
+              )}
 
               {visibleError && (
                 <p

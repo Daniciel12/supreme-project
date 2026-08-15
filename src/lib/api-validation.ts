@@ -168,3 +168,12 @@ export const updateAccountProfilePayloadSchema = z.strictObject({
 export const confirmEmailVerificationPayloadSchema = z.strictObject({
   token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
 });
+
+export const requestPasswordRecoveryPayloadSchema = z.strictObject({
+  email: z.string().trim().email().max(254),
+});
+
+export const confirmPasswordRecoveryPayloadSchema = z.strictObject({
+  token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
+  password: passwordSchema,
+});

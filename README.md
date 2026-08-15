@@ -117,6 +117,7 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `.dockerignore`: impede que `.env`, caches e arquivos locais entrem no contexto da imagem.
 - `GET /api/health`: readiness público e genérico que valida aplicação + conexão com PostgreSQL.
 - `scripts/smoke.mjs`: smoke test autenticado somente-leitura contra um ambiente alvo.
+- `docs/PASSWORD_RECOVERY.md`: ativação e validação segura da recuperação de senha.
 - `scripts/postgres-backup.sh`: dump validado, checksum e envio para storage externo.
 - `scripts/postgres-restore-test.sh`: restore somente em PostgreSQL descartável e isolado.
 - `docs/POSTGRES_BACKUP_RESTORE.md`: runbook de configuração e execução controlada.

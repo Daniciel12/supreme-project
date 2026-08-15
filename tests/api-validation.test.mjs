@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   checkInPayloadSchema,
   confirmEmailVerificationPayloadSchema,
+  confirmPasswordRecoveryPayloadSchema,
   createTaskPayloadSchema,
   createTransactionPayloadSchema,
   registerPayloadSchema,
@@ -25,6 +26,36 @@ test("email verification accepts only an exact 256-bit base64url token", () => {
     confirmEmailVerificationPayloadSchema.safeParse({
       token: "a".repeat(43),
       email: "attacker@example.test",
+    }).success,
+    false
+  );
+});
+
+test("password recovery requires an exact token and a bcrypt-safe password", () => {
+  const valid = {
+    token: "a".repeat(43),
+    password: "new-secure-password",
+  };
+
+  assert.equal(confirmPasswordRecoveryPayloadSchema.safeParse(valid).success, true);
+  assert.equal(
+    confirmPasswordRecoveryPayloadSchema.safeParse({
+      ...valid,
+      token: "short",
+    }).success,
+    false
+  );
+  assert.equal(
+    confirmPasswordRecoveryPayloadSchema.safeParse({
+      ...valid,
+      password: "á".repeat(37),
+    }).success,
+    false
+  );
+  assert.equal(
+    confirmPasswordRecoveryPayloadSchema.safeParse({
+      ...valid,
+      userId: "attacker-selected-user",
     }).success,
     false
   );

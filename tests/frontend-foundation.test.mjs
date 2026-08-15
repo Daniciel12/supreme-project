@@ -57,7 +57,16 @@ test("application shell keeps semantic landmarks and accessible mobile controls"
   assert.match(shell, /aria-label="Fechar menu"/);
   assert.match(shell, /closeMenu\(\{ restoreFocus: true \}\)/);
   assert.match(shell, /closeMenu\(\{ restoreFocus: menuOpen \}\)/);
-  assert.match(shell, /pathname === "\/login"/);
+  assert.match(shell, /const isPublicAuthPage = \[/);
+  for (const publicPath of [
+    "/login",
+    "/verificar-email",
+    "/recuperar-senha",
+    "/redefinir-senha",
+  ]) {
+    assert.match(shell, new RegExp(`"${publicPath}"`));
+  }
+  assert.match(shell, /if \(isPublicAuthPage\) return children/);
 });
 
 test("mobile shell keeps navigation reachable on short and notched screens", () => {

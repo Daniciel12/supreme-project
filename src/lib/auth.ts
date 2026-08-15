@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
+import { isSessionTokenCurrent } from "@/lib/session-invalidation";
 
 interface AuthEnvironment {
   GOOGLE_CLIENT_ID?: string;
@@ -118,7 +119,14 @@ export function createAuthOptions(
       async jwt({ token, user }) {
         if (user) {
           token.sub = user.id;
+          token.sessionIssuedAt = Date.now();
+          return token;
         }
+
+        if (!(await isSessionTokenCurrent(token))) {
+          throw new Error("Session is no longer valid.");
+        }
+
         return token;
       },
       async session({ session, token }) {

@@ -55,7 +55,7 @@ test("review documentation records guarantees and the safe image boundary", () =
   assert.match(guide, /smoke autenticado/);
 });
 
-test("roadmap records Frontend v3 and its final review as complete", () => {
+test("roadmap records Frontend v3 as complete and the current lifecycle validation", () => {
   const roadmap = read("docs/ROADMAP.md");
 
   assert.match(roadmap, /## ✅ 9\. Frontend v3 — concluído/);
@@ -63,5 +63,9 @@ test("roadmap records Frontend v3 and its final review as complete", () => {
   assert.match(roadmap, /- \[x\] revisão de acessibilidade e performance\./);
   assert.match(roadmap, /Conta e lifecycle foi iniciada/);
   assert.match(roadmap, /1\. ativar e validar o SMTP de verificação de e-mail em produção;/);
-  assert.match(roadmap, /2\. implementar recuperação de senha com invalidação segura de sessões;/);
+  assert.match(
+    roadmap,
+    /2\. validar em produção a recuperação de senha e a invalidação segura de sessões;/
+  );
+  assert.match(roadmap, /fluxo seguro, sessão revogável, UI e runbook versionados/);
 });

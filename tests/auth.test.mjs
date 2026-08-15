@@ -40,6 +40,7 @@ const credentialsProviderModule = await import(
 );
 const googleProviderModule = await import("next-auth/providers/google");
 
+mock.module("server-only", { defaultExport: {} });
 mock.module(new URL("../src/lib/prisma.ts", import.meta.url), {
   namedExports: { prisma },
 });
@@ -257,6 +258,35 @@ test("JWT callback copies OAuth user.id to token.sub", async () => {
   });
 
   assert.equal(result.sub, "oauth-user");
+  assert.equal(typeof result.sessionIssuedAt, "number");
+});
+
+test("JWT callback rejects a session older than the persisted cutoff", async () => {
+  userFindUnique.implementation = async () => ({
+    sessionsValidAfter: new Date(1_700_000_001_000),
+  });
+  const options = createAuthOptions({});
+
+  await assert.rejects(
+    options.callbacks.jwt({
+      token: { sub: "credentials-user", iat: 1_700_000_000 },
+    }),
+    /no longer valid/i
+  );
+});
+
+test("JWT callback keeps a session created after the persisted cutoff", async () => {
+  userFindUnique.implementation = async () => ({
+    sessionsValidAfter: new Date(1_700_000_000_000),
+  });
+  const options = createAuthOptions({});
+  const token = {
+    sub: "credentials-user",
+    iat: 1_700_000_001,
+    sessionIssuedAt: 1_700_000_001_250,
+  };
+
+  assert.equal(await options.callbacks.jwt({ token }), token);
 });
 
 test("session callback copies token.sub to session.user.id", async () => {

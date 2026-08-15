@@ -16,14 +16,15 @@ datasource db {
 // User
 // ---------------------------------------------------------------------------
 model User {
-  id        String   @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  sessionsValidAfter DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   habits             Habit[]
   checkIns           CheckIn[]
@@ -191,7 +192,7 @@ model WorkoutCompletion {
   workout   Workout @relation(fields: [workoutId], references: [id], onDelete: Cascade)
 
   userId String
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([workoutId, date], name: "workout_date_unique")
   @@index([userId, date])
@@ -219,7 +220,7 @@ model FinancialAccount {
   id             String               @id @default(uuid())
   name           String
   type           FinancialAccountType
-  initialBalance Decimal              @db.Decimal(19, 2) @map("balance")
+  initialBalance Decimal              @map("balance") @db.Decimal(19, 2)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

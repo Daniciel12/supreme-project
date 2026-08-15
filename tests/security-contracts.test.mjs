@@ -61,8 +61,10 @@ test("Next.js 16 proxy entrypoint is explicit and only deliberate public routes 
   assert.match(source, /api\/uploadthing/);
   assert.match(source, /withAuth/);
   assert.match(source, /getToken/);
+  assert.match(source, /isSessionTokenCurrent/);
   assert.match(source, /request\.nextUrl\.pathname === "\/login"/);
   assert.match(source, /NextResponse\.redirect\(new URL\("\/", request\.url\)\)/);
+  assert.match(source, /token && !tokenIsCurrent/);
 });
 
 test("authenticated sessions cannot reopen login to link an OAuth account", () => {

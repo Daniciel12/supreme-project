@@ -187,6 +187,16 @@ test("public abuse surfaces use their dedicated policies", () => {
       "emailVerificationConfirmRateLimiter",
       'clientRateLimitKey(request, "email-verification-confirm")',
     ],
+    [
+      "src/app/api/auth/password-recovery/request/route.ts",
+      "passwordRecoveryRequestIpRateLimiter",
+      'clientRateLimitKey(request, "password-recovery-request")',
+    ],
+    [
+      "src/app/api/auth/password-recovery/confirm/route.ts",
+      "passwordRecoveryConfirmRateLimiter",
+      'clientRateLimitKey(request, "password-recovery-confirm")',
+    ],
   ];
 
   for (const [path, limiter, routeContract] of contracts) {
