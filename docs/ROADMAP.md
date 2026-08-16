@@ -20,13 +20,14 @@ Conta e lifecycle possui uma área autenticada de perfil e métodos de acesso.
 Recuperação de senha e verificação de e-mail foram validadas de ponta a ponta
 em produção, incluindo SMTP real, tokens descartáveis, revogação de sessões e
 smoke autenticado. A exportação portátil da conta e a baseline técnica de
-retenção estão implementadas sem incluir credenciais. Alteração de e-mail e
-exclusão continuam separadas para receber confirmação reforçada.
+retenção estão implementadas sem incluir credenciais. Exclusão segura de conta
+possui confirmação reforçada, estado recuperável e limpeza remota. A validação
+operacional usa apenas contas descartáveis.
 
 **Próximos passos:**
-1. implementar exclusão de conta com confirmação reforçada e limpeza remota;
-2. implementar alteração segura de e-mail com confirmação de identidade;
-3. iniciar a abstração de provider para Open Finance.
+1. implementar alteração segura de e-mail com confirmação de identidade;
+2. iniciar a abstração de provider para Open Finance;
+3. preparar a política pública de privacidade para operação comercial.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -157,7 +158,9 @@ somente no servidor e o account linking implícito está bloqueado.
   - [x] SMTP de produção e confirmação real validados;
 - [x] perfil/configurações;
 - [x] exportação de dados;
-- [ ] exclusão de conta;
+- [x] exclusão de conta;
+  - [x] confirmação reforçada, revogação de sessões e estado recuperável;
+  - [x] limpeza de arquivos remotos antes da remoção relacional;
 - [x] baseline técnica de retenção e privacidade;
 - [ ] política pública de privacidade para operação comercial.
 

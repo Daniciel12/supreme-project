@@ -221,3 +221,18 @@ test("account export has an authenticated client-and-user quota", () => {
   );
   assert.match(source, /rateLimitExceededResponse/);
 });
+
+test("account deletion has an authenticated client-and-user quota", () => {
+  const source = readFileSync(
+    new URL("../src/app/api/account/route.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(source, /accountDeletionRateLimiter/);
+  assert.ok(
+    source.includes(
+      '`${clientRateLimitKey(request, "account-deletion")}:${session.user.id}`'
+    )
+  );
+  assert.match(source, /rateLimitExceededResponse/);
+});

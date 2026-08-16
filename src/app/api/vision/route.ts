@@ -1,31 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { UTApi } from "uploadthing/server";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { deleteUploadThingFiles } from "@/lib/uploadthing-files";
 import {
   createVisionImagePayloadSchema,
   visionImageIdSchema,
 } from "@/lib/api-validation";
-
-const utapi = new UTApi();
-
-export function getUploadThingFileKey(imageUrl: string) {
-  try {
-    const url = new URL(imageUrl);
-    const isCurrentHost = url.protocol === "https:" && url.hostname.endsWith(".ufs.sh");
-    const isLegacyHost = url.protocol === "https:" && url.hostname === "utfs.io";
-    const match = url.pathname.match(/^\/f\/([^/]+)$/);
-
-    if ((!isCurrentHost && !isLegacyHost) || !match) {
-      return null;
-    }
-
-    return decodeURIComponent(match[1]);
-  } catch {
-    return null;
-  }
-}
 
 // GET /api/vision
 export async function GET() {
@@ -124,7 +105,7 @@ export async function DELETE(request: NextRequest) {
 
     const image = await prisma.visionImage.findFirst({
       where: { id: parsedId.data, userId: session.user.id },
-      select: { id: true, imageUrl: true },
+      select: { id: true, providerFileKey: true },
     });
 
     if (!image) {
@@ -134,10 +115,8 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const fileKey = getUploadThingFileKey(image.imageUrl);
-
-    if (fileKey) {
-      await utapi.deleteFiles(fileKey);
+    if (image.providerFileKey) {
+      await deleteUploadThingFiles([image.providerFileKey]);
     }
 
     await prisma.visionImage.delete({

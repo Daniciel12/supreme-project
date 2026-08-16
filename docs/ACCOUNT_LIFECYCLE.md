@@ -30,9 +30,7 @@ Esta etapa não oferece:
 
 - troca de e-mail;
 - criação, remoção ou vinculação de método de acesso;
-- recuperação ou alteração de senha;
-- exportação de dados;
-- exclusão de conta.
+- alteração de senha autenticada fora do fluxo de recuperação.
 
 O e-mail permanece somente leitura. Google e Credentials continuam
 independentes, preservando o bloqueio de vinculação implícita já aplicado no
@@ -66,31 +64,19 @@ Enquanto SMTP não estiver configurado, login e cadastro continuam funcionando,
 mas o envio retorna indisponibilidade genérica. Esta entrega não bloqueia contas
 antigas nem transforma `emailVerified` em requisito de login.
 
-## Requisitos para as próximas entregas
+## Exportação e exclusão
 
-### Recuperação de senha
+A exportação autenticada produz um JSON versionado em memória, sem secrets,
+hashes ou tokens. O arquivo é entregue diretamente ao navegador e não fica
+armazenado pelo Supreme.
 
-- tokens aleatórios de uso único, armazenados de forma não reversível;
-- validade curta, revogação após uso e limitação de tentativas;
-- resposta pública neutra para não enumerar contas;
-- provedor de e-mail configurado somente por secrets de produção;
-- invalidação ou rotação segura de sessões quando a senha mudar.
-
-### Exportação de dados
-
-- autenticação recente antes de gerar o arquivo;
-- escopo exclusivo ao usuário da sessão;
-- formato versionado e documentação do que está incluído;
-- geração temporária, prazo de expiração e descarte auditável;
-- ausência de secrets, hashes, tokens e dados de outros usuários.
-
-### Exclusão de conta e retenção
-
-- confirmação explícita e autenticação recente;
-- inventário das cascatas PostgreSQL e dos arquivos no UploadThing;
-- política definida para backups externos e prazos legais;
-- execução idempotente com estado recuperável quando houver falha parcial;
-- nenhum restore sobre produção como parte do fluxo de exclusão.
+A exclusão exige confirmação explícita e identidade reforçada. O servidor
+revoga sessões, persiste o estado recuperável da operação, remove arquivos
+UploadThing reconhecidos e somente então apaga o usuário em transação. Falha
+externa preserva a conta e suas referências para retentativa; o navegador não
+escolhe `userId`. A implantação e o smoke destrutivo são separados do smoke
+usual e usam exclusivamente contas descartáveis, conforme
+[ACCOUNT_DELETION.md](ACCOUNT_DELETION.md).
 
 Qualquer mudança de e-mail ou vínculo entre Google e Credentials exige revisão
 de segurança própria. Esses fluxos não devem reutilizar apenas a posse de uma

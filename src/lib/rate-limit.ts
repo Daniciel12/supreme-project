@@ -241,3 +241,8 @@ export const accountDataExportRateLimiter = new FixedWindowRateLimiter({
   limit: 3,
   windowMs: 60 * 60 * 1000,
 });
+
+export const accountDeletionRateLimiter = new FixedWindowRateLimiter({
+  limit: 5,
+  windowMs: 15 * 60 * 1000,
+});

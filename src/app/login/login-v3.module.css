@@ -323,6 +323,16 @@
   font-size: var(--font-size-xs);
 }
 
+.success {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--success) 42%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--success) 8%, transparent);
+  color: var(--success);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+}
+
 .submit {
   width: 100%;
   min-height: 48px;
