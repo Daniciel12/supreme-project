@@ -24,10 +24,15 @@ retenção estão implementadas sem incluir credenciais. Exclusão segura de con
 possui confirmação reforçada, estado recuperável e limpeza remota. A validação
 operacional usa apenas contas descartáveis.
 
+A alteração segura de e-mail também foi validada de ponta a ponta em produção:
+confirmação nos dois endereços, revogação de sessão, preservação de dados,
+colisão case-insensitive, token de uso único, limpeza das contas descartáveis e
+smoke operacional posterior.
+
 **Próximos passos:**
-1. validar em produção a alteração segura de e-mail com conta descartável;
-2. iniciar a abstração de provider para Open Finance;
-3. preparar a política pública de privacidade para operação comercial.
+1. iniciar a abstração de provider para Open Finance;
+2. preparar a política pública de privacidade para operação comercial;
+3. planejar a limpeza física periódica de tokens expirados.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -160,6 +165,7 @@ somente no servidor e o account linking implícito está bloqueado.
 - [x] alteração segura de e-mail;
   - [x] senha atual ou Google recente, confirmação no endereço novo e aviso no antigo;
   - [x] colisão case-insensitive, revogação de sessões e runbook versionado;
+  - [x] fluxo Credentials, colisão e limpeza descartável validados em produção;
 - [x] exportação de dados;
 - [x] exclusão de conta;
   - [x] confirmação reforçada, revogação de sessões e estado recuperável;
