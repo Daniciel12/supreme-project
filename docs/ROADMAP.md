@@ -19,12 +19,13 @@ de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 Conta e lifecycle possui uma área autenticada de perfil e métodos de acesso.
 Recuperação de senha e verificação de e-mail foram validadas de ponta a ponta
 em produção, incluindo SMTP real, tokens descartáveis, revogação de sessões e
-smoke autenticado. Alteração de e-mail, exportação e exclusão continuam
-separadas para receber confirmação de identidade e políticas próprias.
+smoke autenticado. A exportação portátil da conta e a baseline técnica de
+retenção estão implementadas sem incluir credenciais. Alteração de e-mail e
+exclusão continuam separadas para receber confirmação reforçada.
 
 **Próximos passos:**
-1. definir exportação, exclusão e retenção antes das integrações futuras;
-2. projetar alteração segura de e-mail com confirmação de identidade;
+1. implementar exclusão de conta com confirmação reforçada e limpeza remota;
+2. implementar alteração segura de e-mail com confirmação de identidade;
 3. iniciar a abstração de provider para Open Finance.
 
 ## ✅ 1. Fundação técnica — concluída
@@ -155,9 +156,10 @@ somente no servidor e o account linking implícito está bloqueado.
   - [x] fluxo seguro, tokens não reversíveis, UI e runbook versionados;
   - [x] SMTP de produção e confirmação real validados;
 - [x] perfil/configurações;
-- [ ] exportação de dados;
+- [x] exportação de dados;
 - [ ] exclusão de conta;
-- [ ] políticas de retenção e privacidade.
+- [x] baseline técnica de retenção e privacidade;
+- [ ] política pública de privacidade para operação comercial.
 
 ## ⏳ 11. Open Finance
 

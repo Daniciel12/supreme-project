@@ -152,6 +152,38 @@ async function run() {
   }
   console.log(`[smoke] ${apiChecks.length} authenticated API checks passed`);
 
+  const exportResponse = await request("/api/account/export", {
+    method: "POST",
+  });
+  if (exportResponse.status !== 200) {
+    throw new Error(
+      `/api/account/export returned HTTP ${exportResponse.status}; expected 200`
+    );
+  }
+
+  const exportContentType = exportResponse.headers.get("content-type") ?? "";
+  const exportDisposition =
+    exportResponse.headers.get("content-disposition") ?? "";
+  if (!exportContentType.includes("application/json")) {
+    throw new Error("Account export did not return JSON");
+  }
+  if (!/^attachment; filename="supreme-export-\d{4}-\d{2}-\d{2}\.json"$/.test(
+    exportDisposition
+  )) {
+    throw new Error("Account export did not return a safe attachment filename");
+  }
+
+  const accountExport = await exportResponse.json();
+  if (
+    accountExport?.format !== "supreme-account-export" ||
+    accountExport?.version !== 1 ||
+    !accountExport?.account?.id ||
+    !accountExport?.data
+  ) {
+    throw new Error("Account export contract is invalid");
+  }
+  console.log("[smoke] Account data export passed");
+
   console.log("[smoke] PASS");
 }
 

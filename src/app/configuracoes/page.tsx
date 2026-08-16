@@ -45,6 +45,7 @@ export default function ConfiguracoesPage() {
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
@@ -166,6 +167,52 @@ export default function ConfiguracoesPage() {
       });
     } finally {
       setSendingVerification(false);
+    }
+  }
+
+  async function exportAccountData() {
+    if (exportingData) return;
+
+    setFeedback(null);
+    setExportingData(true);
+
+    try {
+      const response = await fetch("/api/account/export", { method: "POST" });
+
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        setFeedback({
+          tone: "error",
+          message: data?.error ?? "Não foi possível exportar seus dados.",
+        });
+        return;
+      }
+
+      const disposition = response.headers.get("content-disposition") ?? "";
+      const responseFilename = disposition.match(
+        /filename="(supreme-export-\d{4}-\d{2}-\d{2}\.json)"/
+      )?.[1];
+      const filename = responseFilename ?? "supreme-export.json";
+      const downloadUrl = URL.createObjectURL(await response.blob());
+      const download = document.createElement("a");
+      download.href = downloadUrl;
+      download.download = filename;
+      document.body.append(download);
+      download.click();
+      download.remove();
+      window.setTimeout(() => URL.revokeObjectURL(downloadUrl), 1_000);
+
+      setFeedback({
+        tone: "success",
+        message: "Exportação concluída. O arquivo foi salvo no seu dispositivo.",
+      });
+    } catch {
+      setFeedback({
+        tone: "error",
+        message: "Não foi possível exportar seus dados.",
+      });
+    } finally {
+      setExportingData(false);
     }
   }
 
@@ -347,17 +394,42 @@ export default function ConfiguracoesPage() {
                 </ul>
               </Card>
 
-              <Card className={styles.lifecycleCard} aria-labelledby="lifecycle-title">
+              <Card className={styles.lifecycleCard} aria-labelledby="data-export-title">
                 <span className={styles.sectionIndex} aria-hidden="true">03</span>
+                <h2 id="data-export-title" className="card-title">
+                  Seus dados
+                </h2>
+                <p className={styles.sectionDescription}>
+                  Baixe uma cópia portátil dos dados da sua conta e dos módulos do Supreme. Senhas, sessões e tokens nunca entram no arquivo.
+                </p>
+                <div className={styles.exportAction}>
+                  <div>
+                    <strong>Arquivo JSON</strong>
+                    <span>Inclui perfil, hábitos, metas, treinos, evolução, finanças, livros e referências da Visão.</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    isLoading={exportingData}
+                    loadingLabel="Preparando..."
+                    onClick={exportAccountData}
+                  >
+                    Exportar meus dados
+                  </Button>
+                </div>
+              </Card>
+
+              <Card className={styles.lifecycleCard} aria-labelledby="lifecycle-title">
+                <span className={styles.sectionIndex} aria-hidden="true">04</span>
                 <h2 id="lifecycle-title" className="card-title">
                   Próximas proteções
                 </h2>
                 <p className={styles.sectionDescription}>
-                  Verificação de e-mail já possui confirmação explícita. Recuperação de senha, exportação e exclusão de conta continuam em fluxos separados, com políticas próprias.
+                  Verificação de e-mail, recuperação de senha e exportação já possuem fluxos separados. Exclusão e troca de e-mail continuam bloqueadas até receberem confirmação reforçada.
                 </p>
                 <ul className={styles.lifecycleList}>
                   <li>nenhuma exclusão é executada nesta página;</li>
-                  <li>tokens de verificação expiram e funcionam uma única vez;</li>
+                  <li>a exportação não inclui credenciais nem arquivos de sessão;</li>
                   <li>métodos Google e Credentials continuam independentes.</li>
                 </ul>
               </Card>
