@@ -101,3 +101,12 @@ registrada para investigação sem endereço ou token.
 
 Tokens expirados não podem ser usados. A limpeza física periódica dos hashes
 expirados continua pertencendo ao futuro job geral de lifecycle.
+
+## Evidência de produção
+
+O fluxo Credentials foi validado de ponta a ponta em produção em 16/08/2026,
+com duas contas descartáveis, colisão case-insensitive, revogação real de
+sessão, preservação de dados, bloqueio do reúso do token, exclusão das contas e
+smoke operacional posterior. A evidência sanitizada, sem dados de conta ou
+credenciais, está em
+[EMAIL_CHANGE_PRODUCTION_VALIDATION.md](EMAIL_CHANGE_PRODUCTION_VALIDATION.md).

@@ -121,6 +121,11 @@ provider e nenhuma igualdade de e-mail habilita account linking implícito. O
 procedimento de implantação e validação está em
 [EMAIL_CHANGE.md](EMAIL_CHANGE.md).
 
+O fluxo Credentials, a colisão case-insensitive, a revogação de sessões e a
+limpeza das contas descartáveis foram validados em produção. A evidência
+sanitizada está em
+[EMAIL_CHANGE_PRODUCTION_VALIDATION.md](EMAIL_CHANGE_PRODUCTION_VALIDATION.md).
+
 ## Gates de validação da exportação
 
 - testes automatizados cobrem ausência de sessão, isolamento, conteúdo e erro;
