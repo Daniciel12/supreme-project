@@ -206,3 +206,18 @@ test("public abuse surfaces use their dedicated policies", () => {
     assert.match(source, /[rR]ateLimitExceededResponse/);
   }
 });
+
+test("account export has an authenticated client-and-user quota", () => {
+  const source = readFileSync(
+    new URL("../src/app/api/account/export/route.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(source, /accountDataExportRateLimiter/);
+  assert.ok(
+    source.includes(
+      '`${clientRateLimitKey(request, "account-data-export")}:${session.user.id}`'
+    )
+  );
+  assert.match(source, /rateLimitExceededResponse/);
+});

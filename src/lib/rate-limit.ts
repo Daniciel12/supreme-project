@@ -236,3 +236,8 @@ export const passwordRecoveryConfirmRateLimiter = new FixedWindowRateLimiter({
   limit: 10,
   windowMs: 15 * 60 * 1000,
 });
+
+export const accountDataExportRateLimiter = new FixedWindowRateLimiter({
+  limit: 3,
+  windowMs: 60 * 60 * 1000,
+});

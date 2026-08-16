@@ -75,6 +75,27 @@ async function startSmokeServer() {
       return;
     }
 
+    if (
+      url.pathname === "/api/account/export" &&
+      request.method === "POST"
+    ) {
+      json(
+        response,
+        200,
+        {
+          format: "supreme-account-export",
+          version: 1,
+          account: { id: "smoke-user" },
+          data: {},
+        },
+        {
+          "content-disposition":
+            'attachment; filename="supreme-export-2026-08-09.json"',
+        }
+      );
+      return;
+    }
+
     if (url.pathname.startsWith("/api/")) {
       json(response, 200, { ok: true });
       return;
@@ -143,6 +164,7 @@ test("authenticated smoke harness exercises the real session shape without leaki
   assert.match(result.stdout, /Credentials authentication passed/);
   assert.match(result.stdout, /8 authenticated pages passed/);
   assert.match(result.stdout, /12 authenticated API checks passed/);
+  assert.match(result.stdout, /Account data export passed/);
   assert.match(result.stdout, /\[smoke\] PASS/);
   assert.doesNotMatch(`${result.stdout}\n${result.stderr}`, new RegExp(secret));
 });
