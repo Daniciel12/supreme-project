@@ -18,6 +18,7 @@ datasource db {
 model User {
   id                 String    @id @default(cuid())
   name               String?
+  /// Case-insensitive uniqueness is enforced by a functional index in SQL.
   email              String    @unique
   emailVerified      DateTime?
   image              String?

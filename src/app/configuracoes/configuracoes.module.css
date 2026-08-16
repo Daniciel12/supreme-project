@@ -258,6 +258,49 @@
   letter-spacing: 0.12em;
 }
 
+.emailChangeAction {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  border: 1px solid var(--ds-border-accent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--accent) 7%, var(--ds-surface));
+}
+
+.emailChangeAction strong,
+.emailChangeAction span {
+  display: block;
+}
+
+.emailChangeAction strong {
+  color: var(--ds-text-primary);
+  font-size: var(--font-size-sm);
+}
+
+.emailChangeAction span {
+  margin-top: var(--space-1);
+  color: var(--ds-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.emailChangeForm {
+  display: grid;
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--ds-border-subtle);
+}
+
+.emailChangeActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
 .dangerCard {
   border-color: color-mix(in srgb, var(--danger) 42%, var(--ds-border)) !important;
   background:
@@ -374,6 +417,7 @@
 @media (max-width: 560px) {
   .accessList li,
   .verificationAction,
+  .emailChangeAction,
   .exportAction,
   .dangerSummary {
     align-items: flex-start;

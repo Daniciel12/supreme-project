@@ -5,10 +5,12 @@ import {
   accountDeletionPayloadSchema,
   checkInPayloadSchema,
   confirmEmailVerificationPayloadSchema,
+  confirmEmailChangePayloadSchema,
   confirmPasswordRecoveryPayloadSchema,
   createTaskPayloadSchema,
   createTransactionPayloadSchema,
   registerPayloadSchema,
+  requestEmailChangePayloadSchema,
   taskIdSchema,
 } from "../src/lib/api-validation.ts";
 
@@ -60,6 +62,30 @@ test("email verification accepts only an exact 256-bit base64url token", () => {
       token: "a".repeat(43),
       email: "attacker@example.test",
     }).success,
+    false
+  );
+});
+
+test("email change normalizes the target and rejects client-selected identity", () => {
+  const request = requestEmailChangePayloadSchema.parse({
+    newEmail: "  NEW@EXAMPLE.COM  ",
+    password: "current-password",
+  });
+  assert.equal(request.newEmail, "new@example.com");
+  assert.equal(
+    requestEmailChangePayloadSchema.safeParse({
+      ...request,
+      userId: "attacker-selected-user",
+    }).success,
+    false
+  );
+  assert.equal(
+    confirmEmailChangePayloadSchema.safeParse({ token: "a".repeat(43) })
+      .success,
+    true
+  );
+  assert.equal(
+    confirmEmailChangePayloadSchema.safeParse({ token: "short" }).success,
     false
   );
 });
@@ -200,7 +226,7 @@ test("valid payloads are accepted and normalized", () => {
     email: "DANIEL@EXAMPLE.COM",
     password: "123456",
   });
-  assert.equal(registration.email, "DANIEL@EXAMPLE.COM");
+  assert.equal(registration.email, "daniel@example.com");
   assert.equal(registration.name, "");
 });
 

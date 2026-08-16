@@ -207,3 +207,89 @@ export async function sendPasswordResetEmail({
     `,
   });
 }
+
+export async function sendEmailChangeVerification({
+  to,
+  verificationUrl,
+}: {
+  to: string;
+  verificationUrl: string;
+}) {
+  const safeUrl = escapeHtml(verificationUrl);
+
+  await sendTransactionalEmail({
+    to,
+    subject: "Confirme seu novo e-mail no Supreme",
+    text: [
+      "Recebemos uma solicitação para usar este endereço em uma conta Supreme.",
+      "",
+      verificationUrl,
+      "",
+      "O link expira em 60 minutos e só funciona uma vez.",
+      "A troca só será concluída depois da sua confirmação.",
+      "Se você não solicitou esta alteração, ignore esta mensagem.",
+    ].join("\n"),
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#171717">
+        <h1 style="font-size:22px">Confirme seu novo e-mail</h1>
+        <p>Recebemos uma solicitação para usar este endereço em uma conta Supreme.</p>
+        <p><a href="${safeUrl}">Confirmar novo e-mail</a></p>
+        <p>O link expira em 60 minutos e só funciona uma vez.</p>
+        <p>A troca só será concluída depois da sua confirmação.</p>
+        <p>Se você não solicitou esta alteração, ignore esta mensagem.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendEmailChangeRequestedNotice({
+  to,
+  newEmail,
+}: {
+  to: string;
+  newEmail: string;
+}) {
+  const safeNewEmail = escapeHtml(newEmail);
+
+  await sendTransactionalEmail({
+    to,
+    subject: "Solicitação de troca de e-mail no Supreme",
+    text: [
+      "Uma troca de e-mail foi solicitada para sua conta Supreme.",
+      `Novo endereço solicitado: ${newEmail}`,
+      "",
+      "A alteração ainda não foi concluída e depende da confirmação do novo endereço.",
+      "Se você não reconhece esta solicitação, altere sua senha imediatamente.",
+    ].join("\n"),
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#171717">
+        <h1 style="font-size:22px">Troca de e-mail solicitada</h1>
+        <p>Uma troca de e-mail foi solicitada para sua conta Supreme.</p>
+        <p><strong>Novo endereço solicitado:</strong> ${safeNewEmail}</p>
+        <p>A alteração ainda não foi concluída e depende da confirmação do novo endereço.</p>
+        <p>Se você não reconhece esta solicitação, altere sua senha imediatamente.</p>
+      </div>
+    `,
+  });
+}
+
+export async function sendEmailChangedNotice({ to }: { to: string }) {
+  await sendTransactionalEmail({
+    to,
+    subject: "E-mail da conta Supreme alterado",
+    text: [
+      "O e-mail principal da sua conta Supreme foi alterado.",
+      "Todas as sessões anteriores foram encerradas.",
+      "",
+      "Se você não reconhece esta alteração, proteja imediatamente suas contas de e-mail e contate o suporte.",
+    ].join("\n"),
+    html: `
+      <div style="font-family:Arial,sans-serif;line-height:1.6;color:#171717">
+        <h1 style="font-size:22px">E-mail alterado</h1>
+        <p>O e-mail principal da sua conta Supreme foi alterado.</p>
+        <p>Todas as sessões anteriores foram encerradas.</p>
+        <p>Se você não reconhece esta alteração, proteja imediatamente suas contas de e-mail e contate o suporte.</p>
+      </div>
+    `,
+  });
+}

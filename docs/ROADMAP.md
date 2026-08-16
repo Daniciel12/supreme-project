@@ -25,7 +25,7 @@ possui confirmação reforçada, estado recuperável e limpeza remota. A valida�
 operacional usa apenas contas descartáveis.
 
 **Próximos passos:**
-1. implementar alteração segura de e-mail com confirmação de identidade;
+1. validar em produção a alteração segura de e-mail com conta descartável;
 2. iniciar a abstração de provider para Open Finance;
 3. preparar a política pública de privacidade para operação comercial.
 
@@ -157,6 +157,9 @@ somente no servidor e o account linking implícito está bloqueado.
   - [x] fluxo seguro, tokens não reversíveis, UI e runbook versionados;
   - [x] SMTP de produção e confirmação real validados;
 - [x] perfil/configurações;
+- [x] alteração segura de e-mail;
+  - [x] senha atual ou Google recente, confirmação no endereço novo e aviso no antigo;
+  - [x] colisão case-insensitive, revogação de sessões e runbook versionado;
 - [x] exportação de dados;
 - [x] exclusão de conta;
   - [x] confirmação reforçada, revogação de sessões e estado recuperável;

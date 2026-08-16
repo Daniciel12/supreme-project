@@ -145,7 +145,16 @@ export async function resetPasswordWithToken({
 
     await transaction.session.deleteMany({ where: { userId: user.id } });
     await transaction.verificationToken.deleteMany({
-      where: { identifier: storedToken.identifier },
+      where: {
+        OR: [
+          { identifier: storedToken.identifier },
+          {
+            identifier: {
+              startsWith: `email-change:${user.id}:`,
+            },
+          },
+        ],
+      },
     });
 
     return true;

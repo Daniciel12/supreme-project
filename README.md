@@ -127,6 +127,7 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `deploy/systemd/supreme-app-health.*`: serviço e timer para monitoramento da aplicação.
 - `docs/APP_MONITORING.md`: ativação, alertas de falha/ausência e desativação segura.
 - `docs/EMAIL_VERIFICATION.md`: configuração SMTP, ativação e validação controlada do fluxo de verificação.
+- `docs/EMAIL_CHANGE.md`: troca de e-mail com confirmação de identidade, aviso no endereço anterior e revogação de sessões.
 
 ### Preparar o ambiente
 

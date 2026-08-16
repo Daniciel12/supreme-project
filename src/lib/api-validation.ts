@@ -11,6 +11,12 @@ const passwordSchema = z
   .refine((value) => new TextEncoder().encode(value).length <= 72);
 const requiredText = (max: number) => z.string().trim().min(1).max(max);
 const moneySchema = z.number().finite().multipleOf(0.01);
+export const accountEmailSchema = z
+  .string()
+  .trim()
+  .email()
+  .max(254)
+  .transform((value) => value.toLowerCase());
 
 export const financialAccountTypes = [
   "CHECKING",
@@ -156,7 +162,7 @@ export const updateTransactionStatusPayloadSchema = z.strictObject({
 });
 
 export const registerPayloadSchema = z.strictObject({
-  email: z.string().email().max(254),
+  email: accountEmailSchema,
   password: passwordSchema,
   name: z.string().trim().max(100).optional(),
 });
@@ -175,6 +181,20 @@ export const accountDeletionPayloadSchema = z.strictObject({
     .max(72)
     .refine((value) => new TextEncoder().encode(value).length <= 72)
     .optional(),
+});
+
+export const requestEmailChangePayloadSchema = z.strictObject({
+  newEmail: accountEmailSchema,
+  password: z
+    .string()
+    .min(1)
+    .max(72)
+    .refine((value) => new TextEncoder().encode(value).length <= 72)
+    .optional(),
+});
+
+export const confirmEmailChangePayloadSchema = z.strictObject({
+  token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
 });
 
 export const confirmEmailVerificationPayloadSchema = z.strictObject({
