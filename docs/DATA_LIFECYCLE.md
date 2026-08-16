@@ -107,12 +107,19 @@ operacional; expiração e restores controlados devem respeitar pedidos de
 exclusão concluídos. O procedimento de implantação e validação está em
 [ACCOUNT_DELETION.md](ACCOUNT_DELETION.md).
 
-## Alteração de e-mail — contrato separado
+## Alteração de e-mail
 
-Troca de e-mail não faz parte da exportação nem da exclusão. O fluxo futuro
-deve confirmar identidade recente, verificar o endereço novo, notificar o
-endereço anterior, bloquear colisões e preservar a regra que proíbe vinculação
-OAuth implícita.
+Troca de e-mail não faz parte da exportação nem da exclusão. A solicitação
+deriva o usuário da sessão, confirma senha atual ou Google recente, avisa o
+endereço anterior e envia ao novo endereço um token de uso único por 60
+minutos. O e-mail atual permanece ativo até a confirmação explícita.
+
+A conclusão revalida o endereço anterior, bloqueia colisões sem diferenciar
+maiúsculas e minúsculas, marca o novo endereço como verificado e revoga todas
+as sessões e tokens concorrentes. O vínculo Google continua ancorado no ID do
+provider e nenhuma igualdade de e-mail habilita account linking implícito. O
+procedimento de implantação e validação está em
+[EMAIL_CHANGE.md](EMAIL_CHANGE.md).
 
 ## Gates de validação da exportação
 

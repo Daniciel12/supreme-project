@@ -3,10 +3,11 @@ import "server-only";
 import bcrypt from "bcrypt";
 import { accountDeletionSubjectHash } from "@/lib/account-deletion-identity";
 import { prisma } from "@/lib/prisma";
+import { isRecentAuthentication } from "@/lib/recent-authentication";
 import { deleteUploadThingFiles } from "@/lib/uploadthing-files";
 
 export const ACCOUNT_DELETION_CONFIRMATION = "EXCLUIR MINHA CONTA";
-export const RECENT_AUTHENTICATION_WINDOW_MS = 10 * 60 * 1000;
+export { isRecentAuthentication } from "@/lib/recent-authentication";
 
 type DeleteAccountInput = {
   userId: string;
@@ -34,19 +35,6 @@ const deletionInventorySelect = {
 
 function normalizedEmail(value: string) {
   return value.trim().toLowerCase();
-}
-
-export function isRecentAuthentication(
-  authenticatedAt: string | undefined,
-  now = Date.now()
-) {
-  if (!authenticatedAt) return false;
-
-  const issuedAt = Date.parse(authenticatedAt);
-  if (!Number.isFinite(issuedAt)) return false;
-
-  const age = now - issuedAt;
-  return age >= -60_000 && age <= RECENT_AUTHENTICATION_WINDOW_MS;
 }
 
 export function accountDeletionFileKeys(inventory: DeletionInventory) {
@@ -199,6 +187,7 @@ async function finalizeDeletion({
           OR: [
             { identifier: { startsWith: `email-verification:${userId}:` } },
             { identifier: { startsWith: `password-recovery:${userId}:` } },
+            { identifier: { startsWith: `email-change:${userId}:` } },
           ],
         },
       });

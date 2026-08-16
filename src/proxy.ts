@@ -32,6 +32,6 @@ export async function proxy(...args: Parameters<typeof authProxy>) {
 
 export const config = {
   matcher: [
-    "/((?!api/auth|api/health|api/uploadthing|verificar-email|recuperar-senha|redefinir-senha|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth|api/health|api/uploadthing|api/account/email-change/confirm|verificar-email|alterar-email|recuperar-senha|redefinir-senha|_next/static|_next/image|favicon.ico).*)",
   ],
 };

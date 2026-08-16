@@ -13,6 +13,9 @@ mock.module("secure-nodemailer", {
 const {
   EmailConfigurationError,
   readEmailTransportConfiguration,
+  sendEmailChangedNotice,
+  sendEmailChangeRequestedNotice,
+  sendEmailChangeVerification,
   sendEmailVerification,
   sendPasswordResetEmail,
 } = await import("../src/lib/email.ts");
@@ -117,4 +120,41 @@ test("password recovery email escapes the link and documents its short lifetime"
   assert.match(message.text, /token=test&next=<unsafe>/);
   assert.match(message.html, /token=test&amp;next=&lt;unsafe&gt;/);
   assert.doesNotMatch(message.html, /token=test&next=<unsafe>/);
+});
+
+test("email change messages cover both addresses without exposing unsafe HTML", async () => {
+  const previousEnvironment = Object.fromEntries(
+    Object.keys(validEnvironment).map((key) => [key, process.env[key]])
+  );
+  Object.assign(process.env, validEnvironment);
+
+  try {
+    await sendEmailChangeRequestedNotice({
+      to: "old@example.test",
+      newEmail: "new+<unsafe>@example.test",
+    });
+    await sendEmailChangeVerification({
+      to: "new@example.test",
+      verificationUrl:
+        "https://supreme.example/alterar-email#token=test&next=<unsafe>",
+    });
+    await sendEmailChangedNotice({ to: "old@example.test" });
+  } finally {
+    for (const [key, value] of Object.entries(previousEnvironment)) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+
+  const [requested, verification, completed] = sendMail.mock.calls
+    .slice(-3)
+    .map((call) => call.arguments[0]);
+  assert.equal(requested.to, "old@example.test");
+  assert.match(requested.text, /new\+<unsafe>@example\.test/);
+  assert.match(requested.html, /new\+&lt;unsafe&gt;@example\.test/);
+  assert.equal(verification.to, "new@example.test");
+  assert.match(verification.text, /60 minutos/);
+  assert.match(verification.html, /token=test&amp;next=&lt;unsafe&gt;/);
+  assert.equal(completed.to, "old@example.test");
+  assert.match(completed.text, /sessões anteriores foram encerradas/);
 });

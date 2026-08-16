@@ -25,11 +25,13 @@ function oauthErrorMessage(code: string | null) {
 function LoginContent() {
   const searchParams = useSearchParams();
   const redirectError = oauthErrorMessage(searchParams.get("error"));
-  const accountNotice = searchParams.has("accountDeleted")
-    ? "Sua conta e seus dados ativos foram excluídos com sucesso."
-    : searchParams.has("deletionPending")
-      ? "A limpeza externa não terminou. Entre novamente e repita a exclusão para concluir."
-      : null;
+  const accountNotice = searchParams.has("emailChanged")
+    ? "E-mail alterado com sucesso. Entre novamente usando o novo endereço."
+    : searchParams.has("accountDeleted")
+      ? "Sua conta e seus dados ativos foram excluídos com sucesso."
+      : searchParams.has("deletionPending")
+        ? "A limpeza externa não terminou. Entre novamente e repita a exclusão para concluir."
+        : null;
   const [mode, setMode] = useState<Mode>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -219,7 +221,8 @@ function LoginContent() {
             {accountNotice && (
               <p
                 className={
-                  searchParams.has("accountDeleted")
+                  searchParams.has("accountDeleted") ||
+                  searchParams.has("emailChanged")
                     ? styles.success
                     : styles.error
                 }

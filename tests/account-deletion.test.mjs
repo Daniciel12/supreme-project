@@ -180,6 +180,14 @@ test("successful deletion cleans remote files before deleting the user", async (
   assert.equal(sessionDeleteMany.mock.callCount(), 1);
   assert.equal(transactionUserDelete.mock.callCount(), 1);
   assert.equal(verificationTokenDeleteMany.mock.callCount(), 1);
+  assert.deepEqual(
+    verificationTokenDeleteMany.mock.calls[0].arguments[0].where.OR,
+    [
+      { identifier: { startsWith: "email-verification:user-1:" } },
+      { identifier: { startsWith: "password-recovery:user-1:" } },
+      { identifier: { startsWith: "email-change:user-1:" } },
+    ]
+  );
 });
 
 test("provider failure preserves the account and records a retryable state", async () => {

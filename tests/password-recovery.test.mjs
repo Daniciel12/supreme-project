@@ -102,6 +102,10 @@ test("a valid token replaces the password and invalidates every prior session", 
   assert.deepEqual(sessionDeleteMany.mock.calls.at(-1).arguments[0], {
     where: { userId: "user-2" },
   });
+  assert.match(
+    JSON.stringify(verificationTokenDeleteMany.mock.calls.at(-1).arguments[0]),
+    /email-change:user-2/
+  );
 });
 
 test("expired, changed-email and OAuth-only accounts cannot reset a password", async () => {

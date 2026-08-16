@@ -66,8 +66,13 @@ export function createAuthOptions(
           return null;
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+        const user = await prisma.user.findFirst({
+          where: {
+            email: {
+              equals: credentials.email.trim().toLowerCase(),
+              mode: "insensitive",
+            },
+          },
         });
 
         if (!user?.password) {

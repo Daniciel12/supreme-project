@@ -32,9 +32,12 @@ function createAsyncStub() {
 }
 
 const userFindUnique = createAsyncStub();
+const userFindFirst = createAsyncStub();
 const bcryptCompare = createAsyncStub();
 const adapterLinkAccount = createAsyncStub();
-const prisma = { user: { findUnique: userFindUnique } };
+const prisma = {
+  user: { findUnique: userFindUnique, findFirst: userFindFirst },
+};
 const credentialsProviderModule = await import(
   "next-auth/providers/credentials"
 );
@@ -69,6 +72,7 @@ const publicProviders = publicProvidersModule.default.default;
 
 beforeEach(() => {
   userFindUnique.reset();
+  userFindFirst.reset();
   bcryptCompare.reset();
   adapterLinkAccount.reset();
 });
@@ -94,7 +98,7 @@ test("Credentials returns null for an unknown user", async () => {
 });
 
 test("Credentials rejects an OAuth-only user without calling bcrypt", async () => {
-  userFindUnique.implementation = async () => ({
+  userFindFirst.implementation = async () => ({
     id: "oauth-user",
     email: credentials.email,
     name: "Daniel",
@@ -107,7 +111,7 @@ test("Credentials rejects an OAuth-only user without calling bcrypt", async () =
 });
 
 test("Credentials returns null for an invalid password", async () => {
-  userFindUnique.implementation = async () => ({
+  userFindFirst.implementation = async () => ({
     id: "credentials-user",
     email: credentials.email,
     name: "Daniel",
@@ -121,7 +125,7 @@ test("Credentials returns null for an invalid password", async () => {
 });
 
 test("Credentials authenticates a valid password", async () => {
-  userFindUnique.implementation = async () => ({
+  userFindFirst.implementation = async () => ({
     id: "credentials-user",
     email: credentials.email,
     name: "Daniel",
@@ -134,6 +138,29 @@ test("Credentials authenticates a valid password", async () => {
     id: "credentials-user",
     email: credentials.email,
     name: "Daniel",
+  });
+  assert.deepEqual(userFindFirst.calls[0][0], {
+    where: {
+      email: { equals: "daniel@example.com", mode: "insensitive" },
+    },
+  });
+});
+
+test("Credentials normalizes mixed-case email before lookup", async () => {
+  userFindFirst.implementation = async () => ({
+    id: "credentials-user",
+    email: credentials.email,
+    name: "Daniel",
+    password: "stored-hash",
+  });
+  bcryptCompare.implementation = async () => true;
+  const authorize = credentialsAuthorize(createAuthOptions({}));
+
+  await authorize({ ...credentials, email: "  DANIEL@EXAMPLE.COM  " });
+  assert.deepEqual(userFindFirst.calls[0][0], {
+    where: {
+      email: { equals: "daniel@example.com", mode: "insensitive" },
+    },
   });
 });
 
@@ -337,6 +364,24 @@ test("Prisma schema and migration support OAuth users without data loss", async 
   assert.match(schema, /password\s+String\?/);
   assert.match(migration, /ALTER COLUMN "password" DROP NOT NULL/);
   assert.doesNotMatch(migration, /DROP TABLE|DELETE FROM|UPDATE "users"/i);
+});
+
+test("email uniqueness is case-insensitive without enabling OAuth linking", async () => {
+  const migration = await readFile(
+    new URL(
+      "../prisma/migrations/20260816180000_add_case_insensitive_email_uniqueness/migration.sql",
+      import.meta.url
+    ),
+    "utf8"
+  );
+  const auth = await readFile(
+    new URL("../src/lib/auth.ts", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(migration, /UNIQUE INDEX[\s\S]*LOWER\("email"\)/i);
+  assert.match(auth, /mode: "insensitive"/);
+  assert.doesNotMatch(auth, /allowDangerousEmailAccountLinking:\s*true/);
 });
 
 test("login UI discovers Google through getProviders without client secrets", async () => {

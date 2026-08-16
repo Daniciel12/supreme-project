@@ -48,6 +48,10 @@ export default function ConfiguracoesPage() {
   const [loadError, setLoadError] = useState(false);
   const [saving, setSaving] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
+  const [showEmailChangeForm, setShowEmailChangeForm] = useState(false);
+  const [requestingEmailChange, setRequestingEmailChange] = useState(false);
+  const [newEmail, setNewEmail] = useState("");
+  const [emailChangePassword, setEmailChangePassword] = useState("");
   const [exportingData, setExportingData] = useState(false);
   const [showDeletionForm, setShowDeletionForm] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -303,6 +307,69 @@ export default function ConfiguracoesPage() {
     }
   }
 
+  async function requestEmailChange(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!profile || requestingEmailChange) return;
+
+    const normalizedNewEmail = newEmail.trim().toLowerCase();
+    setFeedback(null);
+
+    if (
+      !normalizedNewEmail ||
+      normalizedNewEmail === profile.email.trim().toLowerCase() ||
+      (profile.accessMethods.credentials && !emailChangePassword)
+    ) {
+      setFeedback({
+        tone: "error",
+        message: "Informe um novo e-mail e confirme sua identidade.",
+      });
+      return;
+    }
+
+    setRequestingEmailChange(true);
+
+    try {
+      const response = await fetch("/api/account/email-change/request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          newEmail: normalizedNewEmail,
+          ...(profile.accessMethods.credentials
+            ? { password: emailChangePassword }
+            : {}),
+        }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        setFeedback({
+          tone: "error",
+          message:
+            response.status === 428
+              ? "Saia e entre novamente com Google antes de solicitar a troca."
+              : data?.error ?? "Não foi possível solicitar a troca de e-mail.",
+        });
+        return;
+      }
+
+      setShowEmailChangeForm(false);
+      setNewEmail("");
+      setEmailChangePassword("");
+      setFeedback({
+        tone: "success",
+        message:
+          "Enviamos um aviso ao endereço atual e a confirmação ao novo e-mail. O link expira em 60 minutos.",
+      });
+    } catch {
+      setFeedback({
+        tone: "error",
+        message: "Não foi possível solicitar a troca de e-mail.",
+      });
+    } finally {
+      setRequestingEmailChange(false);
+    }
+  }
+
   const profileInitial = (profile?.name || profile?.email || "S")
     .trim()
     .charAt(0)
@@ -376,7 +443,7 @@ export default function ConfiguracoesPage() {
                   Perfil
                 </h2>
                 <p className={styles.sectionDescription}>
-                  O nome pode ser alterado aqui. O e-mail permanece bloqueado enquanto o fluxo seguro de troca de identidade não estiver disponível.
+                  Atualize seu nome ou inicie uma troca de e-mail protegida por confirmação de identidade.
                 </p>
 
                 <form className="form" onSubmit={handleSubmit} noValidate>
@@ -410,7 +477,7 @@ export default function ConfiguracoesPage() {
                   <FormField
                     label="E-mail da conta"
                     htmlFor="account-email"
-                    hint="A troca de e-mail exigirá confirmação de identidade em uma etapa futura."
+                    hint="Este endereço só muda depois que o novo e-mail for confirmado."
                   >
                     <Input
                       id="account-email"
@@ -448,6 +515,100 @@ export default function ConfiguracoesPage() {
                     Salvar nome
                   </Button>
                 </form>
+
+                {!showEmailChangeForm ? (
+                  <div className={styles.emailChangeAction}>
+                    <div>
+                      <strong>Troca segura de e-mail</strong>
+                      <span>
+                        Exige sua identidade atual, confirmação no novo endereço e encerra as sessões anteriores.
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => {
+                        setShowEmailChangeForm(true);
+                        setNewEmail("");
+                        setEmailChangePassword("");
+                        setFeedback(null);
+                      }}
+                    >
+                      Alterar e-mail
+                    </Button>
+                  </div>
+                ) : (
+                  <form
+                    className={styles.emailChangeForm}
+                    onSubmit={requestEmailChange}
+                    noValidate
+                  >
+                    <FormField
+                      label="Novo e-mail"
+                      htmlFor="account-new-email"
+                      hint="Enviaremos um link de uso único para este endereço."
+                    >
+                      <Input
+                        id="account-new-email"
+                        type="email"
+                        autoComplete="email"
+                        value={newEmail}
+                        required
+                        maxLength={254}
+                        disabled={requestingEmailChange}
+                        onChange={(event) => setNewEmail(event.target.value)}
+                      />
+                    </FormField>
+
+                    {profile.accessMethods.credentials ? (
+                      <FormField
+                        label="Senha atual"
+                        htmlFor="account-email-change-password"
+                        hint="A senha confirma sua identidade e não será armazenada novamente."
+                      >
+                        <Input
+                          id="account-email-change-password"
+                          type="password"
+                          autoComplete="current-password"
+                          value={emailChangePassword}
+                          required
+                          maxLength={72}
+                          disabled={requestingEmailChange}
+                          onChange={(event) =>
+                            setEmailChangePassword(event.target.value)
+                          }
+                        />
+                      </FormField>
+                    ) : (
+                      <p className={styles.oauthConfirmation}>
+                        Como esta conta usa Google, a solicitação exige um login realizado nos últimos 10 minutos.
+                      </p>
+                    )}
+
+                    <div className={styles.emailChangeActions}>
+                      <Button
+                        type="submit"
+                        isLoading={requestingEmailChange}
+                        loadingLabel="Enviando..."
+                      >
+                        Enviar confirmações
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={requestingEmailChange}
+                        onClick={() => {
+                          setShowEmailChangeForm(false);
+                          setNewEmail("");
+                          setEmailChangePassword("");
+                          setFeedback(null);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </Card>
 
               <Card aria-labelledby="access-methods-title">
@@ -512,7 +673,7 @@ export default function ConfiguracoesPage() {
                   Proteções do ciclo de dados
                 </h2>
                 <p className={styles.sectionDescription}>
-                  O Supreme separa exportação, exclusão e recuperação para reduzir ações acidentais. A troca segura de e-mail continua no roadmap.
+                  O Supreme separa troca de identidade, exportação, exclusão e recuperação para reduzir ações acidentais.
                 </p>
                 <ul className={styles.lifecycleList}>
                   <li>a exportação não inclui credenciais nem arquivos de sessão;</li>
