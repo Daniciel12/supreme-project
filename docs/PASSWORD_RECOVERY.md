@@ -76,6 +76,9 @@ Use uma conta operacional Credentials cujo e-mail você controla:
 Não copie o link recebido para logs, tickets ou chat. Ele é uma credencial
 temporária.
 
+O teste real foi concluído em 16/08/2026. As evidências sem dados de conta ou
+credenciais estão em `docs/AUTH_EMAIL_PRODUCTION_VALIDATION.md`.
+
 ## Rollback
 
 Se o deploy falhar antes do reset real, restaure a imagem anterior e repita

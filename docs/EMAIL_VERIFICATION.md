@@ -98,6 +98,9 @@ Use uma conta operacional cujo e-mail você controla:
 Não copie o link recebido para logs ou tickets: ele é uma credencial temporária.
 O item do roadmap só pode ser concluído depois desse teste real.
 
+O teste real foi concluído em 16/08/2026. As evidências sem dados de conta ou
+credenciais estão em `docs/AUTH_EMAIL_PRODUCTION_VALIDATION.md`.
+
 ## Rollback
 
 Se envio, health check ou smoke falhar:

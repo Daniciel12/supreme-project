@@ -1,6 +1,6 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 14/08/2026
+**Atualizado em:** 16/08/2026
 
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
@@ -16,14 +16,16 @@ As integrações previstas para esta etapa estão operacionais. Google OAuth foi
 validado no ambiente real, coexistindo com Credentials sem vinculação implícita
 de contas, e o provisionamento inicial da VPS foi encerrado na issue #34.
 
-Conta e lifecycle foi iniciada com uma área autenticada de perfil e métodos de
-acesso. Alteração de e-mail, recuperação, exportação e exclusão continuam
+Conta e lifecycle possui uma área autenticada de perfil e métodos de acesso.
+Recuperação de senha e verificação de e-mail foram validadas de ponta a ponta
+em produção, incluindo SMTP real, tokens descartáveis, revogação de sessões e
+smoke autenticado. Alteração de e-mail, exportação e exclusão continuam
 separadas para receber confirmação de identidade e políticas próprias.
 
 **Próximos passos:**
-1. ativar e validar o SMTP de verificação de e-mail em produção;
-2. validar em produção a recuperação de senha e a invalidação segura de sessões;
-3. definir exportação, exclusão e retenção antes das integrações futuras.
+1. definir exportação, exclusão e retenção antes das integrações futuras;
+2. projetar alteração segura de e-mail com confirmação de identidade;
+3. iniciar a abstração de provider para Open Finance.
 
 ## ✅ 1. Fundação técnica — concluída
 
@@ -146,12 +148,12 @@ somente no servidor e o account linking implícito está bloqueado.
 
 ## ⏳ 10. Conta e lifecycle
 
-- [ ] recuperação de senha;
+- [x] recuperação de senha;
   - [x] fluxo seguro, sessão revogável, UI e runbook versionados;
-  - [ ] SMTP, reset real e invalidação de sessão validados em produção;
-- [ ] verificação de e-mail;
+  - [x] SMTP, reset real e invalidação de sessão validados em produção;
+- [x] verificação de e-mail;
   - [x] fluxo seguro, tokens não reversíveis, UI e runbook versionados;
-  - [ ] SMTP de produção e confirmação real validados;
+  - [x] SMTP de produção e confirmação real validados;
 - [x] perfil/configurações;
 - [ ] exportação de dados;
 - [ ] exclusão de conta;

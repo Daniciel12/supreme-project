@@ -61,11 +61,19 @@ test("roadmap records Frontend v3 as complete and the current lifecycle validati
   assert.match(roadmap, /## ✅ 9\. Frontend v3 — concluído/);
   assert.match(roadmap, /- \[x\] motion e microinterações;/);
   assert.match(roadmap, /- \[x\] revisão de acessibilidade e performance\./);
-  assert.match(roadmap, /Conta e lifecycle foi iniciada/);
-  assert.match(roadmap, /1\. ativar e validar o SMTP de verificação de e-mail em produção;/);
+  assert.match(roadmap, /Conta e lifecycle possui/);
   assert.match(
     roadmap,
-    /2\. validar em produção a recuperação de senha e a invalidação segura de sessões;/
+    /Recuperação de senha e verificação de e-mail foram validadas de ponta a ponta/
   );
-  assert.match(roadmap, /fluxo seguro, sessão revogável, UI e runbook versionados/);
+  assert.match(roadmap, /- \[x\] recuperação de senha;/);
+  assert.match(
+    roadmap,
+    /- \[x\] SMTP, reset real e invalidação de sessão validados em produção;/
+  );
+  assert.match(roadmap, /- \[x\] verificação de e-mail;/);
+  assert.match(
+    roadmap,
+    /- \[x\] SMTP de produção e confirmação real validados;/
+  );
 });
