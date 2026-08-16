@@ -44,10 +44,35 @@ model User {
   visionImages VisionImage[]
 
   // Requeridos pelo PrismaAdapter do NextAuth
-  accounts Account[]
-  sessions Session[]
+  accounts        Account[]
+  sessions        Session[]
+  deletionRequest AccountDeletionRequest?
 
   @@map("users")
+}
+
+enum AccountDeletionStatus {
+  PENDING_REMOTE_CLEANUP
+  COMPLETED
+}
+
+model AccountDeletionRequest {
+  id            String                @id @default(uuid())
+  subjectHash   String                @unique
+  userId        String?               @unique
+  status        AccountDeletionStatus @default(PENDING_REMOTE_CLEANUP)
+  fileKeys      String[]              @default([])
+  fileCount     Int                   @default(0)
+  attemptCount  Int                   @default(0)
+  requestedAt   DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+  lastAttemptAt DateTime?
+  completedAt   DateTime?
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([status, requestedAt])
+  @@map("account_deletion_requests")
 }
 
 // ---------------------------------------------------------------------------
@@ -286,9 +311,10 @@ model Task {
 // Quadro de Visão
 // ---------------------------------------------------------------------------
 model VisionImage {
-  id        String   @id @default(uuid())
-  imageUrl  String
-  createdAt DateTime @default(now())
+  id              String   @id @default(uuid())
+  imageUrl        String
+  providerFileKey String?  @unique
+  createdAt       DateTime @default(now())
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

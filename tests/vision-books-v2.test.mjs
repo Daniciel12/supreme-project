@@ -41,6 +41,7 @@ const bookFindFirst = createAsyncStub();
 const bookUpdate = createAsyncStub();
 const bookDeleteMany = createAsyncStub();
 const visionDeleteMany = createAsyncStub();
+const deleteUploadThingFiles = createAsyncStub();
 
 const prisma = {
   book: {
@@ -60,6 +61,12 @@ mock.module(new URL("../src/lib/auth.ts", import.meta.url), {
   namedExports: { authOptions: {} },
 });
 mock.module("next-auth/next", { namedExports: { getServerSession } });
+mock.module("server-only", { defaultExport: {} });
+mock.module(new URL("../src/lib/uploadthing-files.ts", import.meta.url), {
+  namedExports: {
+    deleteUploadThingFiles,
+  },
+});
 
 const { NextRequest } = await import("next/server");
 const { PATCH: patchBook, DELETE: deleteBook } = await import(
@@ -81,6 +88,7 @@ const stubs = [
   bookUpdate,
   bookDeleteMany,
   visionDeleteMany,
+  deleteUploadThingFiles,
 ];
 
 beforeEach(() => {
@@ -270,8 +278,10 @@ test("vision uploader authenticates the file route and persists server-side", ()
   assert.match(core, /UploadThingError/);
   assert.match(core, /userId: token\.sub/);
   assert.match(core, /file\.ufsUrl/);
+  assert.match(core, /providerFileKey: file\.key/);
   assert.match(core, /userId: metadata\.userId/);
-  assert.match(core, /prisma\.visionImage\.create/);
+  assert.match(core, /transaction\.visionImage\.create/);
+  assert.match(core, /FOR UPDATE/);
   assert.match(route, /createRouteHandler/);
   assert.doesNotMatch(route, /getServerSession|getToken/);
 });

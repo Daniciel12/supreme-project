@@ -133,6 +133,16 @@ export function createAuthOptions(
         if (session.user && token.sub) {
           session.user.id = token.sub;
         }
+
+        const issuedAt =
+          typeof token.sessionIssuedAt === "number"
+            ? token.sessionIssuedAt
+            : typeof token.iat === "number"
+              ? token.iat * 1000
+              : null;
+        if (issuedAt !== null && Number.isFinite(issuedAt)) {
+          session.authenticatedAt = new Date(issuedAt).toISOString();
+        }
         return session;
       },
     },

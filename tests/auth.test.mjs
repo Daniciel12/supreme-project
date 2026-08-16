@@ -304,6 +304,21 @@ test("session callback copies token.sub to session.user.id", async () => {
   assert.equal(result.user.id, "oauth-user");
 });
 
+test("session callback exposes the server-issued authentication time", async () => {
+  const options = createAuthOptions({});
+  const session = {
+    user: { id: "", email: "owner@example.com" },
+    expires: "2099-01-01T00:00:00.000Z",
+  };
+
+  const result = await options.callbacks.session({
+    session,
+    token: { sub: "user-1", sessionIssuedAt: 1_700_000_000_250 },
+  });
+
+  assert.equal(result.authenticatedAt, "2023-11-14T22:13:20.250Z");
+});
+
 test("Prisma schema and migration support OAuth users without data loss", async () => {
   const schema = await readFile(
     new URL("../prisma/schema.prisma", import.meta.url),

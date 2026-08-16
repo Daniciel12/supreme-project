@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  accountDeletionPayloadSchema,
   checkInPayloadSchema,
   confirmEmailVerificationPayloadSchema,
   confirmPasswordRecoveryPayloadSchema,
@@ -10,6 +11,38 @@ import {
   registerPayloadSchema,
   taskIdSchema,
 } from "../src/lib/api-validation.ts";
+
+test("account deletion requires every reinforced confirmation", () => {
+  const valid = {
+    email: "owner@example.com",
+    password: "valid-password",
+    confirmation: "EXCLUIR MINHA CONTA",
+    acknowledgedBackupRetention: true,
+  };
+
+  assert.equal(accountDeletionPayloadSchema.safeParse(valid).success, true);
+  assert.equal(
+    accountDeletionPayloadSchema.safeParse({
+      ...valid,
+      confirmation: "excluir minha conta",
+    }).success,
+    false
+  );
+  assert.equal(
+    accountDeletionPayloadSchema.safeParse({
+      ...valid,
+      acknowledgedBackupRetention: false,
+    }).success,
+    false
+  );
+  assert.equal(
+    accountDeletionPayloadSchema.safeParse({
+      ...valid,
+      userId: "attacker-selected-user",
+    }).success,
+    false
+  );
+});
 
 test("email verification accepts only an exact 256-bit base64url token", () => {
   assert.equal(

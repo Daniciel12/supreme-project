@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import { signOut } from "next-auth/react";
 import {
   Badge,
   Button,
@@ -27,6 +28,8 @@ type Feedback =
   | { tone: "success" | "error"; message: string }
   | null;
 
+const ACCOUNT_DELETION_CONFIRMATION = "EXCLUIR MINHA CONTA";
+
 async function fetchProfile() {
   const response = await fetch("/api/account/profile", { cache: "no-store" });
   const data = await response.json();
@@ -46,6 +49,13 @@ export default function ConfiguracoesPage() {
   const [saving, setSaving] = useState(false);
   const [sendingVerification, setSendingVerification] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  const [showDeletionForm, setShowDeletionForm] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [deletionEmail, setDeletionEmail] = useState("");
+  const [deletionPhrase, setDeletionPhrase] = useState("");
+  const [deletionPassword, setDeletionPassword] = useState("");
+  const [acknowledgedBackupRetention, setAcknowledgedBackupRetention] =
+    useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<Feedback>(null);
 
@@ -213,6 +223,83 @@ export default function ConfiguracoesPage() {
       });
     } finally {
       setExportingData(false);
+    }
+  }
+
+  async function deleteAccount(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!profile || deletingAccount) return;
+
+    setFeedback(null);
+
+    if (
+      deletionEmail.trim().toLowerCase() !== profile.email.toLowerCase() ||
+      deletionPhrase !== ACCOUNT_DELETION_CONFIRMATION ||
+      !acknowledgedBackupRetention ||
+      (profile.accessMethods.credentials && !deletionPassword)
+    ) {
+      setFeedback({
+        tone: "error",
+        message: "Preencha todas as confirmações exatamente como solicitado.",
+      });
+      return;
+    }
+
+    setDeletingAccount(true);
+
+    try {
+      const response = await fetch("/api/account", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: deletionEmail,
+          confirmation: deletionPhrase,
+          acknowledgedBackupRetention,
+          ...(profile.accessMethods.credentials
+            ? { password: deletionPassword }
+            : {}),
+        }),
+      });
+      const data = await response.json().catch(() => null);
+
+      if (response.ok) {
+        try {
+          await signOut({ redirect: false });
+        } finally {
+          window.location.replace("/login?accountDeleted=1");
+        }
+        return;
+      }
+
+      if (response.status === 428) {
+        setFeedback({
+          tone: "error",
+          message:
+            "Sua autenticação está antiga. Saia, entre novamente com Google e repita a confirmação.",
+        });
+        return;
+      }
+
+      if (response.status === 503) {
+        try {
+          await signOut({ redirect: false });
+        } finally {
+          window.location.replace("/login?deletionPending=1");
+        }
+        return;
+      }
+
+      setFeedback({
+        tone: "error",
+        message: data?.error ?? "Não foi possível excluir sua conta.",
+      });
+    } catch {
+      setFeedback({
+        tone: "error",
+        message: "Não foi possível excluir sua conta.",
+      });
+    } finally {
+      setDeletingAccount(false);
     }
   }
 
@@ -422,16 +509,156 @@ export default function ConfiguracoesPage() {
               <Card className={styles.lifecycleCard} aria-labelledby="lifecycle-title">
                 <span className={styles.sectionIndex} aria-hidden="true">04</span>
                 <h2 id="lifecycle-title" className="card-title">
-                  Próximas proteções
+                  Proteções do ciclo de dados
                 </h2>
                 <p className={styles.sectionDescription}>
-                  Verificação de e-mail, recuperação de senha e exportação já possuem fluxos separados. Exclusão e troca de e-mail continuam bloqueadas até receberem confirmação reforçada.
+                  O Supreme separa exportação, exclusão e recuperação para reduzir ações acidentais. A troca segura de e-mail continua no roadmap.
                 </p>
                 <ul className={styles.lifecycleList}>
-                  <li>nenhuma exclusão é executada nesta página;</li>
                   <li>a exportação não inclui credenciais nem arquivos de sessão;</li>
-                  <li>métodos Google e Credentials continuam independentes.</li>
+                  <li>a exclusão exige identidade confirmada e revoga as sessões;</li>
+                  <li>backups criptografados podem reter dados por até 30 dias.</li>
                 </ul>
+              </Card>
+
+              <Card
+                className={`${styles.lifecycleCard} ${styles.dangerCard}`}
+                aria-labelledby="account-deletion-title"
+              >
+                <span className={styles.dangerIndex} aria-hidden="true">05</span>
+                <h2 id="account-deletion-title" className="card-title">
+                  Excluir minha conta
+                </h2>
+                <p className={styles.sectionDescription}>
+                  Esta ação apaga permanentemente sua conta, os dados dos módulos e os arquivos reconhecidos no provedor de uploads. Exporte seus dados antes de continuar.
+                </p>
+
+                {!showDeletionForm ? (
+                  <div className={styles.dangerSummary}>
+                    <div>
+                      <strong>Ação irreversível na aplicação</strong>
+                      <span>
+                        Cópias em backups externos criptografados expiram pela política operacional em até 30 dias e não são restauradas automaticamente.
+                      </span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="danger"
+                      onClick={() => {
+                        setShowDeletionForm(true);
+                        setDeletionEmail("");
+                        setFeedback(null);
+                      }}
+                    >
+                      Iniciar exclusão
+                    </Button>
+                  </div>
+                ) : (
+                  <form className={styles.deletionForm} onSubmit={deleteAccount}>
+                    <div className={styles.deletionWarning} role="note">
+                      <strong>Antes de confirmar</strong>
+                      <span>
+                        Confira sua exportação. Depois da conclusão, você será desconectado e não poderá recuperar a conta pela aplicação.
+                      </span>
+                    </div>
+
+                    <FormField
+                      label="Confirme o e-mail da conta"
+                      htmlFor="account-deletion-email"
+                      hint={`Digite exatamente ${profile.email}.`}
+                    >
+                      <Input
+                        id="account-deletion-email"
+                        type="email"
+                        autoComplete="email"
+                        value={deletionEmail}
+                        required
+                        disabled={deletingAccount}
+                        onChange={(event) => setDeletionEmail(event.target.value)}
+                      />
+                    </FormField>
+
+                    {profile.accessMethods.credentials ? (
+                      <FormField
+                        label="Senha atual"
+                        htmlFor="account-deletion-password"
+                        hint="A senha é validada no servidor e não é armazenada novamente."
+                      >
+                        <Input
+                          id="account-deletion-password"
+                          type="password"
+                          autoComplete="current-password"
+                          value={deletionPassword}
+                          required
+                          maxLength={72}
+                          disabled={deletingAccount}
+                          onChange={(event) =>
+                            setDeletionPassword(event.target.value)
+                          }
+                        />
+                      </FormField>
+                    ) : (
+                      <p className={styles.oauthConfirmation}>
+                        Como esta conta usa Google, a exclusão exige um login realizado nos últimos 10 minutos.
+                      </p>
+                    )}
+
+                    <FormField
+                      label={`Digite ${ACCOUNT_DELETION_CONFIRMATION}`}
+                      htmlFor="account-deletion-confirmation"
+                      hint="A frase diferencia esta ação de um clique acidental."
+                    >
+                      <Input
+                        id="account-deletion-confirmation"
+                        value={deletionPhrase}
+                        required
+                        disabled={deletingAccount}
+                        onChange={(event) => setDeletionPhrase(event.target.value)}
+                      />
+                    </FormField>
+
+                    <label className={styles.retentionAcknowledgement}>
+                      <input
+                        type="checkbox"
+                        checked={acknowledgedBackupRetention}
+                        required
+                        disabled={deletingAccount}
+                        onChange={(event) =>
+                          setAcknowledgedBackupRetention(event.target.checked)
+                        }
+                      />
+                      <span>
+                        Entendo que backups externos criptografados podem manter cópias por até 30 dias, sem restauração automática da minha conta.
+                      </span>
+                    </label>
+
+                    <div className={styles.deletionActions}>
+                      <Button
+                        type="submit"
+                        variant="danger"
+                        isLoading={deletingAccount}
+                        loadingLabel="Excluindo..."
+                      >
+                        Excluir conta permanentemente
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        disabled={deletingAccount}
+                        onClick={() => {
+                          setShowDeletionForm(false);
+                          setDeletionEmail("");
+                          setDeletionPhrase("");
+                          setDeletionPassword("");
+                          setAcknowledgedBackupRetention(false);
+                          setFeedback(null);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                    </div>
+                  </form>
+                )}
               </Card>
             </div>
           </>

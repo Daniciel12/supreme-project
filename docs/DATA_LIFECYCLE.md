@@ -49,38 +49,63 @@ e cliente a três exportações por hora.
 | Categoria | Retenção técnica atual | Regra de lifecycle |
 | --- | --- | --- |
 | Arquivo de exportação | não é persistido | existe somente no dispositivo do usuário depois do download |
-| Dados ativos da conta | enquanto a conta existir | permanecem disponíveis até uma exclusão explícita futura |
+| Dados ativos da conta | enquanto a conta existir | são removidos após exclusão explícita e limpeza remota confirmada |
 | Tokens de recuperação | 60 minutos | expiração impede uso; confirmação ou novo pedido revoga o token anterior |
 | Tokens de verificação | 24 horas | expiração impede uso; confirmação ou novo pedido revoga o token anterior |
 | Sessões | até expiração, logout ou revogação | reset de senha invalida sessões anteriores pelo corte persistente |
 | Logs do container | rotação por tamanho, 10 MB × 5 | não devem conter senha, token, credencial ou payload completo de exportação |
 | Backups PostgreSQL | 30 dias | expiram pela política externa; restore permanece manual e controlado |
-| Arquivos UploadThing | enquanto houver registro válido | exclusão futura deve remover o arquivo ou registrar retentativa segura |
+| Arquivos UploadThing | enquanto houver registro válido com chave verificada | a exclusão remove o arquivo antes do registro; falhas preservam conta e referências para retentativa |
 
 A expiração lógica dos tokens já é aplicada nas rotas. Uma limpeza física
 periódica de tokens expirados deve fazer parte do job futuro de lifecycle; até
 lá, um token expirado pode permanecer armazenado como hash, mas não pode ser
 usado.
 
-## Exclusão de conta — contrato antes da implementação
+## Exclusão de conta
 
-A exclusão ainda não está disponível. Sua implementação deve cumprir todos os
-gates abaixo antes de aparecer na interface:
+`DELETE /api/account` deriva o usuário exclusivamente da sessão e exige o
+e-mail exato, a frase `EXCLUIR MINHA CONTA` e ciência da retenção de backup.
+Contas Credentials também confirmam a senha atual. Contas somente Google
+exigem autenticação emitida nos últimos dez minutos. Em ambos os métodos, isso
+constitui a confirmação recente da identidade antes da operação destrutiva.
 
-1. exigir sessão válida e confirmação recente da identidade;
-2. explicar claramente os dados afetados e oferecer exportação antes da ação;
-3. impedir que o cliente escolha outro `userId`;
-4. invalidar sessões antes de iniciar a remoção;
-5. remover dados relacionais em transação controlada, sem migration destrutiva;
-6. remover arquivos UploadThing com retentativa idempotente;
-7. não reativar dados apagados durante um restore de disaster recovery;
-8. informar que cópias em backup desaparecem pela retenção externa de 30 dias;
-9. produzir apenas evidência operacional mínima, sem manter conteúdo pessoal;
-10. validar isolamento com duas contas e executar o smoke completo.
+A operação usa duas fases recuperáveis:
 
-Falha na limpeza de um arquivo remoto não pode restaurar a conta nem deixar a
-operação em estado ambíguo. O desenho final deve adotar uma fila ou estado de
-retentativa antes que a exclusão seja liberada em produção.
+O objetivo da fase externa é remover arquivos UploadThing com retentativa idempotente,
+usando somente chaves verificadas pelo callback do provider.
+
+1. bloqueia o usuário em transação, revoga sessões e grava um pedido
+   `PENDING_REMOTE_CLEANUP` com o inventário de chaves UploadThing comprovadas
+   pelo callback do provider;
+2. remove os arquivos reconhecidos no provider, volta a bloquear o usuário,
+   verifica se surgiu algum arquivo novo e só então apaga o usuário e suas
+   relações por cascata;
+3. preserva um registro técnico `COMPLETED`, sem `userId` nem conteúdo pessoal,
+   com apenas um hash irreversível do identificador interno para correlacionar
+   callbacks tardios e distinguir conclusão de estado parcial.
+
+Se o provider falhar, a conta e suas referências permanecem no banco e o
+pedido continua pendente para nova tentativa. As sessões emitidas antes do
+pedido deixam de valer. Um novo login permite repetir a operação, mas uploads
+ficam bloqueados enquanto a limpeza estiver pendente. O callback de upload usa
+o mesmo bloqueio do usuário: um arquivo simultâneo entra no inventário ou é
+apagado sem criar referência no PostgreSQL.
+
+Se um callback chegar depois da remoção do usuário, o hash técnico localiza o
+pedido concluído. A chave verificada é persistida antes da nova tentativa de
+limpeza; assim, uma indisponibilidade do provider não transforma o arquivo em
+um órfão sem rastreio.
+
+URLs fornecidas pelo cliente não provam propriedade e nunca são convertidas em
+chaves de exclusão. Arquivos legados sem chave verificada exigem reconciliação
+operacional separada e não bloqueiam a remoção dos dados ativos da conta.
+
+O fluxo não restaura dados e nunca executa restore sobre produção. Backups
+externos criptografados podem manter cópias por até 30 dias conforme a política
+operacional; expiração e restores controlados devem respeitar pedidos de
+exclusão concluídos. O procedimento de implantação e validação está em
+[ACCOUNT_DELETION.md](ACCOUNT_DELETION.md).
 
 ## Alteração de e-mail — contrato separado
 

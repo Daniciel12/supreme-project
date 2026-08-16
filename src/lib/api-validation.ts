@@ -165,6 +165,18 @@ export const updateAccountProfilePayloadSchema = z.strictObject({
   name: requiredText(100).refine((value) => value.length >= 2),
 });
 
+export const accountDeletionPayloadSchema = z.strictObject({
+  email: z.string().trim().email().max(254),
+  confirmation: z.literal("EXCLUIR MINHA CONTA"),
+  acknowledgedBackupRetention: z.literal(true),
+  password: z
+    .string()
+    .min(1)
+    .max(72)
+    .refine((value) => new TextEncoder().encode(value).length <= 72)
+    .optional(),
+});
+
 export const confirmEmailVerificationPayloadSchema = z.strictObject({
   token: z.string().regex(/^[A-Za-z0-9_-]{43}$/),
 });
