@@ -1,6 +1,6 @@
 # Supreme — Roadmap oficial
 
-**Atualizado em:** 16/08/2026
+**Atualizado em:** 17/08/2026
 
 **Fonte de verdade:** este documento + issues/PRs do GitHub.
 
@@ -30,7 +30,7 @@ colisão case-insensitive, token de uso único, limpeza das contas descartáveis
 smoke operacional posterior.
 
 **Próximos passos:**
-1. iniciar a abstração de provider para Open Finance;
+1. modelar a persistência aditiva de conexão e consentimento Open Finance;
 2. preparar a política pública de privacidade para operação comercial;
 3. planejar a limpeza física periódica de tokens expirados.
 
@@ -175,7 +175,10 @@ somente no servidor e o account linking implícito está bloqueado.
 
 ## ⏳ 11. Open Finance
 
-- [ ] abstração de provider;
+- [x] abstração de provider;
+  - [x] contratos vendor-neutral para consentimento, conexão, contas e transações;
+  - [x] validação em runtime, erros sanitizados, paginação e chave idempotente;
+  - [x] limites de segurança documentados sem vendor, credencial ou dado real;
 - [ ] consentimento;
 - [ ] integração bancária brasileira;
 - [ ] sincronização e webhooks;
