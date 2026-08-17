@@ -128,6 +128,7 @@ A direção de produção do Supreme é uma VPS Linux com Docker. O repositório
 - `docs/APP_MONITORING.md`: ativação, alertas de falha/ausência e desativação segura.
 - `docs/EMAIL_VERIFICATION.md`: configuração SMTP, ativação e validação controlada do fluxo de verificação.
 - `docs/EMAIL_CHANGE.md`: troca de e-mail com confirmação de identidade, aviso no endereço anterior e revogação de sessões.
+- `docs/OPEN_FINANCE_PROVIDER.md`: contrato vendor-neutral, idempotência e limites de segurança para futuros adapters.
 
 ### Preparar o ambiente
 
